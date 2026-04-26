@@ -5,7 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#0a0a0a">
+<meta name="theme-color" content="#c9a227">
+<meta name="apple-mobile-web-app-title" content="Road Eagles">
+<meta name="mobile-web-app-capable" content="yes">
 <title>Road Eagles MC Thailand</title>
 <style>
 :root{--bg:#0a0a0a;--sf:#141414;--sf2:#1c1c1c;--sf3:#242424;--bd:#2a2a2a;--gold:#c9a227;--gl:#e8c547;--gd:#7a5f10;--red:#c0392b;--rl:#e74c3c;--grn:#27ae60;--grnl:#2ecc71;--blu:#2980b9;--blul:#3498db;--txt:#f0f0f0;--muted:#888;--dim:#444;--club:#1e3a5f;--charity:#1e3d1e;--warn:#e67e22}
@@ -896,6 +898,40 @@ function settleTab(){
 }
 
 loadSettings();
+</script>
+
+<script>
+// Inject PWA web app manifest from embedded logo at runtime
+window.addEventListener('load', function() {
+  try {
+    var icon = document.getElementById('llogo').src;
+    var manifest = JSON.stringify({
+      name: 'Road Eagles MC Thailand',
+      short_name: 'Road Eagles',
+      description: 'Road Eagles MC Thailand Club Management',
+      start_url: './',
+      scope: './',
+      display: 'standalone',
+      background_color: '#0a0a0a',
+      theme_color: '#c9a227',
+      orientation: 'portrait-primary',
+      icons: [
+        { src: icon, sizes: '480x480', type: 'image/png', purpose: 'any maskable' }
+      ]
+    });
+    var blob = new Blob([manifest], { type: 'application/manifest+json' });
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement('link');
+    link.rel = 'manifest';
+    link.href = url;
+    document.head.appendChild(link);
+    // Also set apple-touch-icon dynamically for iOS
+    var al = document.createElement('link');
+    al.rel = 'apple-touch-icon';
+    al.href = icon;
+    document.head.appendChild(al);
+  } catch(e) {}
+});
 </script>
 </body>
 </html>
