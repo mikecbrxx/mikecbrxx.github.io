@@ -210,7 +210,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
     </div>
 
     <div class="scr" id="scr-members">
-      <div class="notice">&#128203; 2026 fee: <strong>&#3647;<span id="fee-d">2,000</span></strong> &middot; Pro-rated by joining quarter</div>
+      <div class="notice">&#128203; 2026 fee: <strong>&#3647;<span id="fee-d">2,000</span></strong> &middot; Full fee if joined before 2026 &middot; Pro-rated for new joiners</div>
       <div class="sw"><input type="text" id="mems" placeholder="Search members&#8230;" oninput="renderMembers()"></div>
       <div class="tabs" id="mem-tabs">
         <button class="tab on" onclick="setMTab(this,'all')">All</button>
@@ -530,6 +530,8 @@ if(!D.colours)D.colours=[...DEF_COLS];if(!D.tabs)D.tabs=[];
 if(!D.stock)D.stock={};
 if(D.lowStockThreshold===undefined)D.lowStockThreshold=5;
 D.products.forEach(p=>{if(p.archived===undefined)p.archived=false;p.variants.forEach(v=>{if(!v.id)v.id='v'+Math.random().toString(36).slice(2,8);});});
+// Load Supabase credentials from dedicated key (survives data wipe, shared across devices via URL)
+(function(){var sc=localStorage.getItem('remct_sync');if(sc){var s=JSON.parse(sc);if(s.url)D.supabaseUrl=s.url;if(s.key)D.supabaseKey=s.key;}})();
 
 let CU=null,PIN='';
 let LF='all',MF='all',RF='all',STF='all',MV='catalogue';
@@ -572,6 +574,10 @@ function loadFromSupabase(cb){
         D=remoteData;
         D.supabaseUrl=url;
         D.supabaseKey=key;
+        if(!D.colours)D.colours=[...DEF_COLS];
+        if(!D.tabs)D.tabs=[];
+        if(!D.stock)D.stock={};
+        if(D.lowStockThreshold===undefined)D.lowStockThreshold=5;
         localStorage.setItem('remct4',JSON.stringify(D));
         if(cb)cb(true);
       } else {
@@ -711,10 +717,10 @@ function renderMembers(){
     const init=m.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
     const sc={paid:'paid',unpaid:'unpaid',prospect:'prospect'};
     const sl={paid:'Fee Paid &#10003;',unpaid:'Fee Unpaid &#9888;&#65039;',prospect:'Prospect'};
-    return`<div class="mc"><div class="mav">${init}</div><div class="min"><div class="mn">${m.name}</div><div class="mr">${RL[m.role]||m.role}</div>${m.status!=='prospect'?`<div style="font-size:11px;color:var(--muted);margin-top:2px">2026 fee: ${thb(calcFee(m.joinDate))}</div>`:''}</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><span class="ms ${sc[m.status]||'prospect'}">${sl[m.status]||m.status}</span>${m.status==='unpaid'?`<button style="font-size:10px;background:none;border:1px solid var(--grn);color:var(--grnl);border-radius:20px;padding:3px 8px;cursor:pointer" onclick="markPaid('${m.id}')">Mark Paid</button>`:''}${CU&&CU.role==='admin'?`<button style="font-size:10px;background:none;border:1px solid var(--bd);color:var(--muted);border-radius:20px;padding:3px 8px;cursor:pointer" onclick="editMem('${m.id}')">Edit</button>`:''}</div></div>`;
+    return`<div class="mc"><div class="mav">${init}</div><div class="min"><div class="mn">${m.name}</div><div class="mr">${RL[m.role]||m.role}</div>${m.status!=='prospect'?`<div style="font-size:11px;color:var(--muted);margin-top:2px">${new Date().getFullYear()} fee: ${thb(calcFee(m.joinDate))}</div>`:''}</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><span class="ms ${sc[m.status]||'prospect'}">${sl[m.status]||m.status}</span>${m.status==='unpaid'?`<button style="font-size:10px;background:none;border:1px solid var(--grn);color:var(--grnl);border-radius:20px;padding:3px 8px;cursor:pointer" onclick="markPaid('${m.id}')">Mark Paid</button>`:''}${CU&&CU.role==='admin'?`<button style="font-size:10px;background:none;border:1px solid var(--bd);color:var(--muted);border-radius:20px;padding:3px 8px;cursor:pointer" onclick="editMem('${m.id}')">Edit</button>`:''}</div></div>`;
   }).join('')||'<div class="empty"><div class="ei">&#128101;</div>No members match</div>';
 }
-function markPaid(id){const m=D.members.find(x=>x.id===id);if(!m)return;m.status='paid';D.transactions.push({id:uid(),account:'club',direction:'in',category:'membership_fee',amount:calcFee(m.joinDate),description:`Membership fee &#8211; ${m.name} (2026)`,supplier:'',ref:'',date:nd(),created:ni(),notes:'',enteredBy:CU.name});save();renderAll();}
+function markPaid(id){const m=D.members.find(x=>x.id===id);if(!m)return;m.status='paid';D.transactions.push({id:uid(),account:'club',direction:'in',category:'membership_fee',amount:calcFee(m.joinDate),description:`Membership fee – ${m.name} (${new Date().getFullYear()})`,supplier:'',ref:'',date:nd(),created:ni(),notes:'',enteredBy:CU.name});save();renderAll();}
 function editMem(id){const m=D.members.find(x=>x.id===id);if(!m)return;document.getElementById('mo-mem-t').textContent='Edit Member';document.getElementById('mem-id').value=id;document.getElementById('mem-name').value=m.name;document.getElementById('mem-role').value=m.role;document.getElementById('mem-status').value=m.status;document.getElementById('mem-join').value=m.joinDate||'';document.getElementById('mem-phone').value=m.phone||'';document.getElementById('mem-notes').value=m.notes||'';document.getElementById('mem-del').style.display='';openM('mo-member');}
 function deleteMember(){const id=document.getElementById('mem-id').value;if(!id||!CU||CU.role!=='admin')return;if(!confirm('Delete member?'))return;D.members=D.members.filter(m=>m.id!==id);save();closeM('mo-member');renderMembers();}
 
@@ -892,11 +898,12 @@ function renderSettings(){
     p.variants.forEach(v=>{
       const lbl=`${p.name} &#8211; ${v.name}`;
       const szs=p.hasSizes?SIZES:[null];
+      const pcolsInit=prodColours(p);
       szs.forEach(sz=>{
-        D.colours.forEach(c=>{
+        pcolsInit.forEach(c=>{
           const k=skey(p.id,v.id,sz,c.name);
           const cur=(D.stock[k]||{}).initial||0;
-          const rowLbl=[sz,c.name].filter(Boolean).join(', ');
+          const rowLbl=[sz,c.name].filter(Boolean).join(', ')||'(all)';
           shtml+=`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bd)">
             <div style="flex:1;font-size:11px">${lbl} &mdash; ${rowLbl}</div>
             <input type="number" value="${cur}" min="0" data-pid="${p.id}" data-vid="${v.id}" data-sz="${sz||''}" data-col="${c.name}" style="width:60px;padding:6px 8px;font-size:13px;text-align:center" onchange="setIS(this)">
@@ -923,10 +930,17 @@ function saveSync(){
   var key=document.getElementById('set-sk').value.trim();
   if(!url||!key){alert('Please enter both the Project URL and Anon Key.');return;}
   D.supabaseUrl=url;D.supabaseKey=key;
+  // Save credentials to dedicated key so they persist even if D is replaced by sync
+  localStorage.setItem('remct_sync',JSON.stringify({url:url,key:key}));
   save();
   loadFromSupabase(function(reloaded){
-    if(reloaded){loadSettings();renderAll();alert('Sync OK - data loaded from Supabase.');}
-    else{alert('Sync OK - data saved to Supabase.');}
+    if(reloaded){
+      // Re-inject creds after remote data replaces D
+      D.supabaseUrl=url;D.supabaseKey=key;
+      loadSettings();renderAll();alert('Sync OK - latest data loaded from Supabase.');
+    } else {
+      alert('Sync OK - your data has been saved to Supabase.');
+    }
   });
 }
 function addColour(){const name=document.getElementById('new-colour').value.trim();const hex=document.getElementById('new-colour-hex').value;if(!name)return;if(!D.colours.find(c=>c.name===name))D.colours.push({name,hex});document.getElementById('new-colour').value='';save();renderSettings();}
