@@ -411,9 +411,9 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
     <label>Payment</label>
     <div class="tg"><button class="tgb tin" id="pay-now" onclick="selPayment('paid')">&#128176; Paid Now</button><button class="tgb" id="pay-tab" onclick="selPayment('tab')">&#128203; Put on Tab</button></div>
   </div>
-  <div class="fg" id="sale-member-g">
-    <label id="sale-member-lbl">Member / Officer</label>
-    <select id="sale-tab-member"><option value="">— Walk-in / Visitor —</option></select>
+  <div class="fg" id="sale-tab-member-g" style="display:none">
+    <label>Allocate to Member / Officer</label>
+    <select id="sale-tab-member"></select>
   </div>
   <button class="btn btn-gold" onclick="saveSale()">Record Sale</button>
 </div></div>
@@ -543,7 +543,7 @@ if(!D)D=def();
 if(!D.colours)D.colours=[...DEF_COLS];if(!D.tabs)D.tabs=[];
 if(!D.stock)D.stock={};
 if(D.lowStockThreshold===undefined)D.lowStockThreshold=5;
-D.products.forEach(p=>{if(p.archived===undefined)p.archived=false;if(p.memberOnly===undefined)p.memberOnly=false;p.variants.forEach(v=>{if(!v.id)v.id='v'+Math.random().toString(36).slice(2,8);});});
+D.products.forEach(p=>{if(p.archived===undefined)p.archived=false;p.variants.forEach(v=>{if(!v.id)v.id='v'+Math.random().toString(36).slice(2,8);});});
 // Load Supabase credentials from dedicated key (survives data wipe, shared across devices via URL)
 (function(){var sc=localStorage.getItem('remct_sync');if(sc){var s=JSON.parse(sc);if(s.url)D.supabaseUrl=s.url;if(s.key)D.supabaseKey=s.key;}})();
 
@@ -830,7 +830,7 @@ function renderMerch(){
           } else {
             prodColours(p).forEach(function(c){totalQ+=getStock(p.id,v.id,null,c.name);});
           }
-          const q=totalQ;const st=stSt(q);const stl={ok:'In Stock',low:'Low Stock',out:'Out of Stock'};return`<div class="vrow"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span class="vn">${v.name}</span><span class="pill ${st==='ok'?'':st}" style="cursor:pointer" onclick="setMV('stock')">${stl[st]} &#8250;</span></div><div class="pps"><div class="pp">Member <span class="pv">${thb(v.memberPrice)}</span></div><div class="pp">Visitor <span class="pv">${p.memberOnly?thb(0):thb(v.visitorPrice)}</span></div><div class="pp">Cost <span class="pv">${thb(v.production)}</span></div><div class="pp">Margin <span class="pv" style="color:var(--grnl)">${thb(v.memberPrice-v.production)}</span></div></div></div>`;}).join('')}</div></div>`;
+          const q=totalQ;const st=stSt(q);const stl={ok:'In Stock',low:'Low Stock',out:'Out of Stock'};return`<div class="vrow"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span class="vn">${v.name}</span><span class="pill ${st==='ok'?'':st}" style="cursor:pointer" onclick="setMV('stock')">${stl[st]} &#8250;</span></div><div class="pps"><div class="pp">Member <span class="pv">${thb(v.memberPrice)}</span></div><div class="pp">Visitor <span class="pv">${thb(v.visitorPrice)}</span></div><div class="pp">Cost <span class="pv">${thb(v.production)}</span></div><div class="pp">Margin <span class="pv" style="color:var(--grnl)">${thb(v.memberPrice-v.production)}</span></div></div></div>`;}).join('')}</div></div>`;
   }
   let html=active.map(pc).join('');
   if(archived.length)html+=`<div style="font-size:11px;color:var(--muted);margin:14px 0 8px;text-transform:uppercase;letter-spacing:1px">Archived</div>`+archived.map(pc).join('');
@@ -896,11 +896,11 @@ function saveTx(){const amt=parseFloat(document.getElementById('tx-amt').value)|
 
 // Sale Modal
 let _cu='member';
-function openSaleModal(){closeM('mo-fab');_cu='member';selCust('member');selPayment('paid');document.getElementById('sale-date').value=nd();document.getElementById('sale-qty').value=1;document.getElementById('sale-notes').value='';document.getElementById('sale-stock-info').style.display='none';const cs=document.getElementById('sale-colour');cs.innerHTML=D.colours.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');const bk=[...cs.options].find(o=>o.value==='Black');if(bk)cs.value='Black';document.getElementById('sale-prod').innerHTML=D.products.filter(p=>!p.archived).sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${p.id}">${p.name}</option>`).join('');// populate member list for tab
+function openSaleModal(){closeM('mo-fab');_cu='member';selCust('member');selPayment('paid');document.getElementById('sale-date').value=nd();document.getElementById('sale-qty').value=1;document.getElementById('sale-notes').value='';document.getElementById('sale-stock-info').style.display='none';const cs=document.getElementById('sale-colour');cs.innerHTML=D.colours.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');const bk=[...cs.options].find(o=>o.value==='Black');if(bk)cs.value='Black';document.getElementById('sale-prod').innerHTML=D.products.filter(p=>!p.archived).map(p=>`<option value="${p.id}">${p.name}</option>`).join('');// populate member list for tab
 const memSel=document.getElementById('sale-tab-member');memSel.innerHTML=D.members.filter(m=>m.status!=='prospect').map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
 updateSaleVars();openM('mo-sale');}
 let _payMode='paid';
-function selPayment(m){_payMode=m;document.getElementById('pay-now').className='tgb'+(m==='paid'?' tin':'');document.getElementById('pay-tab').className='tgb'+(m==='tab'?' tout':'');}
+function selPayment(m){_payMode=m;document.getElementById('pay-now').className='tgb'+(m==='paid'?' tin':'');document.getElementById('pay-tab').className='tgb'+(m==='tab'?' tout':'');document.getElementById('sale-tab-member-g').style.display=m==='tab'?'':'none';}
 function updateSaleVars(){
   const p=D.products.find(x=>x.id===document.getElementById('sale-prod').value);if(!p)return;
   document.getElementById('sale-var').innerHTML=p.variants.map((v,i)=>`<option value="${i}">${v.name}</option>`).join('');
@@ -918,9 +918,6 @@ function updateSaleVars(){
   }
   const colRow=document.getElementById('sale-colour-row');
   if(colRow)colRow.style.display=isSingleColour(p)?'none':'';
-  // Member selector: mandatory for memberOnly, optional for others
-  const memLbl=document.getElementById('sale-member-lbl');
-  if(memLbl)memLbl.textContent=p.memberOnly?'Member / Officer (required)':'Member / Officer (optional)';
   updateSalePrice();updateSaleStock();
 }
 function updateSaleVarChange(){updateSalePrice();updateSaleStock();}
@@ -940,16 +937,12 @@ function saveSale(){
   const saleDate=document.getElementById('sale-date').value;
   const notes=document.getElementById('sale-notes').value.trim();
   const colDesc=col?', '+col:'';
-  const selMemId=document.getElementById('sale-tab-member').value;
-  const selMem=selMemId?D.members.find(m=>m.id===selMemId):null;
-  if(p.memberOnly&&!selMemId){alert('Please select the member purchasing this item.');return;}
-  const memberLabel=selMem?' – '+selMem.name:'';
-  const desc=`${p.name} &#8211; ${v.name}${sz?' ('+sz+')':''}${colDesc} &#215;${qty} (${_cu}${memberLabel})`;
+  const desc=`${p.name} &#8211; ${v.name}${sz?' ('+sz+')':''}${colDesc} &#215;${qty} (${_cu})`;
   adjStock(p.id,v.id,sz,col,qty,'sold');
   if(_payMode==='tab'){
     // Tab sale — stock deducted, income NOT counted until paid
-    const memberId=selMemId;
-    const member=selMem;
+    const memberId=document.getElementById('sale-tab-member').value;
+    const member=D.members.find(m=>m.id===memberId);
     if(!D.tabs)D.tabs=[];
     D.tabs.push({id:uid(),memberId,memberName:member?member.name:'Unknown',description:desc,amount:pr*qty,date:saleDate,created:ni(),enteredBy:CU.name,settled:false,settledDate:null,settledNotes:'',productId:p.id,variantId:v.id,qty,unitPrice:pr,customerType:_cu,colour:col,size:sz,notes});
   } else {
@@ -959,11 +952,11 @@ function saveSale(){
 }
 
 // Order Modal
-function openOrderModal(){closeM('mo-fab');document.getElementById('ord-date').value=nd();['ord-ref','ord-notes','ord-sup'].forEach(id=>document.getElementById(id).value='');document.getElementById('ord-qty').value=1;document.getElementById('ord-total').innerHTML='&#3647;0';const cs=document.getElementById('ord-colour');cs.innerHTML=D.colours.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');const bk=[...cs.options].find(o=>o.value==='Black');if(bk)cs.value='Black';document.getElementById('ord-sup-dl').innerHTML=D.suppliers.map(s=>`<option value="${s}">`).join('');document.getElementById('ord-prod').innerHTML=D.products.filter(p=>!p.archived).sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${p.id}">${p.name}</option>`).join('');updateOrdVars();openM('mo-order');}
+function openOrderModal(){closeM('mo-fab');document.getElementById('ord-date').value=nd();['ord-ref','ord-notes','ord-sup'].forEach(id=>document.getElementById(id).value='');document.getElementById('ord-qty').value=1;document.getElementById('ord-total').innerHTML='&#3647;0';const cs=document.getElementById('ord-colour');cs.innerHTML=D.colours.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');const bk=[...cs.options].find(o=>o.value==='Black');if(bk)cs.value='Black';document.getElementById('ord-sup-dl').innerHTML=D.suppliers.map(s=>`<option value="${s}">`).join('');document.getElementById('ord-prod').innerHTML=D.products.filter(p=>!p.archived).map(p=>`<option value="${p.id}">${p.name}</option>`).join('');updateOrdVars();openM('mo-order');}
 function updateOrdVars(){const p=D.products.find(x=>x.id===document.getElementById('ord-prod').value);if(!p)return;document.getElementById('ord-var').innerHTML=p.variants.map((v,i)=>`<option value="${i}">${v.name}</option>`).join('');updateOrdVarChange();}
 function updateOrdVarChange(){const p=D.products.find(x=>x.id===document.getElementById('ord-prod').value);if(!p)return;document.getElementById('ord-sz-g').style.display=p.hasSizes?'':'none';if(p.hasSizes)document.getElementById('ord-size').innerHTML=SIZES.map(s=>`<option>${s}</option>`).join('');const vi=parseInt(document.getElementById('ord-var').value)||0;const v=p.variants[vi];if(v)document.getElementById('ord-cost').value=v.production||0;const ordColRow=document.getElementById('ord-colour-row');if(ordColRow)ordColRow.style.display=isSingleColour(p)?'none':'';updOrdTotal();}
 function updOrdTotal(){document.getElementById('ord-total').innerHTML=thb((parseInt(document.getElementById('ord-qty').value)||0)*(parseFloat(document.getElementById('ord-cost').value)||0));}
-function saveOrder(){const p=D.products.find(x=>x.id===document.getElementById('ord-prod').value);if(!p){alert('Select a product');return;}const vi=parseInt(document.getElementById('ord-var').value)||0;const v=p.variants[vi];const qty=parseInt(document.getElementById('ord-qty').value)||0;if(qty<=0){alert('Quantity must be at least 1');return;}const cost=parseFloat(document.getElementById('ord-cost').value)||0;const sz=p.hasSizes?document.getElementById('ord-size').value:null;const rawOrdCol=document.getElementById('ord-colour').value;const col=stockCol(p,rawOrdCol);const sup=document.getElementById('ord-sup').value.trim();if(sup&&!D.suppliers.includes(sup))D.suppliers.push(sup);adjStock(p.id,v.id,sz,col,qty,'ordered');D.transactions.push({id:uid(),account:'club',direction:'out',category:'stock_order',amount:cost*qty,description:`Stock order: ${p.name} &#8211; ${v.name}${sz?' ('+sz+')':''}${col?', '+col:''} &#215;${qty}`,supplier:sup,ref:document.getElementById('ord-ref').value.trim(),date:document.getElementById('ord-date').value,created:ni(),notes:document.getElementById('ord-notes').value.trim(),enteredBy:CU.name,productId:p.id,variantId:v.id,qty,unitCost:cost,colour:col,size:sz});save();closeM('mo-order');renderAll();}
+function saveOrder(){const p=D.products.find(x=>x.id===document.getElementById('ord-prod').value);if(!p){alert('Select a product');return;}const vi=parseInt(document.getElementById('ord-var').value)||0;const v=p.variants[vi];const qty=parseInt(document.getElementById('ord-qty').value)||0;if(qty<=0){alert('Quantity must be at least 1');return;}const cost=parseFloat(document.getElementById('ord-cost').value)||0;const sz=p.hasSizes?document.getElementById('ord-size').value:null;const col=document.getElementById('ord-colour').value;const sup=document.getElementById('ord-sup').value.trim();if(sup&&!D.suppliers.includes(sup))D.suppliers.push(sup);adjStock(p.id,v.id,sz,col,qty,'ordered');D.transactions.push({id:uid(),account:'club',direction:'out',category:'stock_order',amount:cost*qty,description:`Stock order: ${p.name} &#8211; ${v.name}${sz?' ('+sz+')':''}${col?', '+col:''} &#215;${qty}`,supplier:sup,ref:document.getElementById('ord-ref').value.trim(),date:document.getElementById('ord-date').value,created:ni(),notes:document.getElementById('ord-notes').value.trim(),enteredBy:CU.name,productId:p.id,variantId:v.id,qty,unitCost:cost,colour:col,size:sz});save();closeM('mo-order');renderAll();}
 
 // Member Modal
 function openMemberModal(){closeM('mo-fab');document.getElementById('mo-mem-t').textContent='Add Member / Prospect';document.getElementById('mem-id').value='';['mem-name','mem-phone','mem-notes'].forEach(id=>document.getElementById(id).value='');document.getElementById('mem-role').value='prospect';document.getElementById('mem-status').value='prospect';document.getElementById('mem-join').value=nd();document.getElementById('mem-del').style.display='none';openM('mo-member');}
