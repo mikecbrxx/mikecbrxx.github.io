@@ -544,8 +544,41 @@ if(!D.colours)D.colours=[...DEF_COLS];if(!D.tabs)D.tabs=[];
 if(!D.stock)D.stock={};
 if(D.lowStockThreshold===undefined)D.lowStockThreshold=5;
 D.products.forEach(p=>{if(p.archived===undefined)p.archived=false;if(p.memberOnly===undefined)p.memberOnly=false;p.variants.forEach(v=>{if(!v.id)v.id='v'+Math.random().toString(36).slice(2,8);});});
-// Load Supabase credentials from dedicated key (survives data wipe, shared across devices via URL)
+// Load Supabase credentials from dedicated key
 (function(){var sc=localStorage.getItem('remct_sync');if(sc){var s=JSON.parse(sc);if(s.url)D.supabaseUrl=s.url;if(s.key)D.supabaseKey=s.key;}})();
+
+// Pre-login Supabase fetch — runs immediately on app open
+// Populates D with real data before user enters PIN
+// so localStorage wipes don't cause data loss
+(function(){
+  var url=D.supabaseUrl&&D.supabaseUrl.trim();
+  var key=D.supabaseKey&&D.supabaseKey.trim();
+  if(!url||!key)return;
+  var base=url.charAt(url.length-1)==='/'?url.slice(0,-1):url;
+  fetch(base+'/rest/v1/club_data?id=eq.main&select=data,updated_at',{
+    method:'GET',headers:{'apikey':key,'Authorization':'Bearer '+key}
+  }).then(function(r){return r.ok?r.json():null;})
+  .then(function(rows){
+    if(!rows||!rows.length||!rows[0].data||!Object.keys(rows[0].data).length)return;
+    var remote=rows[0].data;
+    remote.supabaseUrl=url;
+    remote.supabaseKey=key;
+    if(!remote.colours)remote.colours=[...DEF_COLS];
+    if(!remote.tabs)remote.tabs=[];
+    if(!remote.stock)remote.stock={};
+    if(!remote.events)remote.events=[];
+    if(!remote.suppliers)remote.suppliers=[];
+    if(remote.lowStockThreshold===undefined)remote.lowStockThreshold=5;
+    remote.products.forEach(function(p){
+      if(p.archived===undefined)p.archived=false;
+      if(p.memberOnly===undefined)p.memberOnly=false;
+      p.variants.forEach(function(v){if(!v.id)v.id='v'+Math.random().toString(36).slice(2,8);});
+    });
+    D=remote;
+    localStorage.setItem('remct4',JSON.stringify(D));
+    console.log('Pre-login Supabase fetch: data loaded');
+  }).catch(function(e){console.warn('Pre-login fetch failed:',e.message);});
+})();
 
 let CU=null,PIN='';
 let LF='all',MF='all',RF='all',STF='all',MV='catalogue';
@@ -643,7 +676,13 @@ function loadFromSupabase(cb){
       if(!D.tabs)D.tabs=[];
       if(!D.stock)D.stock={};
       if(D.lowStockThreshold===undefined)D.lowStockThreshold=5;
-      D.products.forEach(function(p){if(p.archived===undefined)p.archived=false;});
+      if(!D.events)D.events=[];
+      if(!D.suppliers)D.suppliers=[];
+      D.products.forEach(function(p){
+        if(p.archived===undefined)p.archived=false;
+        if(p.memberOnly===undefined)p.memberOnly=false;
+        p.variants.forEach(function(v){if(!v.id)v.id='v'+Math.random().toString(36).slice(2,8);});
+      });
       localStorage.setItem('remct4',JSON.stringify(D));
       setDot('online');
       hideOffline();
@@ -653,7 +692,7 @@ function loadFromSupabase(cb){
       syncToSupabase();
       if(cb)cb(false);
     }
-  }).catch(function(e){console.warn('Load failed '+e.message);if(cb)cb(false);});
+  }).catch(function(e){console.warn('Supabase load failed: '+e.message);setDot('offline');if(cb)cb(false);});
 }
 
 // Stock helpers
@@ -674,23 +713,56 @@ function tryLogin(){
     document.getElementById('tdate').textContent=new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
     if(CU.role==='admin')['admin-settings','sync-settings','admin-merch','audit-btn'].forEach(id=>document.getElementById(id).style.display='');
     loadSettings();
-    // Always pull from Supabase on login
+    // Always pull from Supabase on login - it's the source of truth
     var url=D.supabaseUrl&&D.supabaseUrl.trim();
     var key=D.supabaseKey&&D.supabaseKey.trim();
-    if(url&&key){
+    if(url&&key&&navigator.onLine){
       document.getElementById('lerr').style.color='var(--gold)';
       document.getElementById('lerr').textContent='Connecting to Supabase…';
-      loadFromSupabase(function(reloaded){
+      var base=url.charAt(url.length-1)==='/'?url.slice(0,-1):url;
+      fetch(base+'/rest/v1/club_data?id=eq.main&select=data,updated_at',{
+        method:'GET',headers:{'apikey':key,'Authorization':'Bearer '+key}
+      }).then(function(r){
+        if(!r.ok)throw new Error('HTTP '+r.status);
+        return r.json();
+      }).then(function(rows){
         document.getElementById('lerr').textContent='';
-        if(reloaded){loadSettings();}
-        renderAll();
-        goTo('dash');
-        hideOffline();
-        if(!navigator.onLine)showOffline();
+        if(rows&&rows.length>0&&rows[0].data&&Object.keys(rows[0].data).length>0){
+          var remoteData=rows[0].data;
+          // Preserve credentials and migrate
+          remoteData.supabaseUrl=url;
+          remoteData.supabaseKey=key;
+          if(!remoteData.colours)remoteData.colours=[...DEF_COLS];
+          if(!remoteData.tabs)remoteData.tabs=[];
+          if(!remoteData.stock)remoteData.stock={};
+          if(!remoteData.events)remoteData.events=[];
+          if(!remoteData.suppliers)remoteData.suppliers=[];
+          if(remoteData.lowStockThreshold===undefined)remoteData.lowStockThreshold=5;
+          remoteData.products.forEach(function(p){
+            if(p.archived===undefined)p.archived=false;
+            if(p.memberOnly===undefined)p.memberOnly=false;
+            p.variants.forEach(function(v){if(!v.id)v.id='v'+Math.random().toString(36).slice(2,8);});
+          });
+          D=remoteData;
+          localStorage.setItem('remct4',JSON.stringify(D));
+          setDot('online');hideOffline();
+        } else {
+          // Remote empty - push local data up
+          setDot('online');hideOffline();
+          syncToSupabase();
+        }
+        loadSettings();renderAll();goTo('dash');
+      }).catch(function(e){
+        document.getElementById('lerr').textContent='';
+        console.warn('Supabase login fetch failed:',e.message);
+        setDot('offline');showOffline();
+        // Fall back to local data
+        renderAll();goTo('dash');
       });
     } else {
       renderAll();
       goTo('dash');
+      if(!navigator.onLine&&url&&key)showOffline();
     }
   }else{
     document.getElementById('lerr').textContent='Incorrect PIN &#8212; only Officers and Admin can log in';
@@ -1036,28 +1108,68 @@ function saveSync(){
   var url=document.getElementById('set-su').value.trim();
   var key=document.getElementById('set-sk').value.trim();
   if(!url||!key){alert('Please enter both the Project URL and Anon Key.');return;}
-  D.supabaseUrl=url;D.supabaseKey=key;
-  // Save credentials to dedicated key so they persist even if D is replaced by sync
+  // Save credentials immediately to dedicated key
   localStorage.setItem('remct_sync',JSON.stringify({url:url,key:key}));
-  save();
-  loadFromSupabase(function(reloaded){
-    if(reloaded){
-      // Re-inject creds after remote data replaces D
-      D.supabaseUrl=url;D.supabaseKey=key;
-      loadSettings();renderAll();alert('Sync OK - latest data loaded from Supabase.');
+  D.supabaseUrl=url;
+  D.supabaseKey=key;
+  // Step 1: Try to pull existing data from Supabase first
+  var base=url.charAt(url.length-1)==='/'?url.slice(0,-1):url;
+  fetch(base+'/rest/v1/club_data?id=eq.main&select=data,updated_at',{
+    method:'GET',
+    headers:{'apikey':key,'Authorization':'Bearer '+key}
+  }).then(function(r){
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    return r.json();
+  }).then(function(rows){
+    if(rows&&rows.length>0&&rows[0].data&&Object.keys(rows[0].data).length>0){
+      // Remote has real data — load it
+      var remoteData=rows[0].data;
+      D=remoteData;
+      D.supabaseUrl=url;
+      D.supabaseKey=key;
+      if(!D.colours)D.colours=[...DEF_COLS];
+      if(!D.tabs)D.tabs=[];
+      if(!D.stock)D.stock={};
+      if(!D.events)D.events=[];
+      if(!D.suppliers)D.suppliers=[];
+      if(D.lowStockThreshold===undefined)D.lowStockThreshold=5;
+      D.products.forEach(function(p){
+        if(p.archived===undefined)p.archived=false;
+        if(p.memberOnly===undefined)p.memberOnly=false;
+        p.variants.forEach(function(v){if(!v.id)v.id='v'+Math.random().toString(36).slice(2,8);});
+      });
+      localStorage.setItem('remct4',JSON.stringify(D));
+      loadSettings();renderAll();
+      setDot('online');
+      alert('Connected! Data loaded from Supabase.');
     } else {
-      alert('Sync OK - your data has been saved to Supabase.');
+      // Remote is empty — push local data up
+      save();
+      setDot('online');
+      alert('Connected! Your data has been saved to Supabase.');
     }
+  }).catch(function(e){
+    setDot('offline');
+    alert('Connection failed: '+e.message+'. Check your URL and Anon Key.');
   });
 }
 function manualSync(){
   if(!navigator.onLine){showOffline();return;}
   var sb=document.getElementById('sync-btn');
   if(sb){sb.textContent='...';sb.disabled=true;}
+  setDot('syncing');
   loadFromSupabase(function(reloaded){
     if(sb){sb.textContent='↻';sb.disabled=false;}
-    if(reloaded){renderAll();loadSettings();hideOffline();}
-    else{hideOffline();}
+    if(reloaded){
+      loadSettings();renderAll();
+      setDot('online');hideOffline();
+    } else {
+      // Nothing newer on remote - push our data up
+      syncToSupabase(function(ok){
+        setDot(ok?'online':'offline');
+        if(!ok)showOffline();
+      });
+    }
   });
 }
 function addColour(){const name=document.getElementById('new-colour').value.trim();const hex=document.getElementById('new-colour-hex').value;if(!name)return;if(!D.colours.find(c=>c.name===name))D.colours.push({name,hex});document.getElementById('new-colour').value='';save();renderSettings();}
