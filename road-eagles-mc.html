@@ -35,7 +35,7 @@ body{background:var(--bg);color:var(--txt);font-family:'Segoe UI',system-ui,sans
 .ib{background:none;border:1px solid var(--bd);color:var(--muted);padding:6px 10px;border-radius:8px;cursor:pointer;font-size:14px}
 .content{flex:1;padding:12px 12px 82px;overflow-y:auto}
 .scr{display:none}.scr.on{display:block}
-.bn{position:fixed;bottom:0;left:0;right:0;z-index:100;background:var(--sf);border-top:1px solid var(--bd);display:grid;grid-template-columns:repeat(5,1fr)}
+.bn{position:fixed;bottom:0;left:0;right:0;z-index:100;background:var(--sf);border-top:1px solid var(--bd);display:grid;grid-template-columns:repeat(6,1fr)}
 .nb{display:flex;flex-direction:column;align-items:center;padding:8px 4px 6px;cursor:pointer;border:none;background:none;color:var(--muted);font-size:9px;gap:3px}.nb .ni{font-size:19px;line-height:1}.nb.on{color:var(--gold)}.nb:active{opacity:.7}
 .fab{position:fixed;right:16px;bottom:74px;z-index:99;width:52px;height:52px;border-radius:50%;background:var(--gold);color:#000;border:none;font-size:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 24px rgba(201,162,39,.5);font-weight:700}.fab:active{transform:scale(.93)}
 .balbar{background:linear-gradient(135deg,#1a1200,#0d0800);border:1px solid var(--gd);border-radius:14px;padding:16px;margin-bottom:12px}
@@ -136,6 +136,12 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .sw::before{content:'🔍';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none}
 .sect-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;margin-top:4px}
 .vi{background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:10px 12px;margin-bottom:8px}
+.tab-card{background:var(--sf2);border:1px solid var(--bd);border-radius:12px;padding:13px;margin-bottom:8px}
+.tab-card.owed{border-left:3px solid var(--warn)}
+.tab-card.due{border-left:3px solid var(--rl)}
+.tbbadge{display:inline-block;font-size:9px;padding:2px 8px;border-radius:20px;font-weight:600;text-transform:uppercase}
+.tbbadge.in{background:rgba(39,174,96,.12);color:var(--grnl);border:1px solid var(--grn)}
+.tbbadge.out{background:rgba(192,57,43,.12);color:var(--rl);border:1px solid var(--red)}
 .vi-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:13px;font-weight:600}
 .tab-card{background:var(--sf2);border:1px solid var(--bd);border-radius:12px;padding:13px;margin-bottom:8px}
 .tab-card.settled{opacity:.5;border-style:dashed}
@@ -187,10 +193,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
         <div class="scard"><div class="slbl">Month Expense</div><div class="sval r" id="db-out">&#3647;0</div></div>
       </div>
       <div class="sgrid">
-        <div class="scard"><div class="slbl">Fees Collected</div><div class="sval gold" id="db-fees">&#3647;0</div></div>
         <div class="scard"><div class="slbl">Fees Outstanding</div><div class="sval r" id="db-fees-due">&#3647;0</div></div>
-      </div>
-      <div class="sgrid">
         <div class="scard"><div class="slbl">Merch Sales</div><div class="sval g" id="db-merch">&#3647;0</div></div>
       </div>
       <div class="sgrid">
@@ -208,7 +211,8 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
     <div class="scr" id="scr-ledger">
       <div class="sw"><input type="text" id="txs" placeholder="Search&#8230;" oninput="renderLedger()"></div>
       <div class="tabs" id="ledger-tabs">
-        <button class="tab on" onclick="setLTab(this,'all')">All</button>
+        <button class="tab on" onclick="setLTab(this,'paid')">Paid</button>
+        <button class="tab" onclick="setLTab(this,'all')">All</button>
         <button class="tab" onclick="setLTab(this,'club')">&#128693;&#65039; Club</button>
         <button class="tab" onclick="setLTab(this,'charity')">&#10084;&#65039; Charity</button>
         <button class="tab" onclick="setLTab(this,'in')">&#11014;&#65039; In</button>
@@ -273,7 +277,17 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
       <button class="btn btn-out" style="margin-top:10px" onclick="openEventModal()">+ Add Event</button>
     </div>
 
-    <div class="scr" id="scr-more">
+    <div class="scr" id="scr-tabs">
+  <div class="sh"><div class="stitle">&#128203; Tab Ledger</div><div id="tab-total-bar" style="font-size:12px;color:var(--muted)"></div></div>
+  <div class="tabs" id="tab-ledger-tabs">
+    <button class="tab on" onclick="setTabLTab(this,'all')">All</button>
+    <button class="tab" onclick="setTabLTab(this,'in')">&#11014;&#65039; Owed to Club</button>
+    <button class="tab" onclick="setTabLTab(this,'out')">&#11015;&#65039; Club Owes</button>
+    <button class="tab" onclick="setTabLTab(this,'merch')">&#128085;&#65039; Merch Tabs</button>
+  </div>
+  <div id="tab-ledger-list"><div class="empty"><div class="ei">&#128203;</div>No outstanding items</div></div>
+</div>
+<div class="scr" id="scr-more">
       <div class="stitle" style="margin-bottom:12px">Reports</div>
       <button class="rb" onclick="showReport('monthly')"><span class="rbi">&#128197;</span><div><div class="fml">Monthly Statement</div><div class="fms">Income &amp; expenses, both accounts</div></div></button>
       <button class="rb" onclick="showReport('annual')"><span class="rbi">&#128198;</span><div><div class="fml">Annual Summary</div><div class="fms">Full year, Club &amp; Charity</div></div></button>
@@ -284,6 +298,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
       <button class="rb" onclick="showReport('donations')"><span class="rbi">&#129309;</span><div><div class="fml">Donation Report</div><div class="fms">Charity in &amp; out by source/recipient</div></div></button>
       <button class="rb" onclick="showReport('suppliers')"><span class="rbi">&#127978;&#65039;</span><div><div class="fml">Purchase Ledger</div><div class="fms">By supplier and category</div></div></button>
       <button class="rb" onclick="showReport('cogs')"><span class="rbi">&#128208;</span><div><div class="fml">Cost of Goods</div><div class="fms">Production cost vs sale price, margins</div></div></button>
+      <button class="rb" onclick="showReport('meeting')"><span class="rbi">&#128101;</span><div><div class="fml">Club Meeting Report</div><div class="fms">Balances, income/expenditure, tabs, fees, stock</div></div></button>
       <button class="rb" onclick="showReport('analysis')"><span class="rbi">&#128202;</span><div><div class="fml">Analysis Report</div><div class="fms">Income &amp; outgoings by category, by month or year</div></div></button>
       <button class="rb" id="audit-btn" style="display:none" onclick="showReport('audit')"><span class="rbi">&#128269;</span><div><div class="fml">Audit Trail</div><div class="fms">All entries with user &amp; real timestamp</div></div></button>
       <div class="divider"></div>
@@ -366,6 +381,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
     <button class="nb" id="nb-ledger" onclick="goTo('ledger')"><span class="ni">&#128179;</span>Ledger</button>
     <button class="nb" id="nb-members" onclick="goTo('members')"><span class="ni">&#128101;</span>Members</button>
     <button class="nb" id="nb-merch" onclick="goTo('merch')"><span class="ni">&#128085;&#65039;</span>Merch</button>
+    <button class="nb" id="nb-tabs" onclick="goTo('tabs')"><span class="ni">&#128203;</span>Tabs</button>
     <button class="nb" id="nb-more" onclick="goTo('more')"><span class="ni">&#9881;&#65039;</span>More</button>
   </div>
 </div>
@@ -392,6 +408,10 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="fg"><label>Supplier / Source</label><input type="text" id="tx-sup" placeholder="Type or select&#8230;" list="sup-dl"><datalist id="sup-dl"></datalist></div>
   <div class="fg irow"><div><label>Ref / Invoice #</label><input type="text" id="tx-ref" placeholder="Invoice no."></div><div><label>Linked Event</label><select id="tx-ev"><option value="">&#8212; None &#8212;</option></select></div></div>
   <div class="fg"><label>Notes</label><textarea id="tx-notes" placeholder="Additional notes&#8230;"></textarea></div>
+  <div class="fg"><label>Payment Status</label>
+    <div class="tg"><button class="tgb tin" id="txpay-paid" onclick="selTxPay('paid')">&#128176; Paid / Received</button><button class="tgb" id="txpay-unpaid" onclick="selTxPay('unpaid')">&#128203; Unpaid / Committed</button></div></div>
+  <div class="fg" id="tx-resp-g" style="display:none"><label>Responsible Member (optional)</label>
+    <select id="tx-resp-member"><option value="">&#8212; Default to me &#8212;</option></select></div>
   <button class="btn btn-gold" onclick="saveTx()">Save Transaction</button>
 </div></div>
 
@@ -440,6 +460,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="fg"><label>Full Name</label><input type="text" id="mem-name" placeholder="Full name"></div>
   <div class="fg irow"><div><label>Role</label><select id="mem-role"><option value="prospect">Prospect</option><option value="member">Member</option><option value="treasurer">Treasurer</option><option value="vice_president">Vice President</option><option value="president">President</option></select></div><div><label>Status</label><select id="mem-status"><option value="prospect">Prospect</option><option value="unpaid">Unpaid</option><option value="paid">Paid</option></select></div></div>
   <div class="fg irow"><div><label>Join Date</label><input type="date" id="mem-join"></div><div><label>Phone</label><input type="tel" id="mem-phone"></div></div>
+  <div class="fg"><label>Email</label><input type="email" id="mem-email" placeholder="email@example.com"></div>
   <div class="fg"><label>Notes</label><input type="text" id="mem-notes" placeholder="Optional notes"></div>
   <button class="btn btn-gold" onclick="saveMember()">Save</button>
   <button class="btn btn-red" id="mem-del" style="display:none;margin-top:6px" onclick="deleteMember()">Delete Member</button>
@@ -447,7 +468,8 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 
 <!-- EVENT -->
 <div class="mo" id="mo-event"><div class="modal">
-  <div class="mh"><div class="mt">Add Event</div><button class="mc2" onclick="closeM('mo-event')">&#10005;</button></div>
+  <div class="mh"><div class="mt" id="mo-ev-t">Add Event</div><button class="mc2" onclick="closeM('mo-event')">&#10005;</button></div>
+  <input type="hidden" id="ev-id">
   <div class="fg"><label>Event Name</label><input type="text" id="ev-name" placeholder="e.g. Road Eagles Annual Party 2026"></div>
   <div class="fg irow"><div><label>Date</label><input type="date" id="ev-date"></div><div><label>Type</label><select id="ev-type"><option value="party">Annual Party</option><option value="ride">Ride</option><option value="fundraiser">Fundraiser</option><option value="other">Other</option></select></div></div>
   <div class="fg"><label>Venue</label><input type="text" id="ev-venue" placeholder="Venue name / location"></div>
@@ -533,17 +555,28 @@ function def(){return{
   ],
   stock:{},
   users:{'846464':{name:'Mike',role:'admin'},'111111':{name:'Dennis',role:'officer'},'222222':{name:'Brian',role:'officer'},'333333':{name:'Simon',role:'officer'}},
-  supabaseUrl:'',supabaseKey:''
+  supabaseUrl:'',supabaseKey:'',
+  auditLog:[]
 };}
 
 // Load, migrate from old keys
 let D=null;
 for(const k of['remct4','remct3','remct2']){const r=localStorage.getItem(k);if(r){D=JSON.parse(r);break;}}
 if(!D)D=def();
-if(!D.colours)D.colours=[...DEF_COLS];if(!D.tabs)D.tabs=[];
+if(!D.colours)D.colours=[...DEF_COLS];if(!D.tabs)D.tabs=[];if(!D.auditLog)D.auditLog=[];
+// Migrate existing transactions to have paid:true if missing
+D.transactions.forEach(function(t){if(t.paid===undefined)t.paid=true;if(!t.responsibleMemberId)t.responsibleMemberId='';});
 if(!D.stock)D.stock={};
 if(D.lowStockThreshold===undefined)D.lowStockThreshold=5;
-D.products.forEach(p=>{if(p.archived===undefined)p.archived=false;if(p.memberOnly===undefined)p.memberOnly=false;p.variants.forEach(v=>{if(!v.id)v.id='v'+Math.random().toString(36).slice(2,8);});});
+D.products.forEach(p=>{
+  if(p.archived===undefined)p.archived=false;
+  if(p.memberOnly===undefined){
+    // Default club products are memberOnly, support products are not
+    var clubNames=['Club Shirt','Trucker Hat','Stretch Hat','Club Trucker','Club Stretch'];
+    p.memberOnly=clubNames.some(function(n){return p.name.indexOf(n)>=0;});
+  }
+  p.variants.forEach(v=>{if(!v.id)v.id='v'+Math.random().toString(36).slice(2,8);});
+});
 // Load Supabase credentials from dedicated key
 (function(){var sc=localStorage.getItem('remct_sync');if(sc){var s=JSON.parse(sc);if(s.url)D.supabaseUrl=s.url;if(s.key)D.supabaseKey=s.key;}})();
 
@@ -581,7 +614,16 @@ D.products.forEach(p=>{if(p.archived===undefined)p.archived=false;if(p.memberOnl
 })();
 
 let CU=null,PIN='';
-let LF='all',MF='all',RF='all',STF='all',MV='catalogue';
+let LF='paid',MF='all',RF='all',STF='all',MV='catalogue',TLF='all';
+function audit(action, detail, before, after){
+  if(!D.auditLog)D.auditLog=[];
+  const entry={id:uid(),ts:ni(),user:CU?CU.name:'system',role:CU?CU.role:'',action,detail};
+  if(before!==undefined)entry.before=before;
+  if(after!==undefined)entry.after=after;
+  D.auditLog.push(entry);
+  // Keep audit log to last 2000 entries to avoid bloat
+  if(D.auditLog.length>2000)D.auditLog=D.auditLog.slice(-2000);
+}
 function save(){
   D.updated_at=new Date().toISOString();
   localStorage.setItem('remct4',JSON.stringify(D));
@@ -706,12 +748,13 @@ function pd(){PIN=PIN.slice(0,-1);dots();}
 function dots(){for(let i=0;i<6;i++)document.getElementById('d'+i).classList.toggle('on',i<PIN.length);}
 function tryLogin(){
   if(D.users[PIN]&&['officer','admin'].includes(D.users[PIN].role)){
-    CU={...D.users[PIN],pin:PIN};
+    CU={...D.users[PIN],pin:PIN};audit('LOGIN','User logged in');
     document.getElementById('ls').style.display='none';
     document.getElementById('app').style.display='flex';
     document.getElementById('tuser').textContent=CU.name+(CU.role==='admin'?' [A]':'');
     document.getElementById('tdate').textContent=new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
     if(CU.role==='admin')['admin-settings','sync-settings','admin-merch','audit-btn'].forEach(id=>document.getElementById(id).style.display='');
+    checkAnnualFeeReset();
     loadSettings();
     // Always pull from Supabase on login - it's the source of truth
     var url=D.supabaseUrl&&D.supabaseUrl.trim();
@@ -740,7 +783,10 @@ function tryLogin(){
           if(remoteData.lowStockThreshold===undefined)remoteData.lowStockThreshold=5;
           remoteData.products.forEach(function(p){
             if(p.archived===undefined)p.archived=false;
-            if(p.memberOnly===undefined)p.memberOnly=false;
+            if(p.memberOnly===undefined){
+              var cn=['Club Shirt','Trucker Hat','Stretch Hat','Club Trucker','Club Stretch'];
+              p.memberOnly=cn.some(function(n){return p.name.indexOf(n)>=0;});
+            }
             p.variants.forEach(function(v){if(!v.id)v.id='v'+Math.random().toString(36).slice(2,8);});
           });
           D=remoteData;
@@ -769,7 +815,7 @@ function tryLogin(){
     setTimeout(()=>{PIN='';dots();document.getElementById('lerr').textContent='';},900);
   }
 }
-function logout(){CU=null;PIN='';dots();document.getElementById('app').style.display='none';document.getElementById('ls').style.display='flex';}
+function logout(){audit('LOGOUT','User logged out');save();CU=null;PIN='';dots();document.getElementById('app').style.display='none';document.getElementById('ls').style.display='flex';}
 
 // Nav
 function goTo(n){
@@ -778,14 +824,14 @@ function goTo(n){
   document.getElementById('scr-'+n).classList.add('on');
   document.getElementById('nb-'+n).classList.add('on');
   document.getElementById('fab').style.display=n==='more'?'none':'flex';
-  ({dash:renderDash,ledger:renderLedger,members:renderMembers,merch:()=>{renderMerch();renderStock();},more:renderSettings}[n]||(() =>{}))();
+  ({dash:renderDash,ledger:renderLedger,members:renderMembers,merch:()=>{renderMerch();renderStock();},tabs:renderTabLedger,more:renderSettings}[n]||(() =>{}))();
 }
 function setLTab(b,v){document.querySelectorAll('#ledger-tabs .tab').forEach(t=>t.classList.remove('on'));b.classList.add('on');LF=v;renderLedger();}
 function setMTab(b,v){document.querySelectorAll('#mem-tabs .tab').forEach(t=>t.classList.remove('on'));b.classList.add('on');MF=v;renderMembers();}
 function setRTab(b,v){document.querySelectorAll('#merch-tabs .tab').forEach(t=>t.classList.remove('on'));b.classList.add('on');RF=v;renderMerch();}
 function setSTab(b,v){document.querySelectorAll('#stock-tabs .tab').forEach(t=>t.classList.remove('on'));b.classList.add('on');STF=v;renderStock();}
 function setMV(v){MV=v;document.getElementById('mvt-cat').classList.toggle('on',v==='catalogue');document.getElementById('mvt-stock').classList.toggle('on',v==='stock');document.getElementById('merch-catalogue').style.display=v==='catalogue'?'':'none';document.getElementById('merch-stock').style.display=v==='stock'?'':'none';if(v==='stock')renderStock();}
-function renderAll(){renderDash();renderLedger();renderMembers();renderMerch();renderStock();}
+function renderAll(){renderDash();renderLedger();renderMembers();renderMerch();renderStock();renderTabLedger();}
 
 // Utils
 function thb(n){return'&#3647;'+(Math.round(n)||0).toLocaleString();}
@@ -794,8 +840,8 @@ function ni(){return new Date().toISOString();}
 function fd(s){if(!s)return'';try{return new Date(s).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}catch(e){return s;}}
 function fdt(s){if(!s)return'';try{return new Date(s).toLocaleString('en-GB',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch(e){return s;}}
 function uid(){return'x'+Date.now()+Math.random().toString(36).slice(2,6);}
-function calcBal(){let ci=D.openingClub,co=0,hi=D.openingCharity,ho=0;D.transactions.forEach(t=>{const a=parseFloat(t.amount)||0;if(t.account==='club'){t.direction==='in'?ci+=a:co+=a;}else{t.direction==='in'?hi+=a:ho+=a;}});return{club:ci-co,charity:hi-ho};}
-function mthTx(){const n=new Date(),m=n.getMonth(),y=n.getFullYear();return D.transactions.filter(t=>{const d=new Date(t.date||t.created);return d.getMonth()===m&&d.getFullYear()===y;});}
+function calcBal(){let ci=D.openingClub,co=0,hi=D.openingCharity,ho=0;D.transactions.filter(t=>t.paid!==false).forEach(t=>{const a=parseFloat(t.amount)||0;if(t.account==='club'){t.direction==='in'?ci+=a:co+=a;}else{t.direction==='in'?hi+=a:ho+=a;}});return{club:ci-co,charity:hi-ho};}
+function mthTx(){const n=new Date(),m=n.getMonth(),y=n.getFullYear();return D.transactions.filter(t=>{if(t.paid===false)return false;const d=new Date(t.date||t.created);return d.getMonth()===m&&d.getFullYear()===y;});}
 function calcFee(j){const f=D.memberFee||2000;if(!j)return f;const d=new Date(j);const curYear=new Date().getFullYear();if(d.getFullYear()<curYear)return f;const mo=d.getMonth()+1;if(mo<=3)return f;if(mo<=6)return Math.round(f*.75);if(mo<=9)return Math.round(f*.5);return Math.round(f*.25);}
 const CM={merchandise:'&#128085;&#65039; Merchandise',membership_fee:'&#129338;&#65039; Membership Fee',donation_in:'&#129309; Donation In',donation_out:'&#128157; Donation Out',collection_box:'&#128230; Collection Box',event_income:'&#127881; Event Income',event_expense:'&#127914; Event Expense',venue:'&#127999;&#65039; Venue',music:'&#127925; Music',marketing:'&#128196; Marketing',purchase:'&#128722; Purchase',petty_cash:'&#128181; Petty Cash',charity_cash:'&#10084;&#65039; Charity Cash',charity_goods:'&#128230; Charity Goods',club_donation_out:'&#129309; Club Donation Out',ride_income:'&#128693;&#65039; Ride Income',stock_order:'&#128230; Stock Order',other:'&#9961; Other'};
 const CATS_I=['merchandise','membership_fee','donation_in','collection_box','event_income','ride_income','other'];
@@ -831,7 +877,6 @@ function renderDash(){
     var hasTx=D.transactions.some(function(t){return t.category==='membership_fee'&&t.description&&t.description.indexOf(m.name)>=0;});
     return !hasTx;
   }).reduce((a,m)=>a+calcFee(m.joinDate),0);
-  document.getElementById('db-fees').innerHTML=thb(feesTxTotal+feesImplied);
   document.getElementById('db-fees-due').innerHTML=thb(D.members.filter(m=>m.status==='unpaid').reduce((a,m)=>a+calcFee(m.joinDate),0));
   document.getElementById('db-merch').innerHTML=thb(D.transactions.filter(t=>t.category==='merchandise').reduce((a,t)=>a+parseFloat(t.amount||0),0));
   let low=0,out=0;
@@ -842,8 +887,13 @@ function renderDash(){
   document.getElementById('db-low').textContent=low;
   document.getElementById('db-out2').textContent=out;
   const openTabs=(D.tabs||[]).filter(t=>!t.settled);
-  document.getElementById('db-tabs').textContent=openTabs.length;
-  document.getElementById('db-tabamt').innerHTML=thb(openTabs.reduce((a,t)=>a+parseFloat(t.amount||0),0));
+  const unpaidTx=D.transactions.filter(t=>t.paid===false);
+  const totalTabItems=openTabs.length+unpaidTx.length;
+  const tabOwed=openTabs.reduce((a,t)=>a+parseFloat(t.amount||0),0);
+  const unpaidIn=unpaidTx.filter(t=>t.direction==='in').reduce((a,t)=>a+parseFloat(t.amount||0),0);
+  const unpaidOut=unpaidTx.filter(t=>t.direction==='out').reduce((a,t)=>a+parseFloat(t.amount||0),0);
+  document.getElementById('db-tabs').textContent=totalTabItems;
+  document.getElementById('db-tabamt').innerHTML=thb(tabOwed+unpaidIn);
   const rec=[...D.transactions].reverse().slice(0,8);
   document.getElementById('db-tx').innerHTML=rec.length?rec.map(txCard).join(''):'<div class="empty"><div class="ei">&#128203;</div>No transactions yet</div>';
 }
@@ -852,7 +902,8 @@ function renderDash(){
 function renderLedger(){
   const s=(document.getElementById('txs').value||'').toLowerCase();
   let txs=[...D.transactions].reverse();
-  if(LF==='club')txs=txs.filter(t=>t.account==='club');
+  if(LF==='paid')txs=txs.filter(t=>t.paid!==false);
+  else if(LF==='club')txs=txs.filter(t=>t.account==='club'&&t.paid!==false);
   else if(LF==='charity')txs=txs.filter(t=>t.account==='charity');
   else if(LF==='in')txs=txs.filter(t=>t.direction==='in');
   else if(LF==='out')txs=txs.filter(t=>t.direction==='out');
@@ -881,11 +932,13 @@ function renderMembers(){
     const init=m.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
     const sc={paid:'paid',unpaid:'unpaid',prospect:'prospect'};
     const sl={paid:'Fee Paid &#10003;',unpaid:'Fee Unpaid &#9888;&#65039;',prospect:'Prospect'};
-    return`<div class="mc"><div class="mav">${init}</div><div class="min"><div class="mn">${m.name}</div><div class="mr">${RL[m.role]||m.role}</div>${m.status!=='prospect'?`<div style="font-size:11px;color:var(--muted);margin-top:2px">${new Date().getFullYear()} fee: ${thb(calcFee(m.joinDate))}</div>`:''}</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><span class="ms ${sc[m.status]||'prospect'}">${sl[m.status]||m.status}</span>${m.status==='unpaid'?`<button style="font-size:10px;background:none;border:1px solid var(--grn);color:var(--grnl);border-radius:20px;padding:3px 8px;cursor:pointer" onclick="markPaid('${m.id}')">Mark Paid</button>`:''}${CU&&CU.role==='admin'?`<button style="font-size:10px;background:none;border:1px solid var(--bd);color:var(--muted);border-radius:20px;padding:3px 8px;cursor:pointer" onclick="editMem('${m.id}')">Edit</button>`:''}</div></div>`;
+    return`<div class="mc"><div class="mav">${init}</div><div class="min"><div class="mn">${m.name}</div><div class="mr">${RL[m.role]||m.role}</div>${m.status!=='prospect'?`<div style="font-size:11px;color:var(--muted);margin-top:2px">${new Date().getFullYear()} fee: ${thb(calcFee(m.joinDate))}</div>`:''}
+        ${m.phone?`<div style="font-size:10px;color:var(--dim)">&#128222; ${m.phone}</div>`:''}
+        ${m.email?`<div style="font-size:10px;color:var(--dim)">&#9993; ${m.email}</div>`:''}</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><span class="ms ${sc[m.status]||'prospect'}">${sl[m.status]||m.status}</span>${m.status==='unpaid'?`<button style="font-size:10px;background:none;border:1px solid var(--grn);color:var(--grnl);border-radius:20px;padding:3px 8px;cursor:pointer" onclick="markPaid('${m.id}')">Mark Paid</button>`:''}${CU&&CU.role==='admin'?`<button style="font-size:10px;background:none;border:1px solid var(--bd);color:var(--muted);border-radius:20px;padding:3px 8px;cursor:pointer" onclick="editMem('${m.id}')">Edit</button>`:''}</div></div>`;
   }).join('')||'<div class="empty"><div class="ei">&#128101;</div>No members match</div>';
 }
-function markPaid(id){const m=D.members.find(x=>x.id===id);if(!m)return;m.status='paid';D.transactions.push({id:uid(),account:'club',direction:'in',category:'membership_fee',amount:calcFee(m.joinDate),description:`Membership fee – ${m.name} (${new Date().getFullYear()})`,supplier:'',ref:'',date:nd(),created:ni(),notes:'',enteredBy:CU.name});save();renderAll();}
-function editMem(id){const m=D.members.find(x=>x.id===id);if(!m)return;document.getElementById('mo-mem-t').textContent='Edit Member';document.getElementById('mem-id').value=id;document.getElementById('mem-name').value=m.name;document.getElementById('mem-role').value=m.role;document.getElementById('mem-status').value=m.status;document.getElementById('mem-join').value=m.joinDate||'';document.getElementById('mem-phone').value=m.phone||'';document.getElementById('mem-notes').value=m.notes||'';document.getElementById('mem-del').style.display='';openM('mo-member');}
+function markPaid(id){const m=D.members.find(x=>x.id===id);if(!m)return;m.status='paid';audit('FEE_PAID','Fee marked paid for: '+m.name);D.transactions.push({id:uid(),account:'club',direction:'in',category:'membership_fee',amount:calcFee(m.joinDate),description:`Membership fee – ${m.name} (${new Date().getFullYear()})`,supplier:'',ref:'',date:nd(),created:ni(),notes:'',enteredBy:CU.name});save();renderAll();}
+function editMem(id){const m=D.members.find(x=>x.id===id);if(!m)return;document.getElementById('mo-mem-t').textContent='Edit Member';document.getElementById('mem-id').value=id;document.getElementById('mem-name').value=m.name;document.getElementById('mem-role').value=m.role;document.getElementById('mem-status').value=m.status;document.getElementById('mem-join').value=m.joinDate||'';document.getElementById('mem-phone').value=m.phone||'';document.getElementById('mem-email').value=m.email||'';document.getElementById('mem-notes').value=m.notes||'';document.getElementById('mem-del').style.display='';openM('mo-member');}
 function deleteMember(){const id=document.getElementById('mem-id').value;if(!id||!CU||CU.role!=='admin')return;if(!confirm('Delete member?'))return;D.members=D.members.filter(m=>m.id!==id);save();closeM('mo-member');renderMembers();}
 
 // Merch Catalogue
@@ -902,7 +955,7 @@ function renderMerch(){
           } else {
             prodColours(p).forEach(function(c){totalQ+=getStock(p.id,v.id,null,c.name);});
           }
-          const q=totalQ;const st=stSt(q);const stl={ok:'In Stock',low:'Low Stock',out:'Out of Stock'};return`<div class="vrow"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span class="vn">${v.name}</span><span class="pill ${st==='ok'?'':st}" style="cursor:pointer" onclick="setMV('stock')">${stl[st]} &#8250;</span></div><div class="pps"><div class="pp">Member <span class="pv">${thb(v.memberPrice)}</span></div><div class="pp">Visitor <span class="pv">${p.memberOnly?thb(0):thb(v.visitorPrice)}</span></div><div class="pp">Cost <span class="pv">${thb(v.production)}</span></div><div class="pp">Margin <span class="pv" style="color:var(--grnl)">${thb(v.memberPrice-v.production)}</span></div></div></div>`;}).join('')}</div></div>`;
+          const q=totalQ;const st=stSt(q);const stl={ok:'In Stock',low:'Low Stock',out:'Out of Stock'};return`<div class="vrow"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span class="vn">${v.name}</span><span class="pill ${st==='ok'?'':st}" style="cursor:pointer" onclick="setMV('stock')">${stl[st]} &#8250;</span></div><div class="pps"><div class="pp">Member <span class="pv">${thb(v.memberPrice)}</span></div><div class="pp">Visitor <span class="pv">${(p.memberOnly||false)?'<span style="color:var(--dim)">Members Only</span>':thb(v.visitorPrice)}</span></div><div class="pp">Cost <span class="pv">${thb(v.production)}</span></div><div class="pp">Margin <span class="pv" style="color:var(--grnl)">${thb(v.memberPrice-v.production)}</span></div></div></div>`;}).join('')}</div></div>`;
   }
   let html=active.map(pc).join('');
   if(archived.length)html+=`<div style="font-size:11px;color:var(--muted);margin:14px 0 8px;text-transform:uppercase;letter-spacing:1px">Archived</div>`+archived.map(pc).join('');
@@ -942,6 +995,67 @@ function renderStock(){
 }
 
 // Events
+function setTabLTab(b,v){document.querySelectorAll('#tab-ledger-tabs .tab').forEach(t=>t.classList.remove('on'));b.classList.add('on');TLF=v;renderTabLedger();}
+
+function markTxPaid(id){
+  const tx=D.transactions.find(t=>t.id===id);
+  if(!tx)return;
+  if(!confirm('Mark this as paid/received? It will move to the main ledger.'))return;
+  tx.paid=true;
+  tx.paidDate=nd();
+  tx.paidBy=CU.name;
+  audit('TX_PAID','Marked paid: '+tx.description+' '+thb(tx.amount));
+  save();renderAll();
+}
+
+function renderTabLedger(){
+  // Collect unpaid transactions
+  let items=D.transactions.filter(t=>t.paid===false);
+  // Also collect merchandise tabs from D.tabs
+  const tabs=(D.tabs||[]).filter(t=>!t.settled).map(t=>({
+    id:t.id,isTab:true,direction:'in',account:'club',
+    category:'merchandise',amount:t.amount,
+    description:t.description,date:t.date,
+    enteredBy:t.enteredBy,paid:false,
+    responsibleMemberName:t.memberName,
+    responsibleMemberId:t.memberId
+  }));
+  let all=[...items,...tabs];
+  if(TLF==='in')all=all.filter(t=>t.direction==='in');
+  else if(TLF==='out')all=all.filter(t=>t.direction==='out');
+  else if(TLF==='merch')all=all.filter(t=>t.category==='merchandise');
+  all.sort((a,b)=>new Date(b.date||b.created||0)-new Date(a.date||a.created||0));
+  const totalIn=all.filter(t=>t.direction==='in').reduce((s,t)=>s+parseFloat(t.amount||0),0);
+  const totalOut=all.filter(t=>t.direction==='out').reduce((s,t)=>s+parseFloat(t.amount||0),0);
+  const bar=document.getElementById('tab-total-bar');
+  if(bar)bar.innerHTML=`<span style="color:var(--grnl)">Owed to club: ${thb(totalIn)}</span> &middot; <span style="color:var(--rl)">Club owes: ${thb(totalOut)}</span>`;
+  const el=document.getElementById('tab-ledger-list');
+  if(!all.length){el.innerHTML='<div class="empty"><div class="ei">&#128203;</div>All clear! No outstanding items</div>';return;}
+  el.innerHTML=all.map(t=>{
+    const dir=t.direction==='in'?'in':'out';
+    const dirLabel=t.direction==='in'?'&#11014;&#65039; Owed to club':'&#11015;&#65039; Club owes';
+    const dirCol=t.direction==='in'?'var(--grnl)':'var(--rl)';
+    const resp=t.responsibleMemberName||t.enteredBy||'?';
+    const markBtn=t.isTab
+      ?`<button onclick="openSettleTab('${t.id}')" style="margin-top:8px;background:none;border:1px solid var(--grn);color:var(--grnl);border-radius:20px;padding:4px 12px;cursor:pointer;font-size:11px;width:100%">&#10003; Mark Paid</button>`
+      :`<button onclick="markTxPaid('${t.id}')" style="margin-top:8px;background:none;border:1px solid var(--grn);color:var(--grnl);border-radius:20px;padding:4px 12px;cursor:pointer;font-size:11px;width:100%">&#10003; Mark Paid / Received</button>`;
+    return`<div class="tab-card ${dir}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600">${t.description||CM[t.category]||t.category}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:3px">${fd(t.date||t.created)} &middot; By ${t.enteredBy||'?'}</div>
+          <div style="font-size:10px;color:var(--gold);margin-top:2px">&#128100; ${resp}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:17px;font-weight:700;color:${dirCol}">${thb(t.amount)}</div>
+          <span class="tbbadge ${dir}">${dirLabel}</span>
+        </div>
+      </div>
+      ${markBtn}
+    </div>`;
+  }).join('');
+}
+
 function renderEvents(){
   const el=document.getElementById('event-list');
   if(!D.events||!D.events.length){el.innerHTML='<div class="empty"><div class="ei">&#127881;</div>No events yet</div>';return;}
@@ -949,7 +1063,7 @@ function renderEvents(){
     const et=D.transactions.filter(t=>t.eventId===ev.id);
     const eI=et.filter(t=>t.direction==='in').reduce((a,t)=>a+parseFloat(t.amount||0),0);
     const eO=et.filter(t=>t.direction==='out').reduce((a,t)=>a+parseFloat(t.amount||0),0);
-    return`<div class="ec"><div class="en">${ev.name}</div><div class="em"><span>&#128197; ${fd(ev.date)}</span><span>&#128205; ${ev.venue||'TBC'}</span><span>&#127917; ${ev.type}</span></div>${et.length?`<div style="margin-top:8px;font-size:12px">Income: <span style="color:var(--grnl)">${thb(eI)}</span> &middot; Costs: <span style="color:var(--rl)">${thb(eO)}</span> &middot; Net: <span style="color:${eI-eO>=0?'var(--grnl)':'var(--rl)'}">${thb(eI-eO)}</span></div>`:''}</div>`;
+    return`<div class="ec"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><div class="en" style="margin:0">${ev.name}</div><div style="display:flex;gap:5px"><button onclick="editEvent('${ev.id}')" style="background:none;border:1px solid var(--bd);color:var(--muted);border-radius:8px;padding:2px 8px;cursor:pointer;font-size:11px">Edit</button>${CU&&CU.role==='admin'?`<button onclick="deleteEvent('${ev.id}')" style="background:none;border:1px solid var(--red);color:var(--rl);border-radius:8px;padding:2px 8px;cursor:pointer;font-size:11px">Delete</button>`:''}</div></div><div class="em"><span>&#128197; ${fd(ev.date)}</span><span>&#128205; ${ev.venue||'TBC'}</span><span>&#127917; ${ev.type}</span></div>${et.length?`<div style="margin-top:8px;font-size:12px">Income: <span style="color:var(--grnl)">${thb(eI)}</span> &middot; Costs: <span style="color:var(--rl)">${thb(eO)}</span> &middot; Net: <span style="color:${eI-eO>=0?'var(--grnl)':'var(--rl)'}">${thb(eI-eO)}</span></div>`:''}</div>`;
   }).join('');
 }
 
@@ -968,6 +1082,14 @@ function saveTx(){const amt=parseFloat(document.getElementById('tx-amt').value)|
 
 // Sale Modal
 let _cu='member';
+let _txPay='paid';
+function selTxPay(v){
+  _txPay=v;
+  document.getElementById('txpay-paid').className='tgb'+(v==='paid'?' tin':'');
+  document.getElementById('txpay-unpaid').className='tgb'+(v==='unpaid'?' tout':'');
+  const rg=document.getElementById('tx-resp-g');
+  if(rg)rg.style.display=v==='unpaid'?'':'none';
+}
 function openSaleModal(){closeM('mo-fab');_cu='member';selCust('member');selPayment('paid');document.getElementById('sale-date').value=nd();document.getElementById('sale-qty').value=1;document.getElementById('sale-notes').value='';document.getElementById('sale-stock-info').style.display='none';const cs=document.getElementById('sale-colour');cs.innerHTML=D.colours.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');const bk=[...cs.options].find(o=>o.value==='Black');if(bk)cs.value='Black';document.getElementById('sale-prod').innerHTML=D.products.filter(p=>!p.archived).sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${p.id}">${p.name}</option>`).join('');// populate member list for tab
 const memSel=document.getElementById('sale-tab-member');memSel.innerHTML=D.members.filter(m=>m.status!=='prospect').map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
 updateSaleVars();openM('mo-sale');}
@@ -1017,7 +1139,7 @@ function saveSale(){
   if(p.memberOnly&&!selMemId){alert('Please select the member purchasing this item.');return;}
   const memberLabel=selMem?' – '+selMem.name:'';
   const desc=`${p.name} &#8211; ${v.name}${sz?' ('+sz+')':''}${colDesc} &#215;${qty} (${_cu}${memberLabel})`;
-  adjStock(p.id,v.id,sz,col,qty,'sold');
+  adjStock(p.id,v.id,sz,col,qty,'sold');audit('SALE',desc+' '+thb(pr*qty));
   if(_payMode==='tab'){
     // Tab sale — stock deducted, income NOT counted until paid
     const memberId=selMemId;
@@ -1038,12 +1160,14 @@ function updOrdTotal(){document.getElementById('ord-total').innerHTML=thb((parse
 function saveOrder(){const p=D.products.find(x=>x.id===document.getElementById('ord-prod').value);if(!p){alert('Select a product');return;}const vi=parseInt(document.getElementById('ord-var').value)||0;const v=p.variants[vi];const qty=parseInt(document.getElementById('ord-qty').value)||0;if(qty<=0){alert('Quantity must be at least 1');return;}const cost=parseFloat(document.getElementById('ord-cost').value)||0;const sz=p.hasSizes?document.getElementById('ord-size').value:null;const rawOrdCol=document.getElementById('ord-colour').value;const col=stockCol(p,rawOrdCol);const sup=document.getElementById('ord-sup').value.trim();if(sup&&!D.suppliers.includes(sup))D.suppliers.push(sup);adjStock(p.id,v.id,sz,col,qty,'ordered');D.transactions.push({id:uid(),account:'club',direction:'out',category:'stock_order',amount:cost*qty,description:`Stock order: ${p.name} &#8211; ${v.name}${sz?' ('+sz+')':''}${col?', '+col:''} &#215;${qty}`,supplier:sup,ref:document.getElementById('ord-ref').value.trim(),date:document.getElementById('ord-date').value,created:ni(),notes:document.getElementById('ord-notes').value.trim(),enteredBy:CU.name,productId:p.id,variantId:v.id,qty,unitCost:cost,colour:col,size:sz});save();closeM('mo-order');renderAll();}
 
 // Member Modal
-function openMemberModal(){closeM('mo-fab');document.getElementById('mo-mem-t').textContent='Add Member / Prospect';document.getElementById('mem-id').value='';['mem-name','mem-phone','mem-notes'].forEach(id=>document.getElementById(id).value='');document.getElementById('mem-role').value='prospect';document.getElementById('mem-status').value='prospect';document.getElementById('mem-join').value=nd();document.getElementById('mem-del').style.display='none';openM('mo-member');}
-function saveMember(){const name=document.getElementById('mem-name').value.trim();if(!name){alert('Name required');return;}const id=document.getElementById('mem-id').value;const data={name,role:document.getElementById('mem-role').value,status:document.getElementById('mem-status').value,joinDate:document.getElementById('mem-join').value,phone:document.getElementById('mem-phone').value,notes:document.getElementById('mem-notes').value};if(id){const m=D.members.find(x=>x.id===id);if(!m)return;Object.assign(m,data);}else D.members.push({id:uid(),...data,addedBy:CU.name,created:ni()});save();closeM('mo-member');renderMembers();}
+function openMemberModal(){closeM('mo-fab');document.getElementById('mo-mem-t').textContent='Add Member / Prospect';document.getElementById('mem-id').value='';['mem-name','mem-phone','mem-email','mem-notes'].forEach(id=>document.getElementById(id).value='');document.getElementById('mem-role').value='prospect';document.getElementById('mem-status').value='prospect';document.getElementById('mem-join').value=nd();document.getElementById('mem-del').style.display='none';openM('mo-member');}
+function saveMember(){const name=document.getElementById('mem-name').value.trim();if(!name){alert('Name required');return;}const id=document.getElementById('mem-id').value;const data={name,role:document.getElementById('mem-role').value,status:document.getElementById('mem-status').value,joinDate:document.getElementById('mem-join').value,phone:document.getElementById('mem-phone').value,email:document.getElementById('mem-email').value.trim(),notes:document.getElementById('mem-notes').value};if(id){const m=D.members.find(x=>x.id===id);if(!m)return;Object.assign(m,data);}else D.members.push({id:uid(),...data,addedBy:CU.name,created:ni()});save();closeM('mo-member');renderMembers();}
 
 // Event Modal
-function openEventModal(){['ev-name','ev-venue','ev-notes'].forEach(id=>document.getElementById(id).value='');document.getElementById('ev-date').value=nd();document.getElementById('ev-type').value='party';openM('mo-event');}
-function saveEvent(){const name=document.getElementById('ev-name').value.trim();if(!name){alert('Event name required');return;}if(!D.events)D.events=[];D.events.push({id:uid(),name,date:document.getElementById('ev-date').value,type:document.getElementById('ev-type').value,venue:document.getElementById('ev-venue').value.trim(),notes:document.getElementById('ev-notes').value.trim(),created:ni(),addedBy:CU.name});save();closeM('mo-event');renderEvents();}
+function openEventModal(){document.getElementById('mo-ev-t').textContent='Add Event';document.getElementById('ev-id').value='';['ev-name','ev-venue','ev-notes'].forEach(id=>document.getElementById(id).value='');document.getElementById('ev-date').value=nd();document.getElementById('ev-type').value='party';openM('mo-event');}
+function editEvent(id){const ev=D.events.find(e=>e.id===id);if(!ev)return;document.getElementById('mo-ev-t').textContent='Edit Event';document.getElementById('ev-id').value=id;document.getElementById('ev-name').value=ev.name;document.getElementById('ev-date').value=ev.date||'';document.getElementById('ev-type').value=ev.type||'party';document.getElementById('ev-venue').value=ev.venue||'';document.getElementById('ev-notes').value=ev.notes||'';openM('mo-event');}
+function deleteEvent(id){if(!CU||CU.role!=='admin')return;if(!confirm('Delete this event? Linked transactions will remain.'))return;D.events=D.events.filter(e=>e.id!==id);save();renderEvents();}
+function saveEvent(){const name=document.getElementById('ev-name').value.trim();if(!name){alert('Event name required');return;}if(!D.events)D.events=[];const eid=document.getElementById('ev-id').value;const evData={name,date:document.getElementById('ev-date').value,type:document.getElementById('ev-type').value,venue:document.getElementById('ev-venue').value.trim(),notes:document.getElementById('ev-notes').value.trim()};if(eid){const ev=D.events.find(e=>e.id===eid);if(ev)Object.assign(ev,evData);}else{D.events.push({id:uid(),...evData,created:ni(),addedBy:CU.name});}save();closeM('mo-event');renderEvents();}
 
 // Product Modal
 let _prSz=false,_prMO=false,_prVars=[];
@@ -1102,7 +1226,7 @@ function renderSettings(){
 function setIS(el){const sz=el.dataset.sz||null;const k=skey(el.dataset.pid,el.dataset.vid,sz,el.dataset.col);if(!D.stock[k])D.stock[k]={initial:0,ordered:0,sold:0};D.stock[k].initial=parseInt(el.value)||0;}
 function saveInitStock(){save();alert('Initial stock saved!');renderStock();renderDash();}
 function saveLST(){D.lowStockThreshold=parseInt(document.getElementById('set-lst').value)||5;save();alert('Threshold saved!');renderStock();renderDash();}
-function saveBalances(){D.openingClub=parseFloat(document.getElementById('set-cb').value)||0;D.openingCharity=parseFloat(document.getElementById('set-hb').value)||0;save();renderDash();alert('Balances saved!');}
+function saveBalances(){const ob=D.openingClub,oh=D.openingCharity;D.openingClub=parseFloat(document.getElementById('set-cb').value)||0;D.openingCharity=parseFloat(document.getElementById('set-hb').value)||0;audit('SETTINGS','Opening balances changed',{club:ob,charity:oh},{club:D.openingClub,charity:D.openingCharity});save();renderDash();alert('Balances saved!');}
 function saveFee(){D.memberFee=parseFloat(document.getElementById('set-fee').value)||2000;save();alert('Fee saved!');document.getElementById('fee-d').textContent=(D.memberFee).toLocaleString();}
 function saveSync(){
   var url=document.getElementById('set-su').value.trim();
@@ -1179,12 +1303,12 @@ function delSup(i){D.suppliers.splice(i,1);save();renderSettings();}
 
 // Reports
 function showReport(type){
-  const T={monthly:'&#128197; Monthly Statement',annual:'&#128198; Annual Summary',membership:'&#128101; Membership Report',merchandise:'&#128717;&#65039; Merchandise Sales',stock:'&#128230; Stock Report',tabs:'&#128203; Tab Debts Report',donations:'&#129309; Donation Report',suppliers:'&#127978;&#65039; Purchase Ledger',cogs:'&#128208; Cost of Goods',analysis:'&#128202; Analysis Report',audit:'&#128269; Audit Trail'};
+  const T={monthly:'&#128197; Monthly Statement',meeting:'&#128101; Club Meeting Report',annual:'&#128198; Annual Summary',membership:'&#128101; Membership Report',merchandise:'&#128717;&#65039; Merchandise Sales',stock:'&#128230; Stock Report',tabs:'&#128203; Tab Debts Report',donations:'&#129309; Donation Report',suppliers:'&#127978;&#65039; Purchase Ledger',cogs:'&#128208; Cost of Goods',analysis:'&#128202; Analysis Report',audit:'&#128269; Audit Trail'};
   document.getElementById('rpt-t').innerHTML=T[type]||'Report';
-  const fn={monthly:rMonth,annual:rAnnual,membership:rMem,merchandise:rMerch,stock:rStock,tabs:rTabs,donations:rDon,suppliers:rSup,cogs:rCOGS,analysis:rAnalysis,audit:rAudit};
+  const fn={monthly:rMonth,meeting:rMeeting,annual:rAnnual,membership:rMem,merchandise:rMerch,stock:rStock,tabs:rTabs,donations:rDon,suppliers:rSup,cogs:rCOGS,analysis:rAnalysis,audit:rAudit};
   document.getElementById('rpt-b').innerHTML=(fn[type]||rMonth)();
   var pdfBtn=document.getElementById('rpt-pdf-btn');
-  if(pdfBtn)pdfBtn.style.display=type==='analysis'?'':'none';
+  if(pdfBtn)pdfBtn.style.display='';
   openM('mo-report');
 }
 function br(l,v,c){return`<div class="brow"><span class="blbl">${l}</span><span style="font-size:15px;font-weight:700;color:${c||'var(--gl)'};">${v}</span></div>`;}
@@ -1192,7 +1316,7 @@ function sumio(txs){const i=txs.filter(t=>t.direction==='in').reduce((a,t)=>a+pa
 function catBd(txs){const c={};txs.forEach(t=>{const a=(t.direction==='in'?1:-1)*(parseFloat(t.amount)||0);c[t.category]=(c[t.category]||0)+a;});return Object.entries(c).map(([k,v])=>br(CM[k]||k,thb(Math.abs(v)),v>=0?'var(--grnl)':'var(--rl)')).join('');}
 function rMonth(){const n=new Date(),l=n.toLocaleString('en-GB',{month:'long',year:'numeric'}),mt=mthTx(),c=sumio(mt.filter(t=>t.account==='club')),h=sumio(mt.filter(t=>t.account==='charity'));return`<div style="font-size:12px;color:var(--muted);margin-bottom:12px">${l}</div><div class="balbar"><h3>&#128693;&#65039; Club Account</h3>${br('Income',thb(c.i),'var(--grnl)')}${br('Expenses',thb(c.o),'var(--rl)')}${br('Net',thb(c.n))}</div><div class="balbar"><h3>&#10084;&#65039; Charity Account</h3>${br('Donations In',thb(h.i),'var(--grnl)')}${br('Out',thb(h.o),'var(--rl)')}${br('Net',thb(h.n))}</div>`;}
 function rAnnual(){const b=calcBal(),c=D.transactions.filter(t=>t.account==='club'),h=D.transactions.filter(t=>t.account==='charity');return`<div class="balbar"><h3>&#128693;&#65039; Club Account</h3>${catBd(c)}${br('Balance',thb(b.club))}</div><div class="balbar"><h3>&#10084;&#65039; Charity Account</h3>${catBd(h)}${br('Balance',thb(b.charity))}</div>`;}
-function rMem(){const paid=D.members.filter(m=>m.status==='paid'),un=D.members.filter(m=>m.status==='unpaid'),pr=D.members.filter(m=>m.status==='prospect');const fe=un.reduce((a,m)=>a+calcFee(m.joinDate),0);const RL={president:'President',vice_president:'Vice President',treasurer:'Treasurer',member:'Member',prospect:'Prospect'};function mr(m){return`<div class="brow"><span class="blbl">${m.name}</span><span style="font-size:11px;color:var(--muted)">${RL[m.role]||m.role} &middot; ${thb(calcFee(m.joinDate))}</span></div>`;}const paidTotal=paid.reduce((a,m)=>a+calcFee(m.joinDate),0);return`<div class="balbar"><h3>&#9989; Paid (${paid.length}) &#8212; ${thb(paidTotal)}</h3>${paid.map(mr).join('')||'<div style="color:var(--dim);font-size:12px;padding:6px 0">None</div>'}</div><div class="balbar"><h3>&#8987; Unpaid (${un.length}) &#8212; ${thb(fe)} outstanding</h3>${un.map(mr).join('')||'<div style="color:var(--dim);font-size:12px;padding:6px 0">None</div>'}</div><div class="balbar"><h3>&#128064; Prospects (${pr.length})</h3>${pr.map(m=>`<div class="brow"><span class="blbl">${m.name}</span><span style="font-size:11px;color:var(--muted)">${RL[m.role]||m.role}</span></div>`).join('')||'<div style="color:var(--dim);font-size:12px;padding:6px 0">None</div>'}</div>`;}
+function rMem(){const paid=D.members.filter(m=>m.status==='paid'),un=D.members.filter(m=>m.status==='unpaid'),pr=D.members.filter(m=>m.status==='prospect');const fe=un.reduce((a,m)=>a+calcFee(m.joinDate),0);const RL={president:'President',vice_president:'Vice President',treasurer:'Treasurer',member:'Member',prospect:'Prospect'};function mr(m){return`<div class="brow"><span class="blbl">${m.name}${m.email?` <span style="font-size:9px;color:var(--dim)">&#9993; ${m.email}</span>`:''}</span><span style="font-size:11px;color:var(--muted)">${RL[m.role]||m.role} &middot; ${thb(calcFee(m.joinDate))}</span></div>`;}const paidTotal=paid.reduce((a,m)=>a+calcFee(m.joinDate),0);return`<div class="balbar"><h3>&#9989; Paid (${paid.length}) &#8212; ${thb(paidTotal)}</h3>${paid.map(mr).join('')||'<div style="color:var(--dim);font-size:12px;padding:6px 0">None</div>'}</div><div class="balbar"><h3>&#8987; Unpaid (${un.length}) &#8212; ${thb(fe)} outstanding</h3>${un.map(mr).join('')||'<div style="color:var(--dim);font-size:12px;padding:6px 0">None</div>'}</div><div class="balbar"><h3>&#128064; Prospects (${pr.length})</h3>${pr.map(m=>`<div class="brow"><span class="blbl">${m.name}</span><span style="font-size:11px;color:var(--muted)">${RL[m.role]||m.role}</span></div>`).join('')||'<div style="color:var(--dim);font-size:12px;padding:6px 0">None</div>'}</div>`;}
 function rMerch(){const s=D.transactions.filter(t=>t.category==='merchandise');const tot=s.reduce((a,t)=>a+parseFloat(t.amount||0),0);const ms=s.filter(t=>t.customerType==='member').reduce((a,t)=>a+parseFloat(t.amount||0),0);const vs=s.filter(t=>t.customerType==='visitor').reduce((a,t)=>a+parseFloat(t.amount||0),0);const bp={};s.forEach(t=>{const k=t.description||'?';bp[k]=(bp[k]||0)+parseFloat(t.amount||0);});const bc={};s.forEach(t=>{if(t.colour){bc[t.colour]=(bc[t.colour]||0)+parseFloat(t.amount||0);}});return`<div class="balbar"><h3>&#128085;&#65039; Merchandise Sales</h3>${br('Total',thb(tot))}${br('Member Sales',thb(ms),'var(--gold)')}${br('Visitor Sales',thb(vs),'var(--blul)')}${br('Transactions',s.length,'var(--muted)')}</div><div class="balbar"><h3>By Item</h3>${Object.entries(bp).sort((a,b)=>b[1]-a[1]).slice(0,12).map(([d,v])=>br(d.length>32?d.slice(0,32)+'&#8230;':d,thb(v),'var(--gl)')).join('')||'<div style="color:var(--dim);font-size:12px">No sales yet</div>'}</div>${Object.keys(bc).length?`<div class="balbar"><h3>By Colour</h3>${Object.entries(bc).sort((a,b)=>b[1]-a[1]).map(([c,v])=>br(c,thb(v),'var(--muted)')).join('')}</div>`:''}`;}
 function rStock(){
   const t=D.lowStockThreshold||5;
@@ -1219,7 +1343,7 @@ function rStock(){
 
 function rDon(){const di=D.transactions.filter(t=>['donation_in','collection_box'].includes(t.category)),dout=D.transactions.filter(t=>['donation_out','charity_cash','charity_goods','club_donation_out'].includes(t.category));const it=di.reduce((a,t)=>a+parseFloat(t.amount||0),0),ot=dout.reduce((a,t)=>a+parseFloat(t.amount||0),0);return`<div class="balbar"><h3>&#10084;&#65039; Donations</h3>${br('Received',thb(it),'var(--grnl)')}${br('Given Out',thb(ot),'var(--rl)')}${br('Net',thb(it-ot))}</div><div class="balbar"><h3>Payments Out</h3>${dout.length?dout.map(t=>`<div class="brow"><span class="blbl" style="font-size:11px">${t.description||CM[t.category]}</span><span style="color:var(--rl)">${thb(t.amount)}</span></div>`).join(''):'<div style="color:var(--dim);font-size:12px;padding:6px 0">None yet</div>'}</div>`;}
 function rSup(){const p=D.transactions.filter(t=>t.direction==='out'),tot=p.reduce((a,t)=>a+parseFloat(t.amount||0),0),bs={};p.forEach(t=>{const s=t.supplier||'Unspecified';bs[s]=(bs[s]||0)+parseFloat(t.amount||0);});return`<div class="balbar"><h3>&#127978;&#65039; Purchase Ledger</h3>${br('Total Spent',thb(tot),'var(--rl)')}${Object.entries(bs).sort((a,b)=>b[1]-a[1]).map(([s,v])=>br(s,thb(v),'var(--muted)')).join('')}</div>`;}
-function rCOGS(){return`<div class="balbar"><h3>&#128208; Cost of Goods</h3>${D.products.map(p=>`<div style="padding:8px 0;border-bottom:1px solid rgba(201,162,39,.1)"><div style="font-size:12px;font-weight:600;margin-bottom:4px">${p.name}${p.archived?' <span style="font-size:9px;color:var(--muted)">(archived)</span>':''}</div>${p.variants.map(v=>`<div class="brow" style="padding:3px 0"><span class="blbl" style="font-size:11px">${v.name}</span><span style="font-size:10px;color:var(--muted)">Cost ${thb(v.production)} &#8594; Mem ${thb(v.memberPrice)} (margin ${thb(v.memberPrice-v.production)})</span></div>`).join('')}</div>`).join('')}</div>`;}
+function rCOGS(){var rows=D.products.map(function(p){var vRows=p.variants.map(function(v){var memM=v.memberPrice-v.production;var visRow=!p.memberOnly?' &bull; Visitor '+thb(v.visitorPrice)+' (margin '+thb(v.visitorPrice-v.production)+')':'';return '<div class="brow" style="padding:3px 0"><span class="blbl" style="font-size:11px">'+v.name+'</span><span style="font-size:10px;color:var(--muted)">Cost '+thb(v.production)+' &#8594; Member '+thb(v.memberPrice)+' (margin '+thb(memM)+')'+visRow+'</span></div>';}).join('');return '<div style="padding:8px 0;border-bottom:1px solid rgba(201,162,39,.1)"><div style="font-size:12px;font-weight:600;margin-bottom:4px">'+p.name+(p.archived?' <span style="font-size:9px;color:var(--muted)">(archived)</span>':'')+'</div>'+vRows+'</div>';}).join('');return '<div class="balbar"><h3>&#128208; Cost of Goods</h3>'+rows+'</div>';}
 function rAudit(){if(!CU||CU.role!=='admin')return'<div class="empty">Admin only</div>';const s=[...D.transactions].sort((a,b)=>new Date(b.created)-new Date(a.created));return`<div style="font-size:11px;color:var(--muted);margin-bottom:10px">${s.length} total entries</div>${s.map(t=>`<div class="txi" style="font-size:11px"><div class="txic" style="font-size:15px">${txi(t)}</div><div class="txin"><div class="txd">${t.description||(CM[t.category]||t.category)}</div><div class="txm"><span class="ab ${t.account}">${t.account}</span>${fd(t.date)} &middot; ${t.enteredBy||'?'}</div><div class="atag">REAL: ${fdt(t.created)}</div></div><div class="txa ${t.direction==='in'?'p':'n'}">${t.direction==='in'?'+':'-'}${thb(t.amount)}</div></div>`).join('')||'<div class="empty"><div class="ei">&#128203;</div>No entries</div>'}`;}
 
 
@@ -1263,82 +1387,77 @@ function settleTab(){
   const tab=(D.tabs||[]).find(t=>t.id===id);if(!tab)return;
   const settledDate=document.getElementById('st-date').value;
   const settledNotes=document.getElementById('st-notes').value.trim();
-  tab.settled=true;tab.settledDate=settledDate;tab.settledNotes=settledNotes;tab.settledBy=CU.name;tab.settledAt=ni();
+  tab.settled=true;tab.settledDate=settledDate;tab.settledNotes=settledNotes;tab.settledBy=CU.name;tab.settledAt=ni();audit('TAB_SETTLED','Settled tab: '+tab.description+' '+thb(tab.amount)+' for '+tab.memberName);
   // Record as income transaction now payment received
   D.transactions.push({id:uid(),account:'club',direction:'in',category:'merchandise',amount:tab.amount,description:`Tab settled: ${tab.description}`,supplier:'',ref:'',date:settledDate,created:ni(),notes:settledNotes||'Tab payment received',enteredBy:CU.name,productId:tab.productId,variantId:tab.variantId,qty:tab.qty,unitPrice:tab.unitPrice,customerType:tab.customerType,colour:tab.colour,size:tab.size});
   save();closeM('mo-settletab');renderAll();alert('Tab settled! Income recorded in Ledger.');
 }
 
 function rAnalysis(){
-  var now=new Date();
-  var curY=now.getFullYear();
-  var curM=now.getMonth();
-  // Build selectors
+  var now=new Date();var curY=now.getFullYear();var curM=now.getMonth();
   var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
-  var yearOpts='';
-  for(var y=2026;y<=curY;y++)yearOpts+='<option value="'+y+'"'+(y===curY?' selected':'')+'>'+y+'</option>';
-  var mthOpts='';
-  for(var i=0;i<12;i++)mthOpts+='<option value="'+i+'"'+(i===curM?' selected':'')+'>'+months[i]+'</option>';
+  var yearOpts='';for(var y=2026;y<=curY;y++)yearOpts+='<option value="'+y+'"'+(y===curY?' selected':'')+'>'+y+'</option>';
+  var mthOpts='';for(var i=0;i<12;i++)mthOpts+='<option value="'+i+'"'+(i===curM?' selected':'')+'>'+months[i]+'</option>';
+  setTimeout(function(){selAnView('actual');renderAnalysis();},50);
   return '<div style="margin-bottom:14px">'
-    +'<div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">'
-    +'<select id="an-type" onchange="renderAnalysis()" style="flex:1"><option value="month">Monthly</option><option value="year">Annual</option></select>'
-    +'<select id="an-month" onchange="renderAnalysis()" style="flex:1">'+mthOpts+'</select>'
-    +'<select id="an-year" onchange="renderAnalysis()" style="flex:1">'+yearOpts+'</select>'
+    +'<div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">'
+    +'<select id="an-type" onchange="renderAnalysis()" style="flex:1;min-width:90px"><option value="month">Monthly</option><option value="year">Annual</option></select>'
+    +'<select id="an-month" onchange="renderAnalysis()" style="flex:1;min-width:90px">'+mthOpts+'</select>'
+    +'<select id="an-year" onchange="renderAnalysis()" style="flex:1;min-width:70px">'+yearOpts+'</select>'
     +'</div>'
-    +'<div id="an-body"></div></div>'
-    +(function(){setTimeout(renderAnalysis,50);return '';})();
+    +'<div class="tg" style="margin-bottom:12px">'
+    +'<button class="tgb tin" id="an-actual" onclick="selAnView(\u0027actual\u0027)">&#10003; Actual</button>'
+    +'<button class="tgb" id="an-committed" onclick="selAnView(\u0027committed\u0027)">&#128203; Committed</button>'
+    +'<button class="tgb" id="an-combined" onclick="selAnView(\u0027combined\u0027)">&#8853; Combined</button>'
+    +'</div>'
+    +'<div id="an-body"></div></div>';
+}
+var _anView='actual';
+function selAnView(v){
+  _anView=v;
+  ['actual','committed','combined'].forEach(function(x){
+    var b=document.getElementById('an-'+x);
+    if(b)b.className='tgb'+(x===v?' tin':'');
+  });
+  renderAnalysis();
 }
 function renderAnalysis(){
   var el=document.getElementById('an-body');if(!el)return;
-  var type=document.getElementById('an-type').value;
-  var yr=parseInt(document.getElementById('an-year').value);
-  var mo=parseInt(document.getElementById('an-month').value);
+  var type=document.getElementById('an-type')?document.getElementById('an-type').value:'month';
+  var yr=parseInt(document.getElementById('an-year')?document.getElementById('an-year').value:new Date().getFullYear());
+  var mo=parseInt(document.getElementById('an-month')?document.getElementById('an-month').value:new Date().getMonth());
   var msel=document.getElementById('an-month');
   if(msel)msel.style.display=type==='month'?'':'none';
-  var txs=D.transactions.filter(function(t){
-    var d=new Date(t.date||t.created);
-    if(type==='month')return d.getFullYear()===yr&&d.getMonth()===mo;
-    return d.getFullYear()===yr;
-  });
   var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
   var label=type==='month'?months[mo]+' '+yr:'Year '+yr;
-  if(!txs.length){el.innerHTML='<div class="empty"><div class="ei">&#128202;</div>No data for '+label+'</div>';return;}
-  // Income by category
+  function filterTx(txList){return txList.filter(function(t){var d=new Date(t.date||t.created);return type==='month'?(d.getFullYear()===yr&&d.getMonth()===mo):(d.getFullYear()===yr);});}
+  var paidTx=filterTx(D.transactions.filter(function(t){return t.paid!==false;}));
+  var unpaidTx=filterTx(D.transactions.filter(function(t){return t.paid===false;}));
+  var allTx=filterTx(D.transactions);
+  var txToUse=_anView==='actual'?paidTx:_anView==='committed'?unpaidTx:allTx;
+  if(!txToUse.length){var vl={actual:'actual paid',committed:'committed/unpaid',combined:'combined'};el.innerHTML='<div class="empty"><div class="ei">&#128202;</div>No '+vl[_anView]+' data for '+label+'</div>';return;}
   var inc={},exp={};
-  txs.forEach(function(t){
-    var a=parseFloat(t.amount)||0;
-    var cat=CM[t.category]||t.category;
-    if(t.direction==='in'){inc[cat]=(inc[cat]||0)+a;}
-    else{exp[cat]=(exp[cat]||0)+a;}
-  });
+  txToUse.forEach(function(t){var a=parseFloat(t.amount)||0;var cat=CM[t.category]||t.category;if(t.direction==='in'){inc[cat]=(inc[cat]||0)+a;}else{exp[cat]=(exp[cat]||0)+a;}});
   var totalIn=Object.values(inc).reduce(function(a,b){return a+b;},0);
   var totalOut=Object.values(exp).reduce(function(a,b){return a+b;},0);
-  var h='<div class="balbar"><h3>&#128202; '+label+'</h3>'
+  var vc=_anView==='actual'?'var(--grnl)':_anView==='committed'?'var(--warn)':'var(--blul)';
+  var h='<div class="balbar"><h3>&#128202; '+label+' &mdash; <span style="color:'+vc+'">'+_anView.toUpperCase()+'</span></h3>'
     +'<div class="brow"><span class="blbl">Total Income</span><span style="font-weight:700;color:var(--grnl)">'+thb(totalIn)+'</span></div>'
     +'<div class="brow"><span class="blbl">Total Outgoings</span><span style="font-weight:700;color:var(--rl)">'+thb(totalOut)+'</span></div>'
     +'<div class="brow"><span class="blbl">Net</span><span style="font-weight:700;color:'+(totalIn-totalOut>=0?'var(--grnl)':'var(--rl)')+'">'+thb(totalIn-totalOut)+'</span></div>'
     +'</div>';
-  if(Object.keys(inc).length){
-    h+='<div class="balbar"><h3>&#11014;&#65039; Income by Category</h3>';
-    Object.entries(inc).sort(function(a,b){return b[1]-a[1];}).forEach(function(e){
-      h+=br(e[0],thb(e[1]),'var(--grnl)');
-    });
-    h+='</div>';
-  }
-  if(Object.keys(exp).length){
-    h+='<div class="balbar"><h3>&#11015;&#65039; Outgoings by Category</h3>';
-    Object.entries(exp).sort(function(a,b){return b[1]-a[1];}).forEach(function(e){
-      h+=br(e[0],thb(e[1]),'var(--rl)');
-    });
-    h+='</div>';
-  }
+  if(Object.keys(inc).length){h+='<div class="balbar"><h3>&#11014;&#65039; Income by Category</h3>';Object.entries(inc).sort(function(a,b){return b[1]-a[1];}).forEach(function(e){h+=br(e[0],thb(e[1]),'var(--grnl)');});h+='</div>';}
+  if(Object.keys(exp).length){h+='<div class="balbar"><h3>&#11015;&#65039; Outgoings by Category</h3>';Object.entries(exp).sort(function(a,b){return b[1]-a[1];}).forEach(function(e){h+=br(e[0],thb(e[1]),'var(--rl)');});h+='</div>';}
   el.innerHTML=h;
 }
+
+
 function exportReportPDF(){
   var content=document.getElementById('rpt-b');
   if(!content)return;
+  var rTitle=document.getElementById('rpt-t')?document.getElementById('rpt-t').textContent:'Report';
   var w=window.open('','_blank');
-  w.document.write('<html><head><title>Road Eagles MC - Analysis Report</title>'
+  w.document.write('<html><head><title>Road Eagles MC - '+rTitle+'</title>'
     +'<style>body{font-family:Arial,sans-serif;padding:20px;color:#111;max-width:700px;margin:0 auto}'
     +'.balbar{border:1px solid #c9a227;border-radius:8px;padding:12px;margin-bottom:12px;background:#fff8e8}'
     +'.balbar h3{font-size:10px;color:#7a5f10;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px}'
@@ -1349,13 +1468,82 @@ function exportReportPDF(){
     +'@media print{button{display:none}}'
     +'</style></head><body>'
     +'<h1>Road Eagles MC Thailand</h1>'
-    +'<p>Analysis Report &mdash; Printed '+new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})+'</p>'
+    +'<p>'+rTitle+' &mdash; Printed '+new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})+'</p>'
     +content.innerHTML
     +'<br><button onclick="window.print()" style="background:#c9a227;border:none;padding:10px 24px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600">Print / Save as PDF</button>'
     +'</body></html>');
   w.document.close();
 }
 
+function rMeeting(){
+  var now=new Date();var curY=now.getFullYear();var curM=now.getMonth();
+  var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var yearOpts='';for(var y=2026;y<=curY;y++)yearOpts+='<option value="'+y+'"'+(y===curY?' selected':'')+'>'+y+'</option>';
+  var mthOpts='';for(var i=0;i<12;i++)mthOpts+='<option value="'+i+'"'+(i===curM?' selected':'')+'>'+months[i]+'</option>';
+  setTimeout(renderMeeting,50);
+  return '<div style="margin-bottom:12px;display:flex;gap:8px">'
+    +'<select id="mt-type" onchange="renderMeeting()" style="flex:1"><option value="month">Monthly</option><option value="year">Annual</option></select>'
+    +'<select id="mt-month" onchange="renderMeeting()" style="flex:1">'+mthOpts+'</select>'
+    +'<select id="mt-year" onchange="renderMeeting()" style="flex:1">'+yearOpts+'</select>'
+    +'</div><div id="mt-body"></div>';
+}
+function renderMeeting(){
+  var el=document.getElementById('mt-body');if(!el)return;
+  var type=document.getElementById('mt-type')?document.getElementById('mt-type').value:'month';
+  var yr=parseInt(document.getElementById('mt-year')?document.getElementById('mt-year').value:new Date().getFullYear());
+  var mo=parseInt(document.getElementById('mt-month')?document.getElementById('mt-month').value:new Date().getMonth());
+  var msel=document.getElementById('mt-month');if(msel)msel.style.display=type==='month'?'':'none';
+  var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var label=type==='month'?months[mo]+' '+yr:'Year '+yr;
+  var periodTx=D.transactions.filter(function(t){if(t.paid===false)return false;var d=new Date(t.date||t.created);return type==='month'?(d.getFullYear()===yr&&d.getMonth()===mo):(d.getFullYear()===yr);});
+  var bal=calcBal();
+  var pIn=periodTx.filter(function(t){return t.direction==='in';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  var pOut=periodTx.filter(function(t){return t.direction==='out';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  var unpaidFees=D.members.filter(function(m){return m.status==='unpaid';});
+  var feesTotal=unpaidFees.reduce(function(a,m){return a+calcFee(m.joinDate);},0);
+  var openTabs=(D.tabs||[]).filter(function(t){return !t.settled;});
+  var unpaidTx=D.transactions.filter(function(t){return t.paid===false;});
+  var tabTotal=openTabs.reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  var unpaidTxTotal=unpaidTx.reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  var inStock=0,lowStock=0;
+  D.products.filter(function(p){return !p.archived;}).forEach(function(p){p.variants.forEach(function(v){var szs=p.hasSizes?SIZES:[null];szs.forEach(function(sz){prodColours(p).forEach(function(c){var q=getStock(p.id,v.id,sz,c.name);if(q>0)inStock++;if(q>0&&q<=(D.lowStockThreshold||5))lowStock++;});});});});
+  var paid=D.members.filter(function(m){return m.status==='paid';}).length;
+  var unpaidM=D.members.filter(function(m){return m.status==='unpaid';}).length;
+  var prospects=D.members.filter(function(m){return m.status==='prospect';}).length;
+  var h='<div class="balbar"><h3>&#128101; Club Meeting Report &mdash; '+label+'</h3></div>'
+    +'<div class="balbar"><h3>&#128693;&#65039; Account Balances</h3>'
+    +br('Club Account',thb(bal.club))+br('Charity Account',thb(bal.charity),'var(--grnl)')+br('Combined',thb(bal.club+bal.charity))+'</div>'
+    +'<div class="balbar"><h3>&#128201; '+label+' Income &amp; Expenditure</h3>'
+    +br('Income',thb(pIn),'var(--grnl)')+br('Expenditure',thb(pOut),'var(--rl)')+br('Net',thb(pIn-pOut),(pIn-pOut>=0?'var(--grnl)':'var(--rl)'))+'</div>'
+    +'<div class="balbar"><h3>&#128203; Outstanding Items</h3>'
+    +br('Unpaid Fees ('+unpaidFees.length+' members)',thb(feesTotal),'var(--warn)')+br('Merch Tabs',thb(tabTotal),'var(--warn)')+br('Other Unpaid ('+unpaidTx.length+')',thb(unpaidTxTotal),'var(--warn)')+'</div>'
+    +'<div class="balbar"><h3>&#128101; Membership</h3>'
+    +br('Paid',paid,'var(--grnl)')+br('Unpaid',unpaidM,'var(--warn)')+br('Prospects',prospects,'var(--muted)')+'</div>'
+    +'<div class="balbar"><h3>&#128230; Stock Summary</h3>'
+    +br('Items In Stock',inStock,'var(--grnl)')+br('Low Stock Items',lowStock,'var(--warn)')+'</div>';
+  el.innerHTML=h;
+}
+function checkAnnualFeeReset(){
+  var curYear=new Date().getFullYear();
+  if(!D.lastFeeResetYear)D.lastFeeResetYear=0;
+  if(D.lastFeeResetYear>=curYear)return;
+  var paid=D.members.filter(function(m){return m.status==='paid';});
+  if(paid.length>0){
+    paid.forEach(function(m){m.status='unpaid';});
+    D.lastFeeResetYear=curYear;
+    audit('FEE_RESET','Annual fee reset for '+paid.length+' members for '+curYear);
+    save();
+  }
+}
+function clearAuditLog(){
+  var d=document.getElementById('audit-clear-date');
+  if(!d||!d.value){alert('Please select a date');return;}
+  if(!confirm('Clear all audit entries before '+fd(d.value)+'?'))return;
+  var before=D.auditLog.length;
+  D.auditLog=D.auditLog.filter(function(e){return e.ts>=d.value;});
+  audit('AUDIT_CLEAR','Cleared '+(before-D.auditLog.length)+' audit entries before '+fd(d.value));
+  save();showReport('audit');
+}
 loadSettings();
 </script>
 
