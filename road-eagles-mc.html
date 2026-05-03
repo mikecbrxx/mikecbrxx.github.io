@@ -645,6 +645,7 @@ D.products.forEach(p=>{
       p.variants.forEach(function(v){if(!v.id)v.id='v'+Math.random().toString(36).slice(2,8);});
     });
     D=remote;
+    D.suppliers=(D.suppliers||[]).map(function(s,i){return typeof s==='string'?{id:'s'+(i+1),name:s,phone:'',email:'',website:'',contact:'',address:''}:(s.id?s:Object.assign({id:uid()},s));});
     localStorage.setItem('remct4',JSON.stringify(D));
     console.log('Pre-login Supabase fetch: data loaded');
   }).catch(function(e){console.warn('Pre-login fetch failed:',e.message);});
@@ -819,6 +820,7 @@ function tryLogin(){
           if(!remoteData.events)remoteData.events=[];
           if(!remoteData.suppliers)remoteData.suppliers=[];
           if(remoteData.lowStockThreshold===undefined)remoteData.lowStockThreshold=5;
+          if(remoteData.suppliers)remoteData.suppliers=remoteData.suppliers.map(function(s,i){return typeof s==='string'?{id:'s'+(i+1),name:s,phone:'',email:'',website:'',contact:'',address:''}:(s.id?s:{id:uid(),...s});});
           remoteData.products.forEach(function(p){
             if(p.archived===undefined)p.archived=false;
             if(p.memberOnly===undefined){
@@ -1623,7 +1625,7 @@ function restoreBackup(){
       if(D.lowStockThreshold===undefined)D.lowStockThreshold=5;
       D.products.forEach(function(p){if(p.archived===undefined)p.archived=false;if(p.memberOnly===undefined){var cn=['Club Shirt','Trucker Hat','Stretch Hat','Club Trucker','Club Stretch'];p.memberOnly=cn.some(function(n){return p.name.indexOf(n)>=0;});}p.variants.forEach(function(v){if(!v.id)v.id='v'+Math.random().toString(36).slice(2,8);});});
       D.transactions.forEach(function(t){if(t.paid===undefined)t.paid=true;});
-      if(D.suppliers&&D.suppliers.length&&typeof D.suppliers[0]==='string'){D.suppliers=D.suppliers.map(function(s,i){return{id:'s'+(i+1),name:s,phone:'',email:'',website:'',contact:'',address:''};});}
+      D.suppliers=(D.suppliers||[]).map(function(s,i){return typeof s==='string'?{id:'s'+(i+1),name:s,phone:'',email:'',website:'',contact:'',address:''}:(s.id?s:{id:uid(),...s});});
       audit('BACKUP_RESTORE','Data restored from backup file');
       save();loadSettings();renderAll();
       alert('Restore complete! All data has been restored and pushed to Supabase.');
