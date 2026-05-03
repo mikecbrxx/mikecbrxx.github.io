@@ -1262,6 +1262,20 @@ function renderSettings(){
   document.getElementById('colour-list-s').innerHTML=D.colours.map((c,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bd)"><span style="width:18px;height:18px;border-radius:50%;background:${c.hex};border:1px solid rgba(255,255,255,.2);flex-shrink:0"></span><div style="flex:1;font-size:12px">${c.name}</div><button onclick="delColour(${i})" style="background:none;border:none;color:var(--rl);font-size:13px;cursor:pointer">&#10005;</button></div>`).join('');
   // Suppliers
   document.getElementById('sup-list-s').innerHTML=[...D.suppliers].sort(function(a,b){return(a.name||'').localeCompare(b.name||'');}).map(function(s){var details=[s.contact,s.phone,s.email].filter(Boolean).join(' • ');return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--bd)"><div style="flex:1;min-width:0;cursor:pointer" onclick="viewSupplier(\"'+s.id+'\")" ><div style="font-size:12px;font-weight:600">'+s.name+'</div>'+(details?'<div style="font-size:10px;color:var(--muted)">'+details+'</div>':'')+'</div>'+(CU&&CU.role==='admin'?'<button onclick="openEditSupplier(\"'+s.id+'\")" style="background:none;border:1px solid var(--bd);color:var(--muted);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:11px;flex-shrink:0">Edit</button>':'')+'<button onclick="delSup(\"'+s.id+'\")" style="background:none;border:none;color:var(--rl);font-size:13px;cursor:pointer;flex-shrink:0">&#10005;</button></div>';}).join('');
+  // Supplier list event delegation
+  var supList=document.getElementById('sup-list-s');
+  if(supList&&!supList._delegated){
+    supList._delegated=true;
+    supList.addEventListener('click',function(e){
+      var t=e.target;
+      while(t&&t!==supList){
+        if(t.dataset.supView){viewSupplier(t.dataset.supView);return;}
+        if(t.dataset.supEdit){openEditSupplier(t.dataset.supEdit);return;}
+        if(t.dataset.supDel){delSup(t.dataset.supDel);return;}
+        t=t.parentElement;
+      }
+    });
+  }
 }
 function setIS(el){const sz=el.dataset.sz||null;const k=skey(el.dataset.pid,el.dataset.vid,sz,el.dataset.col);if(!D.stock[k])D.stock[k]={initial:0,ordered:0,sold:0};D.stock[k].initial=parseInt(el.value)||0;}
 function saveInitStock(){save();alert('Initial stock saved!');renderStock();renderDash();}
