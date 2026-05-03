@@ -579,7 +579,7 @@ function def(){return{
     {id:'m3',name:'Simon',role:'treasurer',status:'paid',joinDate:'2024-01-01',phone:'',notes:'',created:new Date().toISOString()},
   ],
   transactions:[],events:[],colours:[...DEF_COLS],
-  suppliers:['Road Eagles Shirt Supplier','Lazada','Badge Embroidery Service','Venue Co.','Print & Design'],
+  suppliers:[{id:'s1',name:'Road Eagles Shirt Supplier',phone:'',email:'',website:'',contact:'',address:''},{id:'s2',name:'Lazada',phone:'',email:'',website:'https://lazada.co.th',contact:'',address:''},{id:'s3',name:'Badge Embroidery Service',phone:'',email:'',website:'',contact:'',address:''},{id:'s4',name:'Venue Co.',phone:'',email:'',website:'',contact:'',address:''},{id:'s5',name:'Print & Design Co.',phone:'',email:'',website:'',contact:'',address:''}],
   products:[
     {id:'p1',name:'Club Shirt',category:'shirt',hasSizes:true,memberOnly:true,archived:false,variants:[{id:'v1a',name:'Short Sleeve',memberPrice:350,visitorPrice:450,production:200},{id:'v1b',name:'Long Sleeve',memberPrice:400,visitorPrice:500,production:250},{id:'v1c',name:'Polo Neck',memberPrice:420,visitorPrice:520,production:270}]},
     {id:'p2',name:'Support Shirt',category:'shirt',hasSizes:true,archived:false,variants:[{id:'v2a',name:'Short Sleeve',memberPrice:300,visitorPrice:400,production:180}]},
@@ -600,7 +600,7 @@ let D=null;
 for(const k of['remct4','remct3','remct2']){const r=localStorage.getItem(k);if(r){D=JSON.parse(r);break;}}
 if(!D)D=def();
 if(!D.colours)D.colours=[...DEF_COLS];if(!D.tabs)D.tabs=[];if(!D.auditLog)D.auditLog=[];
-if(D.suppliers&&D.suppliers.length&&typeof D.suppliers[0]==='string'){D.suppliers=D.suppliers.map(function(s,i){return{id:'s'+(i+1),name:s,phone:'',email:'',website:'',contact:'',address:''};});}
+if(D.suppliers)D.suppliers=D.suppliers.map(function(s,i){return typeof s==='string'?{id:'s'+(i+1),name:s,phone:'',email:'',website:'',contact:'',address:''}:s;});
 // Migrate existing transactions to have paid:true if missing
 D.transactions.forEach(function(t){if(t.paid===undefined)t.paid=true;if(!t.responsibleMemberId)t.responsibleMemberId='';});
 if(!D.stock)D.stock={};
@@ -1336,7 +1336,7 @@ function manualSync(){
 }
 function addColour(){const name=document.getElementById('new-colour').value.trim();const hex=document.getElementById('new-colour-hex').value;if(!name)return;if(!D.colours.find(c=>c.name===name)){D.colours.push({name,hex});audit('SETTINGS','Colour added: '+name+' ('+hex+')');}else{alert('Colour already exists.');return;}document.getElementById('new-colour').value='';save();renderSettings();}
 function delColour(i){const c=D.colours[i];if(c)audit('SETTINGS','Colour removed: '+c.name);D.colours.splice(i,1);save();renderSettings();}
-function addSupplier(){const s=document.getElementById('new-sup').value.trim();if(!s)return;if(!D.suppliers.includes(s))D.suppliers.push(s);document.getElementById('new-sup').value='';save();renderSettings();}
+function addSupplier(){const s=document.getElementById('new-sup').value.trim();if(!s)return;if(!D.suppliers.find(function(x){return(x.name||x).toLowerCase()===s.toLowerCase();})){D.suppliers.push({id:uid(),name:s,phone:'',email:'',website:'',contact:'',address:''});audit('SETTINGS','Supplier added: '+s);save();renderSettings();}}
 function delSup(sid){var idx=D.suppliers.findIndex(function(x){return x.id===sid;});if(idx<0)return;var s=D.suppliers[idx];if(!confirm('Delete supplier: '+s.name+'?'))return;audit('SETTINGS','Supplier removed: '+s.name);D.suppliers.splice(idx,1);save();renderSettings();}
 
 // Reports
