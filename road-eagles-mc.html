@@ -273,8 +273,8 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 
     <div class="scr" id="scr-events">
       <div class="sh"><div class="stitle">Events &amp; Rides</div></div>
+      <div class="tabs" id="ev-tabs"><button class="tab on" onclick="setEvTab(this,'all')">All</button><button class="tab" onclick="setEvTab(this,'upcoming')">Upcoming</button><button class="tab" onclick="setEvTab(this,'past')">Past</button></div>
       <div id="event-list"><div class="empty"><div class="ei">&#127881;</div>No events yet</div></div>
-      <button class="btn btn-out" style="margin-top:10px" onclick="openEventModal()">+ Add Event</button>
     </div>
 
     <div class="scr" id="scr-tabs">
@@ -288,6 +288,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div id="tab-ledger-list"><div class="empty"><div class="ei">&#128203;</div>No outstanding items</div></div>
 </div>
 <div class="scr" id="scr-more">
+      <button class="rb" onclick="goTo('events')" style="margin-bottom:10px"><span class="rbi">&#127881;</span><div><div class="fml">Events &amp; Rides</div><div class="fms">View, add and edit all events</div></div></button>
       <div class="stitle" style="margin-bottom:12px">Reports</div>
       <button class="rb" onclick="showReport('monthly')"><span class="rbi">&#128197;</span><div><div class="fml">Monthly Statement</div><div class="fms">Income &amp; expenses, both accounts</div></div></button>
       <button class="rb" onclick="showReport('annual')"><span class="rbi">&#128198;</span><div><div class="fml">Annual Summary</div><div class="fms">Full year, Club &amp; Charity</div></div></button>
@@ -348,7 +349,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
           <div id="colour-list-s"></div>
           <div style="display:flex;gap:8px;margin-top:8px">
             <input type="text" id="new-colour" placeholder="e.g. Red" style="flex:1">
-            <input type="color" id="new-colour-hex" value="#888888" style="width:44px;padding:4px;border-radius:8px;cursor:pointer">
+            <span id="new-col-preview" style="display:inline-block;width:24px;height:24px;border-radius:50%;background:#888888;border:2px solid var(--bd);flex-shrink:0;vertical-align:middle"></span><input type="color" id="new-colour-hex" value="#888888" style="width:44px;padding:4px;border-radius:8px;cursor:pointer" oninput="document.getElementById('new-col-preview').style.background=this.value">
             <button onclick="addColour()" style="background:var(--gold);border:none;color:#000;padding:0 14px;border-radius:10px;cursor:pointer;font-weight:600;font-size:13px">Add</button>
           </div>
         </div>
@@ -356,8 +357,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
           <div class="sect-lbl">Suppliers</div>
           <div id="sup-list-s"></div>
           <div style="display:flex;gap:8px;margin-top:8px">
-            <input type="text" id="new-sup" placeholder="New supplier name" style="flex:1">
-            <button onclick="addSupplier()" style="background:var(--gold);border:none;color:#000;padding:0 14px;border-radius:10px;cursor:pointer;font-weight:600;font-size:13px">Add</button>
+            <button onclick="openAddSupplier()" class="btn btn-gold" style="width:100%">+ Add New Supplier</button>
           </div>
         </div>
       </div>
@@ -378,7 +378,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
           <input type="file" id="restore-file" accept=".json" style="font-size:12px;padding:6px 0">
         </div>
         <button onclick="restoreBackup()" style="width:100%;background:var(--red);border:none;color:#fff;padding:10px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;margin-top:4px">&#9888;&#65039; Restore from File</button>
-        <div style="font-size:10px;color:var(--muted);margin-top:6px;text-align:center">Restoring overwrites ALL current data including Supabase. Type CONFIRM when prompted.</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:6px;text-align:center">Restoring overwrites ALL data. Type CONFIRM when prompted.</div>
       </div>
       <div class="sn" id="sync-settings" style="display:none">
         <h4>&#9729;&#65039; Cloud Sync (Supabase)</h4>
@@ -493,6 +493,28 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 </div></div>
 
 <!-- USER -->
+<div class="mo" id="mo-supplier">
+  <div class="mob">
+    <div class="mh"><div class="mt" id="mo-sup-t">Add Supplier</div><button class="mc2" onclick="closeM('mo-supplier')">&#10005;</button></div>
+    <input type="hidden" id="sup-id">
+    <div class="fg"><label>Supplier Name <span style="color:var(--rl)">*</span></label><input type="text" id="sup-name" placeholder="Required"></div>
+    <div class="fg irow"><div><label>Contact Name</label><input type="text" id="sup-contact" placeholder="Optional"></div><div><label>Phone</label><input type="tel" id="sup-phone" placeholder="Optional"></div></div>
+    <div class="fg"><label>Email</label><input type="email" id="sup-email" placeholder="Optional"></div>
+    <div class="fg"><label>Website</label><input type="url" id="sup-website" placeholder="https://"></div>
+    <div class="fg"><label>Address</label><textarea id="sup-address" placeholder="Optional" style="height:60px"></textarea></div>
+    <button class="btn btn-gold" onclick="saveSupplier()" id="sup-save-btn">Add Supplier</button>
+  </div>
+</div>
+<div class="mo" id="mo-supplier-view">
+  <div class="mob">
+    <div class="mh"><div class="mt" id="sup-view-title">Supplier</div><button class="mc2" onclick="closeM('mo-supplier-view')">&#10005;</button></div>
+    <div id="sup-view-body"></div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-out" onclick="closeM('mo-supplier-view')" style="flex:1">Close</button>
+      <button class="btn btn-gold" id="sup-edit-btn" style="flex:1;display:none">Edit</button>
+    </div>
+  </div>
+</div>
 <div class="mo" id="mo-user"><div class="modal">
   <div class="mh"><div class="mt" id="mo-usr-t">Add App User</div><button class="mc2" onclick="closeM('mo-user')">&#10005;</button></div>
   <div class="fg"><label>Name</label><input type="text" id="usr-name" placeholder="User's name"></div>
@@ -578,6 +600,7 @@ let D=null;
 for(const k of['remct4','remct3','remct2']){const r=localStorage.getItem(k);if(r){D=JSON.parse(r);break;}}
 if(!D)D=def();
 if(!D.colours)D.colours=[...DEF_COLS];if(!D.tabs)D.tabs=[];if(!D.auditLog)D.auditLog=[];
+if(D.suppliers&&D.suppliers.length&&typeof D.suppliers[0]==='string'){D.suppliers=D.suppliers.map(function(s,i){return{id:'s'+(i+1),name:s,phone:'',email:'',website:'',contact:'',address:''};});}
 // Migrate existing transactions to have paid:true if missing
 D.transactions.forEach(function(t){if(t.paid===undefined)t.paid=true;if(!t.responsibleMemberId)t.responsibleMemberId='';});
 if(!D.stock)D.stock={};
@@ -839,14 +862,14 @@ function goTo(n){
   document.getElementById('scr-'+n).classList.add('on');
   document.getElementById('nb-'+n).classList.add('on');
   document.getElementById('fab').style.display=n==='more'?'none':'flex';
-  ({dash:renderDash,ledger:renderLedger,members:renderMembers,merch:()=>{renderMerch();renderStock();},tabs:renderTabLedger,more:renderSettings}[n]||(() =>{}))();
+  ({dash:renderDash,ledger:renderLedger,members:renderMembers,merch:()=>{renderMerch();renderStock();},tabs:renderTabLedger,events:renderEvents,more:renderSettings}[n]||(() =>{}))();
 }
 function setLTab(b,v){document.querySelectorAll('#ledger-tabs .tab').forEach(t=>t.classList.remove('on'));b.classList.add('on');LF=v;renderLedger();}
 function setMTab(b,v){document.querySelectorAll('#mem-tabs .tab').forEach(t=>t.classList.remove('on'));b.classList.add('on');MF=v;renderMembers();}
 function setRTab(b,v){document.querySelectorAll('#merch-tabs .tab').forEach(t=>t.classList.remove('on'));b.classList.add('on');RF=v;renderMerch();}
 function setSTab(b,v){document.querySelectorAll('#stock-tabs .tab').forEach(t=>t.classList.remove('on'));b.classList.add('on');STF=v;renderStock();}
 function setMV(v){MV=v;document.getElementById('mvt-cat').classList.toggle('on',v==='catalogue');document.getElementById('mvt-stock').classList.toggle('on',v==='stock');document.getElementById('merch-catalogue').style.display=v==='catalogue'?'':'none';document.getElementById('merch-stock').style.display=v==='stock'?'':'none';if(v==='stock')renderStock();}
-function renderAll(){renderDash();renderLedger();renderMembers();renderMerch();renderStock();renderTabLedger();}
+function renderAll(){renderDash();renderLedger();renderMembers();renderMerch();renderStock();renderTabLedger();renderEvents();}
 
 // Utils
 function thb(n){return'&#3647;'+(Math.round(n)||0).toLocaleString();}
@@ -1089,11 +1112,11 @@ function openFab(){openM('mo-fab');}
 
 // TX Modal
 let _ta='club',_td='in';
-function openTxModal(dir){closeM('mo-fab');_td=dir;_ta='club';selDir(dir);selAcc('club');document.getElementById('tx-date').value=nd();['tx-amt','tx-desc','tx-sup','tx-ref','tx-notes'].forEach(id=>document.getElementById(id).value='');document.getElementById('tx-ev').innerHTML='<option value="">&#8212; None &#8212;</option>'+(D.events||[]).map(e=>`<option value="${e.id}">${e.name}</option>`).join('');document.getElementById('sup-dl').innerHTML=D.suppliers.map(s=>`<option value="${s}">`).join('');openM('mo-tx');}
+function openTxModal(dir){closeM('mo-fab');_td=dir;_ta='club';selDir(dir);selAcc('club');document.getElementById('tx-date').value=nd();['tx-amt','tx-desc','tx-sup','tx-ref','tx-notes'].forEach(id=>document.getElementById(id).value='');document.getElementById('tx-ev').innerHTML='<option value="">&#8212; None &#8212;</option>'+(D.events||[]).map(e=>`<option value="${e.id}">${e.name}</option>`).join('');document.getElementById('sup-dl').innerHTML=[...D.suppliers].sort(function(a,b){return(a.name||'').localeCompare(b.name||'');}).map(function(s){return'<option value="'+(s.name||s)+'">';}).join('');openM('mo-tx');}
 function selAcc(a){_ta=a;document.getElementById('tacc-c').className='tgb'+(a==='club'?' club':'');document.getElementById('tacc-h').className='tgb'+(a==='charity'?' charity':'');updateCats();}
 function selDir(d){_td=d;document.getElementById('tdir-i').className='tgb'+(d==='in'?' tin':'');document.getElementById('tdir-o').className='tgb'+(d==='out'?' tout':'');updateCats();}
 function updateCats(){const cats=_td==='in'?CATS_I:CATS_O;document.getElementById('tx-cat').innerHTML=cats.map(c=>`<option value="${c}">${CM[c]||c}</option>`).join('');}
-function saveTx(){const amt=parseFloat(document.getElementById('tx-amt').value)||0;if(!amt){alert('Please enter an amount');return;}const sup=document.getElementById('tx-sup').value.trim();if(sup&&!D.suppliers.includes(sup))D.suppliers.push(sup);D.transactions.push({id:uid(),account:_ta,direction:_td,category:document.getElementById('tx-cat').value,amount:amt,description:document.getElementById('tx-desc').value.trim(),supplier:sup,ref:document.getElementById('tx-ref').value.trim(),eventId:document.getElementById('tx-ev').value||'',date:document.getElementById('tx-date').value,created:ni(),notes:document.getElementById('tx-notes').value.trim(),enteredBy:CU.name});save();closeM('mo-tx');renderAll();}
+function saveTx(){const amt=parseFloat(document.getElementById('tx-amt').value)||0;if(!amt){alert('Please enter an amount');return;}const sup=document.getElementById('tx-sup').value.trim();if(sup&&!D.suppliers.find(function(x){return(x.name||x)===sup;}))D.suppliers.push({id:uid(),name:sup,phone:'',email:'',website:'',contact:'',address:''});D.transactions.push({id:uid(),account:_ta,direction:_td,category:document.getElementById('tx-cat').value,amount:amt,description:document.getElementById('tx-desc').value.trim(),supplier:sup,ref:document.getElementById('tx-ref').value.trim(),eventId:document.getElementById('tx-ev').value||'',date:document.getElementById('tx-date').value,created:ni(),notes:document.getElementById('tx-notes').value.trim(),enteredBy:CU.name});save();closeM('mo-tx');renderAll();}
 
 // Sale Modal
 let _cu='member';
@@ -1172,7 +1195,7 @@ function openOrderModal(){closeM('mo-fab');document.getElementById('ord-date').v
 function updateOrdVars(){const p=D.products.find(x=>x.id===document.getElementById('ord-prod').value);if(!p)return;document.getElementById('ord-var').innerHTML=p.variants.map((v,i)=>`<option value="${i}">${v.name}</option>`).join('');updateOrdVarChange();}
 function updateOrdVarChange(){const p=D.products.find(x=>x.id===document.getElementById('ord-prod').value);if(!p)return;document.getElementById('ord-sz-g').style.display=p.hasSizes?'':'none';if(p.hasSizes)document.getElementById('ord-size').innerHTML=SIZES.map(s=>`<option>${s}</option>`).join('');const vi=parseInt(document.getElementById('ord-var').value)||0;const v=p.variants[vi];if(v)document.getElementById('ord-cost').value=v.production||0;const ordColRow=document.getElementById('ord-colour-row');if(ordColRow)ordColRow.style.display=isSingleColour(p)?'none':'';updOrdTotal();}
 function updOrdTotal(){document.getElementById('ord-total').innerHTML=thb((parseInt(document.getElementById('ord-qty').value)||0)*(parseFloat(document.getElementById('ord-cost').value)||0));}
-function saveOrder(){const p=D.products.find(x=>x.id===document.getElementById('ord-prod').value);if(!p){alert('Select a product');return;}const vi=parseInt(document.getElementById('ord-var').value)||0;const v=p.variants[vi];const qty=parseInt(document.getElementById('ord-qty').value)||0;if(qty<=0){alert('Quantity must be at least 1');return;}const cost=parseFloat(document.getElementById('ord-cost').value)||0;const sz=p.hasSizes?document.getElementById('ord-size').value:null;const rawOrdCol=document.getElementById('ord-colour').value;const col=stockCol(p,rawOrdCol);const sup=document.getElementById('ord-sup').value.trim();if(sup&&!D.suppliers.includes(sup))D.suppliers.push(sup);adjStock(p.id,v.id,sz,col,qty,'ordered');D.transactions.push({id:uid(),account:'club',direction:'out',category:'stock_order',amount:cost*qty,description:`Stock order: ${p.name} &#8211; ${v.name}${sz?' ('+sz+')':''}${col?', '+col:''} &#215;${qty}`,supplier:sup,ref:document.getElementById('ord-ref').value.trim(),date:document.getElementById('ord-date').value,created:ni(),notes:document.getElementById('ord-notes').value.trim(),enteredBy:CU.name,productId:p.id,variantId:v.id,qty,unitCost:cost,colour:col,size:sz});save();closeM('mo-order');renderAll();}
+function saveOrder(){const p=D.products.find(x=>x.id===document.getElementById('ord-prod').value);if(!p){alert('Select a product');return;}const vi=parseInt(document.getElementById('ord-var').value)||0;const v=p.variants[vi];const qty=parseInt(document.getElementById('ord-qty').value)||0;if(qty<=0){alert('Quantity must be at least 1');return;}const cost=parseFloat(document.getElementById('ord-cost').value)||0;const sz=p.hasSizes?document.getElementById('ord-size').value:null;const rawOrdCol=document.getElementById('ord-colour').value;const col=stockCol(p,rawOrdCol);const sup=document.getElementById('ord-sup').value.trim();if(sup&&!D.suppliers.find(function(x){return(x.name||x)===sup;}))D.suppliers.push({id:uid(),name:sup,phone:'',email:'',website:'',contact:'',address:''});adjStock(p.id,v.id,sz,col,qty,'ordered');D.transactions.push({id:uid(),account:'club',direction:'out',category:'stock_order',amount:cost*qty,description:`Stock order: ${p.name} &#8211; ${v.name}${sz?' ('+sz+')':''}${col?', '+col:''} &#215;${qty}`,supplier:sup,ref:document.getElementById('ord-ref').value.trim(),date:document.getElementById('ord-date').value,created:ni(),notes:document.getElementById('ord-notes').value.trim(),enteredBy:CU.name,productId:p.id,variantId:v.id,qty,unitCost:cost,colour:col,size:sz});save();closeM('mo-order');renderAll();}
 
 // Member Modal
 function openMemberModal(){closeM('mo-fab');document.getElementById('mo-mem-t').textContent='Add Member / Prospect';document.getElementById('mem-id').value='';['mem-name','mem-phone','mem-email','mem-notes'].forEach(id=>document.getElementById(id).value='');document.getElementById('mem-role').value='prospect';document.getElementById('mem-status').value='prospect';document.getElementById('mem-join').value=nd();document.getElementById('mem-del').style.display='none';openM('mo-member');}
@@ -1193,9 +1216,9 @@ function addVRow(){_prVars.push({id:uid(),name:'',memberPrice:0,visitorPrice:0,p
 function remVRow(i){if(_prVars.length<=1)return;_prVars.splice(i,1);renderVRows();}
 function openAddProductModal(){document.getElementById('mo-prod-t').textContent='Add Product';document.getElementById('pr-id').value='';document.getElementById('pr-name').value='';document.getElementById('pr-cat').value='shirt';selSz(false);selMO(false);_prVars=[{id:uid(),name:'Standard',memberPrice:0,visitorPrice:0,production:0}];renderVRows();document.getElementById('pr-save-btn').textContent='Add Product';document.getElementById('pr-arch-btn').style.display='none';document.getElementById('pr-rest-btn').style.display='none';openM('mo-product');}
 function openEditProductModal(pid){const p=D.products.find(x=>x.id===pid);if(!p)return;document.getElementById('mo-prod-t').textContent='Edit Product';document.getElementById('pr-id').value=pid;document.getElementById('pr-name').value=p.name;document.getElementById('pr-cat').value=p.category;selSz(p.hasSizes);selMO(p.memberOnly||false);_prVars=p.variants.map(v=>({...v}));renderVRows();document.getElementById('pr-save-btn').textContent='Save Changes';document.getElementById('pr-arch-btn').style.display=p.archived?'none':'';document.getElementById('pr-rest-btn').style.display=p.archived?'':'none';openM('mo-product');}
-function saveProduct(){const name=document.getElementById('pr-name').value.trim();if(!name){alert('Product name required');return;}if(_prVars.some(v=>!v.name.trim())){alert('All variants need a name');return;}const pid=document.getElementById('pr-id').value;const data={name,category:document.getElementById('pr-cat').value,hasSizes:_prSz,memberOnly:_prMO,variants:_prVars.map(v=>({...v,name:v.name.trim()}))};if(pid){const p=D.products.find(x=>x.id===pid);if(!p)return;Object.assign(p,data);}else D.products.push({id:uid(),archived:false,...data});save();closeM('mo-product');renderMerch();}
-function archiveProduct(){const pid=document.getElementById('pr-id').value;if(!pid)return;if(!confirm('Archive this product? Hidden from new sales but kept in reports.'))return;const p=D.products.find(x=>x.id===pid);if(p)p.archived=true;save();closeM('mo-product');renderMerch();}
-function restoreProduct(){const pid=document.getElementById('pr-id').value;if(!pid)return;const p=D.products.find(x=>x.id===pid);if(p)p.archived=false;save();closeM('mo-product');renderMerch();}
+function saveProduct(){const name=document.getElementById('pr-name').value.trim();if(!name){alert('Product name required');return;}if(_prVars.some(v=>!v.name.trim())){alert('All variants need a name');return;}const pid=document.getElementById('pr-id').value;const data={name,category:document.getElementById('pr-cat').value,hasSizes:_prSz,memberOnly:_prMO,variants:_prVars.map(v=>({...v,name:v.name.trim()}))};if(pid){const p=D.products.find(x=>x.id===pid);if(!p)return;const pb={name:p.name,category:p.category};Object.assign(p,data);audit('PRODUCT_EDIT','Edited: '+name,pb,{name,category:data.category});}else{D.products.push({id:uid(),archived:false,...data});audit('PRODUCT_ADD','Added product: '+name,undefined,{name,category:data.category});}save();closeM('mo-product');renderMerch();}
+function archiveProduct(){const pid=document.getElementById('pr-id').value;if(!pid)return;if(!confirm('Archive this product? Hidden from new sales but kept in reports.'))return;const p=D.products.find(x=>x.id===pid);if(p){audit('PRODUCT_ARCHIVE','Archived: '+p.name);p.archived=true;}save();closeM('mo-product');renderMerch();}
+function restoreProduct(){const pid=document.getElementById('pr-id').value;if(!pid)return;const p=D.products.find(x=>x.id===pid);if(p){audit('PRODUCT_RESTORE','Restored: '+p.name);p.archived=false;}save();closeM('mo-product');renderMerch();}
 
 // PIN change (all users)
 function changePin(){const o=document.getElementById('cp-old').value.trim(),n=document.getElementById('cp-new').value.trim(),c=document.getElementById('cp-conf').value.trim();if(!o||!n||!c){alert('Fill in all fields');return;}if(o!==CU.pin){alert('Current PIN is incorrect');return;}if(n.length!==6){alert('PIN must be exactly 6 digits');return;}if(n!==c){alert('New PINs do not match');return;}if(D.users[n]&&n!==CU.pin){alert('That PIN is already in use');return;}delete D.users[CU.pin];D.users[n]={name:CU.name,role:CU.role};CU.pin=n;save();['cp-old','cp-new','cp-conf'].forEach(id=>document.getElementById(id).value='');alert('PIN changed!');}
@@ -1236,13 +1259,13 @@ function renderSettings(){
   // Colours
   document.getElementById('colour-list-s').innerHTML=D.colours.map((c,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bd)"><span style="width:18px;height:18px;border-radius:50%;background:${c.hex};border:1px solid rgba(255,255,255,.2);flex-shrink:0"></span><div style="flex:1;font-size:12px">${c.name}</div><button onclick="delColour(${i})" style="background:none;border:none;color:var(--rl);font-size:13px;cursor:pointer">&#10005;</button></div>`).join('');
   // Suppliers
-  document.getElementById('sup-list-s').innerHTML=D.suppliers.map((s,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bd)"><div style="flex:1;font-size:12px">${s}</div><button onclick="delSup(${i})" style="background:none;border:none;color:var(--rl);font-size:13px;cursor:pointer">&#10005;</button></div>`).join('');
+  document.getElementById('sup-list-s').innerHTML=[...D.suppliers].sort(function(a,b){return(a.name||'').localeCompare(b.name||'');}).map(function(s){var details=[s.contact,s.phone,s.email].filter(Boolean).join(' • ');return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--bd)"><div style="flex:1;min-width:0;cursor:pointer" onclick="viewSupplier(\"'+s.id+'\")" ><div style="font-size:12px;font-weight:600">'+s.name+'</div>'+(details?'<div style="font-size:10px;color:var(--muted)">'+details+'</div>':'')+'</div>'+(CU&&CU.role==='admin'?'<button onclick="openEditSupplier(\"'+s.id+'\")" style="background:none;border:1px solid var(--bd);color:var(--muted);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:11px;flex-shrink:0">Edit</button>':'')+'<button onclick="delSup(\"'+s.id+'\")" style="background:none;border:none;color:var(--rl);font-size:13px;cursor:pointer;flex-shrink:0">&#10005;</button></div>';}).join('');
 }
 function setIS(el){const sz=el.dataset.sz||null;const k=skey(el.dataset.pid,el.dataset.vid,sz,el.dataset.col);if(!D.stock[k])D.stock[k]={initial:0,ordered:0,sold:0};D.stock[k].initial=parseInt(el.value)||0;}
 function saveInitStock(){save();alert('Initial stock saved!');renderStock();renderDash();}
-function saveLST(){D.lowStockThreshold=parseInt(document.getElementById('set-lst').value)||5;save();alert('Threshold saved!');renderStock();renderDash();}
+function saveLST(){D.lowStockThreshold=parseInt(document.getElementById('set-lst').value)||5;audit('SETTINGS','Low stock threshold changed to '+D.lowStockThreshold);save();alert('Threshold saved!');renderStock();renderDash();}
 function saveBalances(){const ob=D.openingClub,oh=D.openingCharity;D.openingClub=parseFloat(document.getElementById('set-cb').value)||0;D.openingCharity=parseFloat(document.getElementById('set-hb').value)||0;audit('SETTINGS','Opening balances changed',{club:ob,charity:oh},{club:D.openingClub,charity:D.openingCharity});save();renderDash();alert('Balances saved!');}
-function saveFee(){D.memberFee=parseFloat(document.getElementById('set-fee').value)||2000;save();alert('Fee saved!');document.getElementById('fee-d').textContent=(D.memberFee).toLocaleString();}
+function saveFee(){const oldFee=D.memberFee;D.memberFee=parseFloat(document.getElementById('set-fee').value)||2000;audit('SETTINGS','Annual fee changed',{fee:oldFee},{fee:D.memberFee});save();alert('Fee saved!');document.getElementById('fee-d').textContent=(D.memberFee).toLocaleString();}
 function saveSync(){
   var url=document.getElementById('set-su').value.trim();
   var key=document.getElementById('set-sk').value.trim();
@@ -1311,10 +1334,10 @@ function manualSync(){
     }
   });
 }
-function addColour(){const name=document.getElementById('new-colour').value.trim();const hex=document.getElementById('new-colour-hex').value;if(!name)return;if(!D.colours.find(c=>c.name===name))D.colours.push({name,hex});document.getElementById('new-colour').value='';save();renderSettings();}
-function delColour(i){D.colours.splice(i,1);save();renderSettings();}
+function addColour(){const name=document.getElementById('new-colour').value.trim();const hex=document.getElementById('new-colour-hex').value;if(!name)return;if(!D.colours.find(c=>c.name===name)){D.colours.push({name,hex});audit('SETTINGS','Colour added: '+name+' ('+hex+')');}else{alert('Colour already exists.');return;}document.getElementById('new-colour').value='';save();renderSettings();}
+function delColour(i){const c=D.colours[i];if(c)audit('SETTINGS','Colour removed: '+c.name);D.colours.splice(i,1);save();renderSettings();}
 function addSupplier(){const s=document.getElementById('new-sup').value.trim();if(!s)return;if(!D.suppliers.includes(s))D.suppliers.push(s);document.getElementById('new-sup').value='';save();renderSettings();}
-function delSup(i){D.suppliers.splice(i,1);save();renderSettings();}
+function delSup(sid){var idx=D.suppliers.findIndex(function(x){return x.id===sid;});if(idx<0)return;var s=D.suppliers[idx];if(!confirm('Delete supplier: '+s.name+'?'))return;audit('SETTINGS','Supplier removed: '+s.name);D.suppliers.splice(idx,1);save();renderSettings();}
 
 // Reports
 function showReport(type){
@@ -1523,10 +1546,7 @@ function renderMeeting(){
   var stockRows=[];
   D.products.filter(function(p){return !p.archived;}).forEach(function(p){
     var total=0;
-    p.variants.forEach(function(v){
-      var szs=p.hasSizes?SIZES:[null];
-      szs.forEach(function(sz){prodColours(p).forEach(function(c){total+=getStock(p.id,v.id,sz,c.name);});});
-    });
+    p.variants.forEach(function(v){var szs=p.hasSizes?SIZES:[null];szs.forEach(function(sz){prodColours(p).forEach(function(c){total+=getStock(p.id,v.id,sz,c.name);});});});
     stockRows.push({name:p.name,total:total});
   });
   var inStock=stockRows.filter(function(r){return r.total>0;}).length;
@@ -1545,7 +1565,7 @@ function renderMeeting(){
     +'<div class="balbar"><h3>&#128101; Membership</h3>'
     +br('Paid',paid,'var(--grnl)')+br('Unpaid',unpaidM,'var(--warn)')+br('Prospects',prospects,'var(--muted)')+'</div>'
     +'<div class="balbar"><h3>&#128230; Merchandise Stock</h3>'
-    +stockRows.map(function(r){return br(r.name,r.total===0?'<span style="color:var(--rl)">Out of Stock</span>':r.total,(r.total===0?'var(--rl)':r.total<=(D.lowStockThreshold||5)?'var(--warn)':'var(--grnl)'));}).join('')
+    +stockRows.map(function(r){return br(r.name,r.total===0?'Out of Stock':r.total,(r.total===0?'var(--rl)':r.total<=(D.lowStockThreshold||5)?'var(--warn)':'var(--grnl)'));}).join('')
     +'</div>';
   el.innerHTML=h;
 }
@@ -1570,95 +1590,57 @@ function clearAuditLog(){
   audit('AUDIT_CLEAR','Cleared '+(before-D.auditLog.length)+' audit entries before '+fd(d.value));
   save();showReport('audit');
 }
-function saveBackupSettings(){
-  var days=parseInt(document.getElementById('set-backup-days').value)||7;
-  D.backupReminderDays=days;
-  save();
-  alert('Backup reminder set to every '+days+' days.');
-}
+function openAddSupplier(){document.getElementById('mo-sup-t').textContent='Add Supplier';document.getElementById('sup-id').value='';['sup-name','sup-contact','sup-phone','sup-email','sup-website','sup-address'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('sup-save-btn').textContent='Add Supplier';openM('mo-supplier');}
+function openEditSupplier(sid){var s=D.suppliers.find(function(x){return x.id===sid;});if(!s)return;document.getElementById('mo-sup-t').textContent='Edit Supplier';document.getElementById('sup-id').value=sid;document.getElementById('sup-name').value=s.name||'';document.getElementById('sup-contact').value=s.contact||'';document.getElementById('sup-phone').value=s.phone||'';document.getElementById('sup-email').value=s.email||'';document.getElementById('sup-website').value=s.website||'';document.getElementById('sup-address').value=s.address||'';document.getElementById('sup-save-btn').textContent='Save Changes';openM('mo-supplier');}
+function viewSupplier(sid){var s=D.suppliers.find(function(x){return x.id===sid;});if(!s)return;document.getElementById('sup-view-title').textContent=s.name;var body='';if(s.contact)body+='<div class="brow"><span class="blbl">Contact</span><span>'+s.contact+'</span></div>';if(s.phone)body+='<div class="brow"><span class="blbl">Phone</span><a href="tel:'+s.phone+'" style="color:var(--gold)">'+s.phone+'</a></div>';if(s.email)body+='<div class="brow"><span class="blbl">Email</span><a href="mailto:'+s.email+'" style="color:var(--gold)">'+s.email+'</a></div>';if(s.website)body+='<div class="brow"><span class="blbl">Website</span><a href="'+s.website+'" target="_blank" style="color:var(--gold)">'+s.website+'</a></div>';if(s.address)body+='<div class="brow"><span class="blbl">Address</span><span style="font-size:11px">'+s.address+'</span></div>';if(!body)body='<div style="color:var(--muted);font-size:12px;text-align:center;padding:12px">No additional details recorded.</div>';document.getElementById('sup-view-body').innerHTML=body;var eb=document.getElementById('sup-edit-btn');if(eb){eb.style.display=(CU&&CU.role==='admin')?'':'none';eb.onclick=function(){closeM('mo-supplier-view');openEditSupplier(sid);};}openM('mo-supplier-view');}
+function saveSupplier(){var name=document.getElementById('sup-name').value.trim();if(!name){alert('Supplier name is required.');return;}var sid=document.getElementById('sup-id').value;var data={name:name,contact:document.getElementById('sup-contact').value.trim(),phone:document.getElementById('sup-phone').value.trim(),email:document.getElementById('sup-email').value.trim(),website:document.getElementById('sup-website').value.trim(),address:document.getElementById('sup-address').value.trim()};if(sid){var s=D.suppliers.find(function(x){return x.id===sid;});if(s){var before={name:s.name};Object.assign(s,data);audit('SETTINGS','Supplier edited: '+name,before,{name:name});}}else{if(D.suppliers.find(function(x){return x.name.toLowerCase()===name.toLowerCase();})){alert('Supplier already exists.');return;}data.id=uid();D.suppliers.push(data);audit('SETTINGS','Supplier added: '+name);}save();closeM('mo-supplier');renderSettings();}
 
+function saveBackupSettings(){var days=parseInt(document.getElementById('set-backup-days').value)||7;D.backupReminderDays=days;save();alert('Backup reminder set to every '+days+' days.');}
 function exportBackup(){
   var now=new Date();
   var pad=function(n,w){return String(n).padStart(w,'0');};
   var ts=pad(now.getFullYear(),4)+pad(now.getMonth()+1,2)+pad(now.getDate(),2)+'-'+pad(now.getHours(),2)+':'+pad(now.getMinutes(),2)+':'+pad(now.getSeconds(),2);
   var filename='road-eagles-backup-'+ts+'.json';
-  var payload=JSON.stringify(D,null,2);
-  var blob=new Blob([payload],{type:'application/json'});
-  var a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download=filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(a.href);
-  D.lastBackupDate=now.toISOString();
-  save();
-  var lbl=document.getElementById('last-backup-lbl');
-  if(lbl)lbl.textContent=now.toLocaleString('en-GB');
+  var blob=new Blob([JSON.stringify(D,null,2)],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(a.href);
+  D.lastBackupDate=now.toISOString();save();
+  var lbl=document.getElementById('last-backup-lbl');if(lbl)lbl.textContent=now.toLocaleString('en-GB');
   audit('BACKUP_EXPORT','Backup exported: '+filename);
 }
-
 function restoreBackup(){
-  var fileInput=document.getElementById('restore-file');
-  if(!fileInput||!fileInput.files||!fileInput.files.length){alert('Please select a backup JSON file first.');return;}
-  var confirm1=prompt('WARNING: This will overwrite ALL current data including Supabase.\nType CONFIRM to proceed:');
-  if(confirm1!=='CONFIRM'){alert('Restore cancelled.');return;}
+  var fi=document.getElementById('restore-file');if(!fi||!fi.files||!fi.files.length){alert('Please select a backup JSON file first.');return;}
+  var c1=prompt('WARNING: This will overwrite ALL current data including Supabase.\nType CONFIRM to proceed:');
+  if(c1!=='CONFIRM'){alert('Restore cancelled.');return;}
   var reader=new FileReader();
   reader.onload=function(e){
     try{
       var restored=JSON.parse(e.target.result);
-      // Validate it looks like club data
-      if(!restored.members||!restored.transactions||!restored.products){
-        alert('Invalid backup file. Not a valid Road Eagles backup.');return;
-      }
-      // Preserve current Supabase credentials
+      if(!restored.members||!restored.transactions||!restored.products){alert('Invalid backup file.');return;}
       var url=D.supabaseUrl;var key=D.supabaseKey;
-      D=restored;
-      D.supabaseUrl=url;D.supabaseKey=key;
-      // Run migration
-      if(!D.colours)D.colours=[...DEF_COLS];
-      if(!D.tabs)D.tabs=[];if(!D.stock)D.stock={};
-      if(!D.events)D.events=[];if(!D.suppliers)D.suppliers=[];
-      if(!D.auditLog)D.auditLog=[];
+      D=restored;D.supabaseUrl=url;D.supabaseKey=key;
+      if(!D.colours)D.colours=[...DEF_COLS];if(!D.tabs)D.tabs=[];if(!D.stock)D.stock={};
+      if(!D.events)D.events=[];if(!D.suppliers)D.suppliers=[];if(!D.auditLog)D.auditLog=[];
       if(D.lowStockThreshold===undefined)D.lowStockThreshold=5;
-      D.products.forEach(function(p){
-        if(p.archived===undefined)p.archived=false;
-        if(p.memberOnly===undefined){var cn=['Club Shirt','Trucker Hat','Stretch Hat','Club Trucker','Club Stretch'];p.memberOnly=cn.some(function(n){return p.name.indexOf(n)>=0;});}
-        p.variants.forEach(function(v){if(!v.id)v.id='v'+Math.random().toString(36).slice(2,8);});
-      });
+      D.products.forEach(function(p){if(p.archived===undefined)p.archived=false;if(p.memberOnly===undefined){var cn=['Club Shirt','Trucker Hat','Stretch Hat','Club Trucker','Club Stretch'];p.memberOnly=cn.some(function(n){return p.name.indexOf(n)>=0;});}p.variants.forEach(function(v){if(!v.id)v.id='v'+Math.random().toString(36).slice(2,8);});});
       D.transactions.forEach(function(t){if(t.paid===undefined)t.paid=true;});
+      if(D.suppliers&&D.suppliers.length&&typeof D.suppliers[0]==='string'){D.suppliers=D.suppliers.map(function(s,i){return{id:'s'+(i+1),name:s,phone:'',email:'',website:'',contact:'',address:''};});}
       audit('BACKUP_RESTORE','Data restored from backup file');
-      // Push to Supabase and refresh
-      save();
-      loadSettings();renderAll();
+      save();loadSettings();renderAll();
       alert('Restore complete! All data has been restored and pushed to Supabase.');
     }catch(err){alert('Failed to read backup file: '+err.message);}
   };
-  reader.readAsText(fileInput.files[0]);
+  reader.readAsText(fi.files[0]);
 }
-
 function checkBackupReminder(){
   if(!CU||CU.role!=='admin')return;
   var days=D.backupReminderDays!==undefined?D.backupReminderDays:7;
-  if(days===0)return; // disabled
-  if(!D.lastBackupDate){
-    // Never backed up - remind after first week
-    var created=D.transactions.length>0?new Date(D.transactions[0].created):null;
-    if(!created)return;
-    var daysSince=Math.floor((Date.now()-created.getTime())/(86400000));
-    if(daysSince>=days)showBackupReminder();
-    return;
-  }
-  var daysSince=Math.floor((Date.now()-new Date(D.lastBackupDate).getTime())/(86400000));
-  if(daysSince>=days)showBackupReminder();
+  if(days===0)return;
+  if(!D.lastBackupDate){var tx=D.transactions.length>0?new Date(D.transactions[0].created):null;if(!tx)return;if(Math.floor((Date.now()-tx.getTime())/86400000)>=days)showBackupReminder();return;}
+  if(Math.floor((Date.now()-new Date(D.lastBackupDate).getTime())/86400000)>=days)showBackupReminder();
 }
-
 function showBackupReminder(){
   var lbl=document.getElementById('last-backup-lbl');
-  var lastStr=lbl?lbl.textContent:'unknown';
-  if(confirm('Backup Reminder: It has been a while since your last backup ('+lastStr+').\nExport a backup now?')){
-    exportBackup();
-  }
+  if(confirm('Backup Reminder: Last backup was '+(lbl?lbl.textContent:'unknown')+'.\nExport a backup now?'))exportBackup();
 }
 
 loadSettings();
