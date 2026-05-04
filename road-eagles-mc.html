@@ -922,7 +922,7 @@ function txCard(t){
   const at=CU&&CU.role==='admin'?`<div class="atag">By ${t.enteredBy||'?'} &middot; ${fdt(t.created)}</div>`:'';
   const dl='';
   const ev=t.eventId&&D.events?D.events.find(e=>e.id===t.eventId):null;
-  return`<div class="txi" onclick="openTxEdit('${t.id}')" style="cursor:pointer"><div class="txic">${txi(t)}</div><div class="txin"><div class="txd">${t.description||(CM[t.category]||t.category)}</div><div class="txm">${ab}<span class="tag ${cls}">${t.direction.toUpperCase()}</span>${fd(t.date||t.created)}</div>${t.supplier?`<div style="font-size:10px;color:var(--dim)">&#127978;&#65039; ${t.supplier}</div>`:''}${t.ref?`<div style="font-size:10px;color:var(--dim)">&#128196; ${t.ref}</div>`:''}${ev?`<div style="font-size:10px;color:var(--dim)">&#127881; ${ev.name}</div>`:''}${at}</div><div><div class="txa ${cls}">${sign}${thb(t.amount)}</div></div></div>${dl}`;
+  return`<div class="txi" data-txid="${t.id}" style="cursor:pointer"><div class="txic">${txi(t)}</div><div class="txin"><div class="txd">${t.description||(CM[t.category]||t.category)}</div><div class="txm">${ab}<span class="tag ${cls}">${t.direction.toUpperCase()}</span>${fd(t.date||t.created)}</div>${t.supplier?`<div style="font-size:10px;color:var(--dim)">&#127978;&#65039; ${t.supplier}</div>`:''}${t.ref?`<div style="font-size:10px;color:var(--dim)">&#128196; ${t.ref}</div>`:''}${ev?`<div style="font-size:10px;color:var(--dim)">&#127881; ${ev.name}</div>`:''}${at}</div><div><div class="txa ${cls}">${sign}${thb(t.amount)}</div></div></div>${dl}`;
 }
 
 // Dashboard
@@ -982,6 +982,16 @@ function renderLedger(){
   if(s)txs=txs.filter(t=>(t.description||'').toLowerCase().includes(s)||(t.supplier||'').toLowerCase().includes(s));
   const el=document.getElementById('ledger-list');
   el.innerHTML=txs.length?txs.map(txCard).join(''):'<div class="empty"><div class="ei">&#128203;</div>No entries match</div>';
+  if(!el._txDelegated){
+    el._txDelegated=true;
+    el.addEventListener('click',function(e){
+      var t=e.target;
+      while(t&&t!==el){
+        if(t.dataset&&t.dataset.txid){openTxEdit(t.dataset.txid);return;}
+        t=t.parentElement;
+      }
+    });
+  }
 }
 function delTx(id){if(!CU||CU.role!=='admin')return;if(!confirm('Delete permanently?'))return;const tx=D.transactions.find(t=>t.id===id);if(tx)audit('TRANSACTION_DELETE','Deleted: '+tx.description+' '+thb(tx.amount),{id:tx.id,amount:tx.amount});D.transactions=D.transactions.filter(t=>t.id!==id);save();renderAll();}
 
