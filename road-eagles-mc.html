@@ -157,7 +157,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.8</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.9</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -360,6 +360,12 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
           <div style="font-size:11px;color:var(--muted);margin-bottom:6px">Comma separated (e.g. S, M, L, XL, 2XL)</div>
           <textarea id="set-sizes" style="width:100%;height:40px;font-size:11px;padding:6px;border-radius:8px;border:1px solid var(--bd);background:var(--sf);color:var(--fg)"></textarea>
           <button class="btn btn-gold" onclick="saveSizes()" style="margin-top:8px">Save Sizes</button>
+        </div>
+        <div style="background:var(--sf2);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:10px">
+          <div class="sect-lbl">Product Categories</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:6px">One per line: id|Label (e.g. shirt|Shirt)</div>
+          <textarea id="set-prod-cats" style="width:100%;height:80px;font-size:11px;padding:6px;border-radius:8px;border:1px solid var(--bd);background:var(--sf);color:var(--fg)"></textarea>
+          <button class="btn btn-gold" onclick="saveProductCategories()" style="margin-top:8px">Save Categories</button>
         </div>
         <div style="background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:10px">
           <div class="sect-lbl">Initial Stock Levels</div>
@@ -594,7 +600,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="mh"><div class="mt" id="mo-prod-t">Add Product</div><button class="mc2" onclick="closeM('mo-product')">&#10005;</button></div>
   <input type="hidden" id="pr-id">
   <div class="fg"><label>Product Name</label><input type="text" id="pr-name" placeholder="e.g. Club Patch"></div>
-  <div class="fg"><label>Category</label><select id="pr-cat"><option value="shirt">Shirt</option><option value="trucker">Trucker Hat</option><option value="stretch">Stretch Hat</option><option value="keyring">Keyring</option><option value="other">Other</option></select></div>
+  <div class="fg"><label>Category</label><select id="pr-cat"></select></div>
   <div class="fg"><label>Members Only?</label><div class="tg"><button class="tgb" id="pr-mo-y" onclick="selMO(true)">Yes &#8212; Members Only</button><button class="tgb tmem" id="pr-mo-n" onclick="selMO(false)">No &#8212; All Customers</button></div></div>
   <div class="fg">
     <label>Colours <span style="font-size:10px;color:var(--muted)">(1 colour = single-colour product)</span></label>
@@ -662,14 +668,14 @@ function def(){return{
   stock:{},
   users:{'8464':{name:'Mike',role:'admin'},'1111':{name:'Dennis',role:'officer'},'2222':{name:'Brian',role:'officer'},'3333':{name:'Simon',role:'officer'}},
   supabaseUrl:'',supabaseKey:'',
-  auditLog:[],sizes:['S','M','L','XL','2XL','3XL','4XL','5XL','6XL'],eventTypes:['party','ride','fundraiser','meeting','other'],incomeCategories:['merchandise','membership_fee','donation_in','collection_box','event_income','ride_income','other'],expenseCategories:['purchase','petty_cash','donation_out','event_expense','venue','music','marketing','charity_cash','charity_goods','club_donation_out','other']
+  auditLog:[],sizes:['S','M','L','XL','2XL','3XL','4XL','5XL','6XL'],productCategories:[{id:'shirt',label:'Shirt'},{id:'trucker',label:'Trucker Hat'},{id:'stretch',label:'Stretch Hat'},{id:'keyring',label:'Keyring'},{id:'other',label:'Other'}],eventTypes:['party','ride','fundraiser','meeting','other'],incomeCategories:['merchandise','membership_fee','donation_in','collection_box','event_income','ride_income','other'],expenseCategories:['purchase','petty_cash','donation_out','event_expense','venue','music','marketing','charity_cash','charity_goods','club_donation_out','other']
 };}
 
 // Load, migrate from old keys
 let D=null;
 for(const k of['remct4','remct3','remct2']){const r=localStorage.getItem(k);if(r){D=JSON.parse(r);break;}}
 if(!D)D=def();
-if(!D.colours)D.colours=[...DEF_COLS];if(!D.tabs)D.tabs=[];if(!D.auditLog)D.auditLog=[];if(!D.sizes)D.sizes=['S','M','L','XL','2XL','3XL','4XL','5XL','6XL'];SIZES=D.sizes;if(!D.eventTypes)D.eventTypes=['party','ride','fundraiser','meeting','other'];if(!D.incomeCategories)D.incomeCategories=['merchandise','membership_fee','donation_in','collection_box','event_income','ride_income','other'];if(!D.expenseCategories)D.expenseCategories=['purchase','petty_cash','donation_out','event_expense','venue','music','marketing','charity_cash','charity_goods','club_donation_out','other'];
+if(!D.colours)D.colours=[...DEF_COLS];if(!D.tabs)D.tabs=[];if(!D.auditLog)D.auditLog=[];if(!D.sizes)D.sizes=['S','M','L','XL','2XL','3XL','4XL','5XL','6XL'];SIZES=D.sizes;if(!D.productCategories)D.productCategories=[{id:'shirt',label:'Shirt'},{id:'trucker',label:'Trucker Hat'},{id:'stretch',label:'Stretch Hat'},{id:'keyring',label:'Keyring'},{id:'other',label:'Other'}];if(!D.eventTypes)D.eventTypes=['party','ride','fundraiser','meeting','other'];if(!D.incomeCategories)D.incomeCategories=['merchandise','membership_fee','donation_in','collection_box','event_income','ride_income','other'];if(!D.expenseCategories)D.expenseCategories=['purchase','petty_cash','donation_out','event_expense','venue','music','marketing','charity_cash','charity_goods','club_donation_out','other'];
 if(D.suppliers&&D.suppliers.length&&typeof D.suppliers[0]==='string'){D.suppliers=D.suppliers.map(function(s,i){return{id:'s'+(i+1),name:s,phone:'',email:'',website:'',contact:'',address:''};});}
 // Migrate existing transactions to have paid:true if missing
 D.transactions.forEach(function(t){if(t.paid===undefined)t.paid=true;if(!t.responsibleMemberId)t.responsibleMemberId='';});
@@ -733,6 +739,7 @@ function audit(action, detail, before, after){
   if(D.auditLog.length>2000)D.auditLog=D.auditLog.slice(-2000);
 }
 function refreshSizes(){SIZES=D.sizes||['S','M','L','XL','2XL','3XL','4XL','5XL','6XL'];}
+function getProdCats(){return D.productCategories||[{id:'shirt',label:'Shirt'},{id:'trucker',label:'Trucker Hat'},{id:'stretch',label:'Stretch Hat'},{id:'keyring',label:'Keyring'},{id:'other',label:'Other'}];}
 function refreshCats(){refreshSizes();
   CATS_I=D.incomeCategories||['merchandise','membership_fee','donation_in','collection_box','event_income','ride_income','other'];
   CATS_O=D.expenseCategories||['purchase','petty_cash','donation_out','event_expense','venue','music','marketing','charity_cash','charity_goods','club_donation_out','other'];
@@ -1084,9 +1091,16 @@ function deleteMember(){const id=document.getElementById('mem-id').value;if(!id|
 
 // Merch Catalogue
 function renderMerch(){
+  var tabsEl=document.getElementById('merch-tabs');
+  if(tabsEl){
+    var cats=[{id:'all',label:'All'}].concat(getProdCats());
+    tabsEl.innerHTML=cats.map(function(c){
+      return '<button class="tab'+(RF===c.id?' on':'')+'" data-cat="'+c.id+'" onclick="setRTab(this,this.dataset.cat)">'+c.label+'</button>';
+    }).join('');
+  }
   let ps=[...D.products].sort((a,b)=>a.name.localeCompare(b.name));if(RF!=='all')ps=ps.filter(p=>p.category===RF);
   const active=ps.filter(p=>!p.archived),archived=ps.filter(p=>p.archived);
-  const CL={shirt:'Shirt',trucker:'Trucker Hat',stretch:'Stretch Hat',keyring:'Keyring',other:'Other'};
+  const CL=(function(){var m={};getProdCats().forEach(function(c){m[c.id]=c.label;});return m;})();
   function pc(p){
     return`<div class="pc${p.archived?' archived':''}"><div class="ph"><div class="pn">${p.name}</div><div style="display:flex;gap:6px;align-items:center">${p.archived?'<span class="pill archived">Archived</span>':''}<span class="pill">${CL[p.category]||p.category}</span><button onclick="openEditProductModal('${p.id}')" style="background:none;border:1px solid var(--bd);color:var(--muted);border-radius:8px;padding:3px 9px;cursor:pointer;font-size:11px">Edit</button></div></div>${p.hasSizes?`<div style="font-size:10px;color:var(--dim);margin-bottom:6px">Sizes: ${SIZES.join(', ')}</div>`:''}<div>${p.variants.map(v=>{const sampleCol=isSingleColour(p)?'':(D.colours.length>0?D.colours[0].name:'Black');
           // Sum stock across all sizes and colours for this variant
@@ -1382,6 +1396,8 @@ function openProductModal(pid){if(pid)openEditProductModal(pid);else openAddProd
 function openAddProductModal(){document.getElementById('mo-prod-t').textContent='Add Product';
   document.getElementById('pr-id').value='';
   document.getElementById('pr-name').value='';
+  var pcSel=document.getElementById('pr-cat');
+  if(pcSel)pcSel.innerHTML=getProdCats().map(function(c){return'<option value="'+c.id+'">'+c.label+'</option>';}).join('');
   document.getElementById('pr-cat').value='shirt';
   selMO(false);
   renderPrColours(['Black']);
@@ -1397,6 +1413,8 @@ function openEditProductModal(pid){const p=D.products.find(x=>x.id===pid);if(!p)
   document.getElementById('mo-prod-t').textContent='Edit Product';
   document.getElementById('pr-id').value=pid;
   document.getElementById('pr-name').value=p.name;
+  var pcSelE=document.getElementById('pr-cat');
+  if(pcSelE)pcSelE.innerHTML=getProdCats().map(function(c){return'<option value="'+c.id+'">'+c.label+'</option>';}).join('');
   document.getElementById('pr-cat').value=p.category;
   selMO(p.memberOnly||false);
   renderPrColours(p.colours||['Black']);
@@ -1429,6 +1447,7 @@ function loadSettings(){document.getElementById('set-cb').value=D.openingClub||0
   var ci=document.getElementById('set-cats-i');if(ci)ci.value=(D.incomeCategories||CATS_I).join(', ');
   var et=document.getElementById('set-ev-types');if(et)et.value=(D.eventTypes||['party','ride','fundraiser','other']).join(', ');
   var sz=document.getElementById('set-sizes');if(sz)sz.value=(D.sizes||SIZES).join(', ');
+  var pc=document.getElementById('set-prod-cats');if(pc)pc.value=getProdCats().map(function(c){return c.id+'|'+c.label;}).join('\n');
   var co=document.getElementById('set-cats-o');if(co)co.value=(D.expenseCategories||CATS_O).join(', ');document.getElementById('set-lst').value=D.lowStockThreshold||5;if(D.supabaseUrl)document.getElementById('set-su').value=D.supabaseUrl;if(D.supabaseKey)document.getElementById('set-sk').value=D.supabaseKey;}
 function renderSettings(){
   if(!CU||CU.role!=='admin')return;
@@ -1464,6 +1483,15 @@ function setIS(el){const sz=el.dataset.sz||null;const k=skey(el.dataset.pid,el.d
 function saveInitStock(){save();alert('Initial stock saved!');renderStock();renderDash();}
 function saveLST(){D.lowStockThreshold=parseInt(document.getElementById('set-lst').value)||5;audit('SETTINGS','Low stock threshold changed to '+D.lowStockThreshold);save();alert('Threshold saved!');renderStock();renderDash();}
 function saveBalances(){const ob=D.openingClub,oh=D.openingCharity;D.openingClub=parseFloat(document.getElementById('set-cb').value)||0;D.openingCharity=parseFloat(document.getElementById('set-hb').value)||0;audit('SETTINGS','Opening balances changed',{club:ob,charity:oh},{club:D.openingClub,charity:D.openingCharity});save();renderDash();alert('Balances saved!');}
+function saveProductCategories(){
+  var el=document.getElementById('set-prod-cats');
+  if(!el)return;
+  var cats=el.value.split('\n').map(function(s){s=s.trim();var parts=s.split('|');return parts.length>=2?{id:parts[0].trim(),label:parts[1].trim()}:null;}).filter(Boolean);
+  if(!cats.length){alert('Must have at least one category.');return;}
+  D.productCategories=cats;
+  audit('SETTINGS','Product categories updated');
+  save();alert('Product categories saved!');
+}
 function saveSizes(){
   var sz=document.getElementById('set-sizes');
   if(!sz)return;
@@ -1977,7 +2005,7 @@ function renderProducts(){
     return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--bd)">'
       +'<div style="flex:1;min-width:0">'
       +'<div style="font-size:13px;font-weight:600'+(p.archived?';color:var(--muted)':'')+'">'+p.name+(p.archived?' <span style="font-size:10px">(archived)</span>':'')+'</div>'
-      +'<div style="font-size:10px;color:var(--muted);margin-top:2px">'+p.category+(varList?' • '+varList:'')+(p.memberOnly?' • Members Only':'')+'</div>'
+      +'<div style="font-size:10px;color:var(--muted);margin-top:2px">'+(getProdCats().find(function(c){return c.id===p.category;})||{label:p.category}).label+(varList?' • '+varList:'')+(p.memberOnly?' • Members Only':'')+'</div>'
       +'</div>'+editBtn+'</div>';
   }).join('');
 }
