@@ -157,7 +157,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--dim);text-align:center;margin-top:2px">v2.1</div>
+  <div style="font-size:9px;color:var(--dim);text-align:center;margin-top:2px">v2.2</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -1748,8 +1748,8 @@ loadSettings();
 
 
 <script>
-// Back button handler
-// Uses a simple state machine - no pushState inside handler
+// Back button handler - Android PWA safe
+// Uses replaceState (not pushState) inside handler to avoid re-triggering popstate
 var _backState='idle';
 var _backTimer=null;
 
@@ -1760,12 +1760,12 @@ function _resetBackState(){
   if(t)t.style.display='none';
 }
 
-// Push extra history entries so back has something to consume
-history.pushState(null,'',location.href);
+// One extra state so first back press is intercepted
 history.pushState(null,'',location.href);
 
 window.addEventListener('popstate',function(e){
-  // Always push a new state so back button stays available
+  // Immediately replace current state to keep one buffer entry
+  // replaceState does NOT fire popstate - safe to call here
   history.pushState(null,'',location.href);
 
   // 1. Close any open modal
@@ -1784,23 +1784,21 @@ window.addEventListener('popstate',function(e){
     return;
   }
 
-  // 3. On home screen
+  // 3. On home - state machine
   if(_backState==='warned'){
-    // Second press — exit
     _resetBackState();
-    history.go(-3);
+    // Go back twice to get past our buffer state
+    history.go(-2);
     return;
   }
 
-  // First press on home — show warning
+  // First press - warn
   _backState='warned';
   var t=document.getElementById('back-toast');
   if(t){
     t.style.display='flex';
     if(_backTimer)clearTimeout(_backTimer);
-    _backTimer=setTimeout(function(){
-      _resetBackState();
-    },2500);
+    _backTimer=setTimeout(_resetBackState,2500);
   }
 });
 </script>
