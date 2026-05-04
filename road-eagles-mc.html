@@ -157,7 +157,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.5</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.6</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -638,7 +638,7 @@ const DEF_COLS=[{name:'Black',hex:'#1a1a1a'},{name:'White',hex:'#f0f0f0'},{name:
 function skey(pid,vid,sz,col){let k=pid+'_'+vid;if(sz)k+='_'+sz;if(col)k+='_'+col;return k;}
 function isHat(cat){return cat==='trucker'||cat==='stretch';}
 function isSingleColour(p){return !p.colours||p.colours.length<=1;}
-function prodColours(p){if(isSingleColour(p))return [{name:'',hex:'#888888'}];return (p.colours||[]).map(function(cn){return D.colours.find(function(c){return c.name===cn;})||{name:cn,hex:'#888888'};});}
+function prodColours(p){if(isSingleColour(p))return [{name:'',hex:'#888888'}];var cols=p.colours&&p.colours.length?p.colours:D.colours.map(function(c){return c.name;});return cols.map(function(cn){return D.colours.find(function(c){return c.name===cn;})||null;}).filter(Boolean);}
 function stockCol(p,colName){return isSingleColour(p)?'':colName;}
 
 function def(){return{
@@ -678,10 +678,11 @@ if(D.lowStockThreshold===undefined)D.lowStockThreshold=5;
 D.products.forEach(p=>{
   if(p.archived===undefined)p.archived=false;
   if(p.memberOnly===undefined){
-    // Default club products are memberOnly, support products are not
     var clubNames=['Club Shirt','Trucker Hat','Stretch Hat','Club Trucker','Club Stretch'];
     p.memberOnly=clubNames.some(function(n){return p.name.indexOf(n)>=0;});
   }
+  if(!p.colours){p.colours=p.memberOnly?['Black']:D.colours.map(function(c){return c.name;});}
+  if(!p.sizes){p.sizes=p.hasSizes?(D.sizes||SIZES):[];}
   p.variants.forEach(v=>{if(!v.id)v.id='v'+Math.random().toString(36).slice(2,8);});
 });
 // Load Supabase credentials from dedicated key
@@ -834,7 +835,9 @@ function loadFromSupabase(cb){
       if(!D.suppliers)D.suppliers=[];
       D.products.forEach(function(p){
         if(p.archived===undefined)p.archived=false;
-        if(p.memberOnly===undefined)p.memberOnly=false;
+        if(p.memberOnly===undefined){var cn=['Club Shirt','Trucker Hat','Stretch Hat','Club Trucker','Club Stretch'];p.memberOnly=cn.some(function(n){return p.name.indexOf(n)>=0;});}
+        if(!p.colours){p.colours=p.memberOnly?['Black']:D.colours.map(function(c){return c.name;});}
+        if(!p.sizes){p.sizes=p.hasSizes?(D.sizes||SIZES):[];}
         p.variants.forEach(function(v){if(!v.id)v.id='v'+Math.random().toString(36).slice(2,8);});
       });
       localStorage.setItem('remct4',JSON.stringify(D));
@@ -896,10 +899,9 @@ function tryLogin(){
           if(remoteData.lowStockThreshold===undefined)remoteData.lowStockThreshold=5;
           remoteData.products.forEach(function(p){
             if(p.archived===undefined)p.archived=false;
-            if(p.memberOnly===undefined){
-              var cn=['Club Shirt','Trucker Hat','Stretch Hat','Club Trucker','Club Stretch'];
-              p.memberOnly=cn.some(function(n){return p.name.indexOf(n)>=0;});
-            }
+            if(p.memberOnly===undefined){var cn=['Club Shirt','Trucker Hat','Stretch Hat','Club Trucker','Club Stretch'];p.memberOnly=cn.some(function(n){return p.name.indexOf(n)>=0;});}
+            if(!p.colours){p.colours=p.memberOnly?['Black']:remoteData.colours?remoteData.colours.map(function(c){return c.name;}):['Black'];}
+            if(!p.sizes){p.sizes=p.hasSizes?(remoteData.sizes||SIZES):[];}
             p.variants.forEach(function(v){if(!v.id)v.id='v'+Math.random().toString(36).slice(2,8);});
           });
           D=remoteData;
@@ -1520,7 +1522,9 @@ function saveSync(){
       if(D.lowStockThreshold===undefined)D.lowStockThreshold=5;
       D.products.forEach(function(p){
         if(p.archived===undefined)p.archived=false;
-        if(p.memberOnly===undefined)p.memberOnly=false;
+        if(p.memberOnly===undefined){var cn=['Club Shirt','Trucker Hat','Stretch Hat','Club Trucker','Club Stretch'];p.memberOnly=cn.some(function(n){return p.name.indexOf(n)>=0;});}
+        if(!p.colours){p.colours=p.memberOnly?['Black']:D.colours.map(function(c){return c.name;});}
+        if(!p.sizes){p.sizes=p.hasSizes?(D.sizes||SIZES):[];}
         p.variants.forEach(function(v){if(!v.id)v.id='v'+Math.random().toString(36).slice(2,8);});
       });
       localStorage.setItem('remct4',JSON.stringify(D));
