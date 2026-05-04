@@ -1748,42 +1748,60 @@ loadSettings();
 
 <script>
 // Back button handler
-var _lastBack=0;
-var _backBusy=false;
+// Uses a simple state machine - no pushState inside handler
+var _backState='idle';
+var _backTimer=null;
+
+function _resetBackState(){
+  _backState='idle';
+  if(_backTimer){clearTimeout(_backTimer);_backTimer=null;}
+  var t=document.getElementById('back-toast');
+  if(t)t.style.display='none';
+}
+
+// Push extra history entries so back has something to consume
+history.pushState(null,'',location.href);
+history.pushState(null,'',location.href);
+
 window.addEventListener('popstate',function(e){
-  if(_backBusy)return;
-  _backBusy=true;
-  setTimeout(function(){_backBusy=false;},50);
-  var now=Date.now();
+  // Always push a new state so back button stays available
+  history.pushState(null,'',location.href);
+
   // 1. Close any open modal
   var openModal=document.querySelector('.mo.on');
   if(openModal){
     openModal.classList.remove('on');
-    _lastBack=0;
-    history.pushState(null,'',location.href);
+    _resetBackState();
     return;
   }
+
   // 2. Go home from any non-home screen
   var activeScr=document.querySelector('.scr.on');
   if(activeScr&&activeScr.id!=='scr-dash'){
     goTo('dash');
-    _lastBack=0;
-    history.pushState(null,'',location.href);
+    _resetBackState();
     return;
   }
-  // 3. On home — double-press within 2.5s to exit
-  if(now-_lastBack<2500){
-    var t=document.getElementById('back-toast');
-    if(t)t.style.display='none';
-    history.back();
-  } else {
-    _lastBack=now;
-    history.pushState(null,'',location.href);
-    var t=document.getElementById('back-toast');
-    if(t){t.style.display='flex';clearTimeout(t._to);t._to=setTimeout(function(){t.style.display='none';_lastBack=0;},2500);}
+
+  // 3. On home screen
+  if(_backState==='warned'){
+    // Second press — exit
+    _resetBackState();
+    history.go(-3);
+    return;
+  }
+
+  // First press on home — show warning
+  _backState='warned';
+  var t=document.getElementById('back-toast');
+  if(t){
+    t.style.display='flex';
+    if(_backTimer)clearTimeout(_backTimer);
+    _backTimer=setTimeout(function(){
+      _resetBackState();
+    },2500);
   }
 });
-history.pushState(null,'',location.href);
 </script>
 <script>
 window.addEventListener('load',function(){
