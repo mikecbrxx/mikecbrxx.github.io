@@ -493,6 +493,35 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 </div></div>
 
 <!-- USER -->
+<div class="mo" id="mo-tx-edit">
+  <div class="mob">
+    <div class="mh"><div class="mt">Edit Transaction</div><button class="mc2" onclick="closeM('mo-tx-edit')">&#10005;</button></div>
+    <input type="hidden" id="txe-id">
+    <div class="fg irow">
+      <div><label>Direction</label>
+        <div class="tg"><button class="tgb" id="txe-dir-i" onclick="selTxeDir('in')">&#11014;&#65039; In</button><button class="tgb" id="txe-dir-o" onclick="selTxeDir('out')">&#11015;&#65039; Out</button></div>
+      </div>
+      <div><label>Account</label>
+        <div class="tg"><button class="tgb" id="txe-acc-c" onclick="selTxeAcc('club')">&#128693;&#65039;</button><button class="tgb" id="txe-acc-h" onclick="selTxeAcc('charity')">&#10084;&#65039;</button></div>
+      </div>
+    </div>
+    <div class="fg"><label>Category</label><select id="txe-cat"></select></div>
+    <div class="fg irow">
+      <div><label>Amount (&#3647;)</label><input type="number" id="txe-amt" min="0" step="0.01"></div>
+      <div><label>Date</label><input type="date" id="txe-date"></div>
+    </div>
+    <div class="fg"><label>Description</label><input type="text" id="txe-desc" placeholder="What is this for?"></div>
+    <div class="fg"><label>Notes</label><textarea id="txe-notes" style="height:50px"></textarea></div>
+    <div class="fg">
+      <label>Payment Status</label>
+      <div class="tg"><button class="tgb tin" id="txe-pay-paid" onclick="selTxePay('paid')">&#128176; Paid</button><button class="tgb" id="txe-pay-unpaid" onclick="selTxePay('unpaid')">&#128203; Committed</button></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-gold" onclick="saveTxEdit()" style="flex:2">Save Changes</button>
+      <button class="btn" onclick="deleteTxEdit()" style="flex:1;background:var(--red);border-color:var(--red);color:#fff">Delete</button>
+    </div>
+  </div>
+</div>
 <div class="mo" id="mo-supplier">
   <div class="mob">
     <div class="mh"><div class="mt" id="mo-sup-t">Add Supplier</div><button class="mc2" onclick="closeM('mo-supplier')">&#10005;</button></div>
@@ -893,7 +922,7 @@ function txCard(t){
   const at=CU&&CU.role==='admin'?`<div class="atag">By ${t.enteredBy||'?'} &middot; ${fdt(t.created)}</div>`:'';
   const dl=CU&&CU.role==='admin'?`<button class="dlink" onclick="delTx('${t.id}')">&#10005; Delete entry</button>`:'';
   const ev=t.eventId&&D.events?D.events.find(e=>e.id===t.eventId):null;
-  return`<div class="txi"><div class="txic">${txi(t)}</div><div class="txin"><div class="txd">${t.description||(CM[t.category]||t.category)}</div><div class="txm">${ab}<span class="tag ${cls}">${t.direction.toUpperCase()}</span>${fd(t.date||t.created)}</div>${t.supplier?`<div style="font-size:10px;color:var(--dim)">&#127978;&#65039; ${t.supplier}</div>`:''}${t.ref?`<div style="font-size:10px;color:var(--dim)">&#128196; ${t.ref}</div>`:''}${ev?`<div style="font-size:10px;color:var(--dim)">&#127881; ${ev.name}</div>`:''}${at}</div><div><div class="txa ${cls}">${sign}${thb(t.amount)}</div></div></div>${dl}`;
+  return`<div class="txi" onclick="openTxEdit('${t.id}')" style="cursor:pointer"><div class="txic">${txi(t)}</div><div class="txin"><div class="txd">${t.description||(CM[t.category]||t.category)}</div><div class="txm">${ab}<span class="tag ${cls}">${t.direction.toUpperCase()}</span>${fd(t.date||t.created)}</div>${t.supplier?`<div style="font-size:10px;color:var(--dim)">&#127978;&#65039; ${t.supplier}</div>`:''}${t.ref?`<div style="font-size:10px;color:var(--dim)">&#128196; ${t.ref}</div>`:''}${ev?`<div style="font-size:10px;color:var(--dim)">&#127881; ${ev.name}</div>`:''}${at}</div><div><div class="txa ${cls}">${sign}${thb(t.amount)}</div></div></div>${dl}`;
 }
 
 // Dashboard
@@ -954,7 +983,7 @@ function renderLedger(){
   const el=document.getElementById('ledger-list');
   el.innerHTML=txs.length?txs.map(txCard).join(''):'<div class="empty"><div class="ei">&#128203;</div>No entries match</div>';
 }
-function delTx(id){if(!CU||CU.role!=='admin')return;if(!confirm('Delete permanently?'))return;D.transactions=D.transactions.filter(t=>t.id!==id);save();renderAll();}
+function delTx(id){if(!CU||CU.role!=='admin')return;if(!confirm('Delete permanently?'))return;const tx=D.transactions.find(t=>t.id===id);if(tx)audit('TRANSACTION_DELETE','Deleted: '+tx.description+' '+thb(tx.amount),{id:tx.id,amount:tx.amount});D.transactions=D.transactions.filter(t=>t.id!==id);save();renderAll();}
 
 // Members
 function renderMembers(){
@@ -1114,11 +1143,37 @@ function openFab(){openM('mo-fab');}
 
 // TX Modal
 let _ta='club',_td='in';
-function openTxModal(dir){closeM('mo-fab');_td=dir;_ta='club';selDir(dir);selAcc('club');document.getElementById('tx-date').value=nd();['tx-amt','tx-desc','tx-sup','tx-ref','tx-notes'].forEach(id=>document.getElementById(id).value='');document.getElementById('tx-ev').innerHTML='<option value="">&#8212; None &#8212;</option>'+(D.events||[]).map(e=>`<option value="${e.id}">${e.name}</option>`).join('');document.getElementById('sup-dl').innerHTML=[...D.suppliers].sort(function(a,b){return(a.name||'').localeCompare(b.name||'');}).map(function(s){return'<option value="'+(s.name||s)+'">';}).join('');openM('mo-tx');}
+function openTxModal(dir){
+  closeM('mo-fab');_td=dir;_ta='club';
+  selDir(dir);selAcc('club');
+  selTxPay('paid');
+  document.getElementById('tx-date').value=nd();
+  ['tx-amt','tx-desc','tx-sup','tx-ref','tx-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('tx-ev').innerHTML='<option value="">&#8212; None &#8212;</option>'+(D.events||[]).map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
+  document.getElementById('sup-dl').innerHTML=[...D.suppliers].sort(function(a,b){return(a.name||'').localeCompare(b.name||'');}).map(function(s){return'<option value="'+(s.name||s)+'">';}).join('');
+  const rmSel=document.getElementById('tx-resp-member');
+  if(rmSel)rmSel.innerHTML='<option value="">&#8212; Default to me ('+CU.name+') &#8212;</option>'+[...D.members].filter(m=>m.status!=='prospect').sort((a,b)=>a.name.localeCompare(b.name)).map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
+  openM('mo-tx');
+}
 function selAcc(a){_ta=a;document.getElementById('tacc-c').className='tgb'+(a==='club'?' club':'');document.getElementById('tacc-h').className='tgb'+(a==='charity'?' charity':'');updateCats();}
 function selDir(d){_td=d;document.getElementById('tdir-i').className='tgb'+(d==='in'?' tin':'');document.getElementById('tdir-o').className='tgb'+(d==='out'?' tout':'');updateCats();}
 function updateCats(){const cats=_td==='in'?CATS_I:CATS_O;document.getElementById('tx-cat').innerHTML=cats.map(c=>`<option value="${c}">${CM[c]||c}</option>`).join('');}
-function saveTx(){const amt=parseFloat(document.getElementById('tx-amt').value)||0;if(!amt){alert('Please enter an amount');return;}const sup=document.getElementById('tx-sup').value.trim();if(sup&&!D.suppliers.find(function(x){return(x.name||x)===sup;}))D.suppliers.push({id:uid(),name:sup,phone:'',email:'',website:'',contact:'',address:''});D.transactions.push({id:uid(),account:_ta,direction:_td,category:document.getElementById('tx-cat').value,amount:amt,description:document.getElementById('tx-desc').value.trim(),supplier:sup,ref:document.getElementById('tx-ref').value.trim(),eventId:document.getElementById('tx-ev').value||'',date:document.getElementById('tx-date').value,created:ni(),notes:document.getElementById('tx-notes').value.trim(),enteredBy:CU.name});save();closeM('mo-tx');renderAll();}
+function saveTx(){
+  const amt=parseFloat(document.getElementById('tx-amt').value)||0;
+  if(!amt){alert('Please enter an amount');return;}
+  const sup=document.getElementById('tx-sup').value.trim();
+  if(sup&&!D.suppliers.find(function(x){return(x.name||x)===sup;}))D.suppliers.push({id:uid(),name:sup,phone:'',email:'',website:'',contact:'',address:''});
+  const isPaid=_txPay!=='unpaid';
+  const respSel=document.getElementById('tx-resp-member');
+  const respId=respSel?respSel.value:'';
+  const respMem=respId?D.members.find(function(m){return m.id===respId;}):null;
+  const respName=respMem?respMem.name:CU.name;
+  const tx={id:uid(),account:_ta,direction:_td,category:document.getElementById('tx-cat').value,amount:amt,description:document.getElementById('tx-desc').value.trim(),supplier:sup,ref:document.getElementById('tx-ref').value.trim(),eventId:document.getElementById('tx-ev').value||'',date:document.getElementById('tx-date').value,created:ni(),notes:document.getElementById('tx-notes').value.trim(),enteredBy:CU.name,paid:isPaid,responsibleMemberId:respId,responsibleMemberName:respName};
+  audit('TRANSACTION_ADD',tx.description+' '+thb(tx.amount),undefined,{paid:isPaid,direction:_td,amount:amt});
+  D.transactions.push(tx);
+  save();closeM('mo-tx');renderAll();
+  if(!isPaid)goTo('tabs');
+}
 
 // Sale Modal
 let _cu='member';
@@ -1660,27 +1715,79 @@ function showBackupReminder(){
   if(confirm('Backup Reminder: Last backup was '+(lbl?lbl.textContent:'unknown')+'.\nExport a backup now?'))exportBackup();
 }
 
+var _txeDir='in',_txeAcc='club';
+function selTxeDir(d){_txeDir=d;document.getElementById('txe-dir-i').className='tgb'+(d==='in'?' tin':'');document.getElementById('txe-dir-o').className='tgb'+(d==='out'?' tout':'');updateTxeCats();}
+function selTxeAcc(a){_txeAcc=a;document.getElementById('txe-acc-c').className='tgb'+(a==='club'?' club':'');document.getElementById('txe-acc-h').className='tgb'+(a==='charity'?' charity':'');}
+function selTxePay(v){document.getElementById('txe-pay-paid').className='tgb'+(v==='paid'?' tin':'');document.getElementById('txe-pay-unpaid').className='tgb'+(v==='unpaid'?' tout':'');}
+function updateTxeCats(){const cats=_txeDir==='in'?CATS_I:CATS_O;const sel=document.getElementById('txe-cat');if(sel)sel.innerHTML=cats.map(c=>'<option value="'+c+'">'+(CM[c]||c)+'</option>').join('');}
+function openTxEdit(id){
+  const tx=D.transactions.find(t=>t.id===id);if(!tx)return;
+  document.getElementById('txe-id').value=id;
+  document.getElementById('txe-amt').value=tx.amount||0;
+  document.getElementById('txe-date').value=tx.date||nd();
+  document.getElementById('txe-desc').value=tx.description||'';
+  document.getElementById('txe-notes').value=tx.notes||'';
+  _txeDir=tx.direction||'in';_txeAcc=tx.account||'club';
+  selTxeDir(_txeDir);selTxeAcc(_txeAcc);
+  updateTxeCats();
+  const catSel=document.getElementById('txe-cat');
+  if(catSel&&tx.category){const opt=[...catSel.options].find(o=>o.value===tx.category);if(opt)catSel.value=tx.category;}
+  const isPaid=tx.paid!==false;
+  selTxePay(isPaid?'paid':'unpaid');
+  openM('mo-tx-edit');
+}
+function saveTxEdit(){
+  const id=document.getElementById('txe-id').value;
+  const tx=D.transactions.find(t=>t.id===id);if(!tx)return;
+  const before={amount:tx.amount,description:tx.description,paid:tx.paid};
+  tx.amount=parseFloat(document.getElementById('txe-amt').value)||0;
+  tx.date=document.getElementById('txe-date').value;
+  tx.description=document.getElementById('txe-desc').value.trim();
+  tx.notes=document.getElementById('txe-notes').value.trim();
+  tx.direction=_txeDir;tx.account=_txeAcc;
+  tx.category=document.getElementById('txe-cat').value;
+  const nowPaid=document.getElementById('txe-pay-paid').className.includes('tin');
+  tx.paid=nowPaid;
+  audit('TRANSACTION_EDIT','Edited: '+tx.description+' '+thb(tx.amount),before,{amount:tx.amount,description:tx.description,paid:tx.paid});
+  save();closeM('mo-tx-edit');renderAll();
+}
+function deleteTxEdit(){
+  const id=document.getElementById('txe-id').value;
+  if(!CU||CU.role!=='admin'){alert('Only admin can delete transactions.');return;}
+  if(!confirm('Delete this transaction permanently?'))return;
+  const tx=D.transactions.find(t=>t.id===id);
+  if(tx)audit('TRANSACTION_DELETE','Deleted: '+tx.description+' '+thb(tx.amount),{id:tx.id,amount:tx.amount,description:tx.description});
+  D.transactions=D.transactions.filter(t=>t.id!==id);
+  save();closeM('mo-tx-edit');renderAll();
+}
+
 loadSettings();
 </script>
 
 
 <script>
 // Back button handler
+// Modal open → close modal
+// Non-home screen → go home
+// Home screen → double-press exits
 var _lastBack=0;
 window.addEventListener('popstate',function(e){
   var now=Date.now();
-  var anyModalOpen=document.querySelector('.mo.on');
-  if(anyModalOpen){
-    document.querySelector('.mo.on').classList.remove('on');
+  // 1. If any modal open — close it, stay on screen
+  var openModal=document.querySelector('.mo.on');
+  if(openModal){
+    openModal.classList.remove('on');
     history.pushState(null,'',location.href);
     return;
   }
-  var activeScrId=document.querySelector('.scr.on')&&document.querySelector('.scr.on').id;
-  if(activeScrId&&activeScrId!=='scr-dash'){
+  // 2. If on non-home screen — go home
+  var activeScr=document.querySelector('.scr.on');
+  if(activeScr&&activeScr.id!=='scr-dash'){
     goTo('dash');
     history.pushState(null,'',location.href);
     return;
   }
+  // 3. On home / login — double-press exits
   if(now-_lastBack<2200){
     history.back();
   } else {
