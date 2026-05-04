@@ -156,8 +156,8 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <h1>Road Eagles MC</h1>
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
-  <div id="lbl">Enter 6-Digit PIN</div>
-  <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div><div class="pd" id="d4"></div><div class="pd" id="d5"></div></div>
+  <div id="lbl">Enter 4-Digit PIN</div>
+  <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
     <button class="pb" onclick="pp('4')">4</button><button class="pb" onclick="pp('5')">5</button><button class="pb" onclick="pp('6')">6</button>
@@ -307,8 +307,8 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
         <div class="sect-lbl">Change My PIN</div>
         <div class="fg"><label>Current PIN</label><input type="password" id="cp-old" placeholder="Current PIN" maxlength="6"></div>
         <div class="irow">
-          <div class="fg"><label>New PIN</label><input type="password" id="cp-new" placeholder="6 digits" maxlength="6"></div>
-          <div class="fg"><label>Confirm</label><input type="password" id="cp-conf" placeholder="Repeat 6 digits" maxlength="6"></div>
+          <div class="fg"><label>New PIN</label><input type="password" id="cp-new" placeholder="4 digits" maxlength="4"></div>
+          <div class="fg"><label>Confirm</label><input type="password" id="cp-conf" placeholder="Repeat 4 digits" maxlength="4"></div>
         </div>
         <button class="btn btn-gold" onclick="changePin()">Change My PIN</button>
       </div>
@@ -546,7 +546,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 <div class="mo" id="mo-user"><div class="modal">
   <div class="mh"><div class="mt" id="mo-usr-t">Add App User</div><button class="mc2" onclick="closeM('mo-user')">&#10005;</button></div>
   <div class="fg"><label>Name</label><input type="text" id="usr-name" placeholder="User's name"></div>
-  <div class="fg irow"><div><label>PIN (6 digits)</label><input type="number" id="usr-pin" placeholder="6 digits"></div><div><label>Role</label><select id="usr-role"><option value="officer">Officer</option><option value="admin">Admin</option></select></div></div>
+  <div class="fg irow"><div><label>PIN (4 digits)</label><input type="number" id="usr-pin" placeholder="4 digits"></div><div><label>Role</label><select id="usr-role"><option value="officer">Officer</option><option value="admin">Admin</option></select></div></div>
   <input type="hidden" id="usr-old">
   <button class="btn btn-gold" onclick="saveUser()">Save User</button>
   <button class="btn btn-red" id="usr-del-btn" style="display:none;margin-top:6px" onclick="deleteUser()">Remove User</button>
@@ -618,7 +618,7 @@ function def(){return{
     {id:'p7',name:'Support Stretch Hat',category:'stretch',hasSizes:false,memberOnly:false,archived:false,variants:[{id:'v7a',name:'Standard',memberPrice:280,visitorPrice:380,production:170}]},
   ],
   stock:{},
-  users:{'846464':{name:'Mike',role:'admin'},'111111':{name:'Dennis',role:'officer'},'222222':{name:'Brian',role:'officer'},'333333':{name:'Simon',role:'officer'}},
+  users:{'8464':{name:'Mike',role:'admin'},'1111':{name:'Dennis',role:'officer'},'2222':{name:'Brian',role:'officer'},'3333':{name:'Simon',role:'officer'}},
   supabaseUrl:'',supabaseKey:'',
   auditLog:[]
 };}
@@ -808,9 +808,9 @@ function adjStock(pid,vid,sz,col,n,f){const k=skey(pid,vid,sz,col);if(!D.stock[k
 function stSt(q){const t=D.lowStockThreshold||5;return q<=0?'out':q<=t?'low':'ok';}
 
 // Login
-function pp(d){if(PIN.length>=6)return;PIN+=d;dots();if(PIN.length===6)setTimeout(tryLogin,80);}
+function pp(d){if(PIN.length>=4)return;PIN+=d;dots();if(PIN.length===4)setTimeout(tryLogin,80);}
 function pd(){PIN=PIN.slice(0,-1);dots();}
-function dots(){for(let i=0;i<6;i++)document.getElementById('d'+i).classList.toggle('on',i<PIN.length);}
+function dots(){for(let i=0;i<4;i++)document.getElementById('d'+i).classList.toggle('on',i<PIN.length);}
 function tryLogin(){
   if(D.users[PIN]&&['officer','admin'].includes(D.users[PIN].role)){
     CU={...D.users[PIN],pin:PIN};audit('LOGIN','User logged in');
@@ -1277,12 +1277,12 @@ function archiveProduct(){const pid=document.getElementById('pr-id').value;if(!p
 function restoreProduct(){const pid=document.getElementById('pr-id').value;if(!pid)return;const p=D.products.find(x=>x.id===pid);if(p){audit('PRODUCT_RESTORE','Restored: '+p.name);p.archived=false;}save();closeM('mo-product');renderMerch();}
 
 // PIN change (all users)
-function changePin(){const o=document.getElementById('cp-old').value.trim(),n=document.getElementById('cp-new').value.trim(),c=document.getElementById('cp-conf').value.trim();if(!o||!n||!c){alert('Fill in all fields');return;}if(o!==CU.pin){alert('Current PIN is incorrect');return;}if(n.length!==6){alert('PIN must be exactly 6 digits');return;}if(n!==c){alert('New PINs do not match');return;}if(D.users[n]&&n!==CU.pin){alert('That PIN is already in use');return;}delete D.users[CU.pin];D.users[n]={name:CU.name,role:CU.role};CU.pin=n;save();['cp-old','cp-new','cp-conf'].forEach(id=>document.getElementById(id).value='');alert('PIN changed!');}
+function changePin(){const o=document.getElementById('cp-old').value.trim(),n=document.getElementById('cp-new').value.trim(),c=document.getElementById('cp-conf').value.trim();if(!o||!n||!c){alert('Fill in all fields');return;}if(o!==CU.pin){alert('Current PIN is incorrect');return;}if(n.length!==6){alert('PIN must be exactly 4 digits');return;}if(n!==c){alert('New PINs do not match');return;}if(D.users[n]&&n!==CU.pin){alert('That PIN is already in use');return;}delete D.users[CU.pin];D.users[n]={name:CU.name,role:CU.role};CU.pin=n;save();['cp-old','cp-new','cp-conf'].forEach(id=>document.getElementById(id).value='');alert('PIN changed!');}
 
 // User Modal (Admin)
 function openAddUserModal(){document.getElementById('mo-usr-t').textContent='Add User';['usr-name','usr-pin','usr-old'].forEach(id=>document.getElementById(id).value='');document.getElementById('usr-role').value='officer';document.getElementById('usr-del-btn').style.display='none';openM('mo-user');}
 function editUser(pin){const u=D.users[pin];document.getElementById('mo-usr-t').textContent='Edit User';document.getElementById('usr-name').value=u.name;document.getElementById('usr-pin').value=pin;document.getElementById('usr-role').value=u.role;document.getElementById('usr-old').value=pin;document.getElementById('usr-del-btn').style.display=pin===CU.pin?'none':'';openM('mo-user');}
-function saveUser(){const name=document.getElementById('usr-name').value.trim();const pin=String(document.getElementById('usr-pin').value).trim();if(!name||!pin){alert('Name and PIN required');return;}if(pin.length!==6){alert('PIN must be exactly 6 digits');return;}const old=document.getElementById('usr-old').value;if(old&&old!==pin&&D.users[old])delete D.users[old];D.users[pin]={name,role:document.getElementById('usr-role').value};save();closeM('mo-user');renderSettings();}
+function saveUser(){const name=document.getElementById('usr-name').value.trim();const pin=String(document.getElementById('usr-pin').value).trim();if(!name||!pin){alert('Name and PIN required');return;}if(pin.length!==6){alert('PIN must be exactly 4 digits');return;}const old=document.getElementById('usr-old').value;if(old&&old!==pin&&D.users[old])delete D.users[old];D.users[pin]={name,role:document.getElementById('usr-role').value};save();closeM('mo-user');renderSettings();}
 function deleteUser(){const old=document.getElementById('usr-old').value;if(!old||old===CU.pin){alert('Cannot remove yourself');return;}if(!confirm('Remove this user?'))return;delete D.users[old];save();closeM('mo-user');renderSettings();}
 
 // Settings
