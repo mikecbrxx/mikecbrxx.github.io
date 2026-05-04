@@ -1748,15 +1748,21 @@ loadSettings();
 
 <script>
 // Back button handler
+// Modal → close modal (reset timer)
+// Non-home screen → go home (reset timer)
+// Home → double-press exits
 var _lastBack=0;
 window.addEventListener('popstate',function(e){
   var now=Date.now();
-  var anyModalOpen=document.querySelector('.mo.on');
-  if(anyModalOpen){
-    document.querySelector('.mo.on').classList.remove('on');
+  // 1. Close any open modal
+  var openModal=document.querySelector('.mo.on');
+  if(openModal){
+    openModal.classList.remove('on');
+    _lastBack=0;
     history.pushState(null,'',location.href);
     return;
   }
+  // 2. Go home from any non-home screen
   var activeScr=document.querySelector('.scr.on');
   if(activeScr&&activeScr.id!=='scr-dash'){
     goTo('dash');
@@ -1764,6 +1770,7 @@ window.addEventListener('popstate',function(e){
     history.pushState(null,'',location.href);
     return;
   }
+  // 3. On home — double-press to exit
   if(now-_lastBack<2200){
     history.back();
   } else {
