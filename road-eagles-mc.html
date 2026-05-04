@@ -1052,7 +1052,31 @@ function renderMembers(){
         ${m.email?`<div style="font-size:10px;color:var(--dim)">&#9993; ${m.email}</div>`:''}</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><span class="ms ${sc[m.status]||'prospect'}">${sl[m.status]||m.status}</span>${m.status==='unpaid'?`<button style="font-size:10px;background:none;border:1px solid var(--grn);color:var(--grnl);border-radius:20px;padding:3px 8px;cursor:pointer" onclick="markPaid('${m.id}')">Mark Paid</button>`:''}${CU&&CU.role==='admin'?`<button style="font-size:10px;background:none;border:1px solid var(--bd);color:var(--muted);border-radius:20px;padding:3px 8px;cursor:pointer" onclick="editMem('${m.id}')">Edit</button>`:''}</div></div>`;
   }).join('')||'<div class="empty"><div class="ei">&#128101;</div>No members match</div>';
 }
-function markPaid(id){const m=D.members.find(x=>x.id===id);if(!m)return;m.status='paid';audit('FEE_PAID','Fee marked paid for: '+m.name);D.transactions.push({id:uid(),account:'club',direction:'in',category:'membership_fee',amount:calcFee(m.joinDate),description:`Membership fee – ${m.name} (${new Date().getFullYear()})`,supplier:'',ref:'',date:nd(),created:ni(),notes:'',enteredBy:CU.name});save();renderAll();}
+function markPaid(id){
+  const m=D.members.find(x=>x.id===id);if(!m)return;
+  m.status='paid';
+  audit('FEE_PAID','Fee marked paid for: '+m.name);
+  const curYear=new Date().getFullYear();
+  // Find existing unpaid fee tab entry for this member this year
+  const existingTab=D.transactions.find(function(t){
+    return t.category==='membership_fee'
+      &&t.paid===false
+      &&t.responsibleMemberId===m.id
+      &&(t.date||'').slice(0,4)===String(curYear);
+  });
+  if(existingTab){
+    // Mark the existing tab entry as paid
+    existingTab.paid=true;
+    existingTab.paidDate=nd();
+    existingTab.paidBy=CU.name;
+  } else {
+    // No existing tab entry - create a new paid transaction
+    D.transactions.push({id:uid(),account:'club',direction:'in',category:'membership_fee',
+      amount:calcFee(m.joinDate),description:`Membership fee – ${m.name} (${curYear})`,
+      supplier:'',ref:'',date:nd(),created:ni(),notes:'',enteredBy:CU.name,paid:true});
+  }
+  save();renderAll();
+}
 function editMem(id){const m=D.members.find(x=>x.id===id);if(!m)return;document.getElementById('mo-mem-t').textContent='Edit Member';document.getElementById('mem-id').value=id;document.getElementById('mem-name').value=m.name;document.getElementById('mem-role').value=m.role;document.getElementById('mem-status').value=m.status;document.getElementById('mem-join').value=m.joinDate||'';document.getElementById('mem-phone').value=m.phone||'';document.getElementById('mem-email').value=m.email||'';document.getElementById('mem-notes').value=m.notes||'';document.getElementById('mem-del').style.display='';openM('mo-member');}
 function deleteMember(){const id=document.getElementById('mem-id').value;if(!id||!CU||CU.role!=='admin')return;if(!confirm('Delete member?'))return;D.members=D.members.filter(m=>m.id!==id);save();closeM('mo-member');renderMembers();}
 
