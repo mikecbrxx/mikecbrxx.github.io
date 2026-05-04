@@ -157,7 +157,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--dim);text-align:center;margin-top:2px">v2.2</div>
+  <div style="font-size:9px;color:var(--dim);text-align:center;margin-top:2px">v2.3</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -288,7 +288,17 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   </div>
   <div id="tab-ledger-list"><div class="empty"><div class="ei">&#128203;</div>No outstanding items</div></div>
 </div>
+<div class="scr" id="scr-suppliers">
+  <div class="sh"><div class="stitle">&#128230; Suppliers</div><button class="ib" onclick="openAddSupplier()" style="font-size:20px;font-weight:300">+</button></div>
+  <div id="sup-list-s"></div>
+</div>
+<div class="scr" id="scr-products">
+  <div class="sh"><div class="stitle">&#128085;&#65039; Products</div><button class="ib" id="prod-add-btn" style="font-size:20px;font-weight:300;display:none" onclick="openProductModal('')">+</button></div>
+  <div id="prod-list-s"></div>
+</div>
 <div class="scr" id="scr-more">
+      <button class="rb" onclick="goTo('suppliers')" style="margin-bottom:6px"><span class="rbi">&#128230;</span><div><div class="fml">Suppliers</div><div class="fms">View, add and edit suppliers</div></div></button>
+      <button class="rb" onclick="goTo('products')" style="margin-bottom:10px"><span class="rbi">&#128085;&#65039;</span><div><div class="fml">Products</div><div class="fms">Manage products and variants</div></div></button>
       <div class="stitle" style="margin-bottom:12px">Reports</div>
       <button class="rb" onclick="showReport('monthly')"><span class="rbi">&#128197;</span><div><div class="fml">Monthly Statement</div><div class="fms">Income &amp; expenses, both accounts</div></div></button>
       <button class="rb" onclick="showReport('annual')"><span class="rbi">&#128198;</span><div><div class="fml">Annual Summary</div><div class="fms">Full year, Club &amp; Charity</div></div></button>
@@ -324,6 +334,31 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
           <div class="sect-lbl">Annual Membership Fee</div>
           <div class="fg"><label>Fee Amount (&#3647;)</label><input type="number" id="set-fee" value="2000"></div>
           <button class="btn btn-gold" onclick="saveFee()">Save Fee</button>
+        </div>
+        <div style="background:var(--sf2);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:10px">
+          <div class="sect-lbl">Transaction Categories</div>
+          <div style="margin-bottom:8px">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:6px">&#11014;&#65039; Income Categories (comma separated)</div>
+            <textarea id="set-cats-i" style="width:100%;height:60px;font-size:11px;padding:6px;border-radius:8px;border:1px solid var(--bd);background:var(--sf);color:var(--fg)"></textarea>
+          </div>
+          <div style="margin-bottom:8px">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:6px">&#11015;&#65039; Expense Categories (comma separated)</div>
+            <textarea id="set-cats-o" style="width:100%;height:60px;font-size:11px;padding:6px;border-radius:8px;border:1px solid var(--bd);background:var(--sf);color:var(--fg)"></textarea>
+          </div>
+          <div style="font-size:10px;color:var(--dim);margin-bottom:8px">Use existing keys: merchandise, membership_fee, purchase, petty_cash, donation_in, donation_out, event_income, event_expense, venue, music, marketing, other</div>
+          <button class="btn btn-gold" onclick="saveCategories()">Save Categories</button>
+        </div>
+        <div style="background:var(--sf2);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:10px">
+          <div class="sect-lbl">Event Types</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:6px">Comma separated (e.g. party, ride, meeting)</div>
+          <textarea id="set-ev-types" style="width:100%;height:50px;font-size:11px;padding:6px;border-radius:8px;border:1px solid var(--bd);background:var(--sf);color:var(--fg)"></textarea>
+          <button class="btn btn-gold" onclick="saveEventTypes()" style="margin-top:8px">Save Event Types</button>
+        </div>
+        <div style="background:var(--sf2);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:10px">
+          <div class="sect-lbl">Available Sizes</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:6px">Comma separated (e.g. S, M, L, XL, 2XL)</div>
+          <textarea id="set-sizes" style="width:100%;height:40px;font-size:11px;padding:6px;border-radius:8px;border:1px solid var(--bd);background:var(--sf);color:var(--fg)"></textarea>
+          <button class="btn btn-gold" onclick="saveSizes()" style="margin-top:8px">Save Sizes</button>
         </div>
         <div style="background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:10px">
           <div class="sect-lbl">Initial Stock Levels</div>
@@ -485,7 +520,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="mh"><div class="mt" id="mo-ev-t">Add Event</div><button class="mc2" onclick="closeM('mo-event')">&#10005;</button></div>
   <input type="hidden" id="ev-id">
   <div class="fg"><label>Event Name</label><input type="text" id="ev-name" placeholder="e.g. Road Eagles Annual Party 2026"></div>
-  <div class="fg irow"><div><label>Date</label><input type="date" id="ev-date"></div><div><label>Type</label><select id="ev-type"><option value="party">Annual Party</option><option value="ride">Ride</option><option value="fundraiser">Fundraiser</option><option value="other">Other</option></select></div></div>
+  <div class="fg irow"><div><label>Date</label><input type="date" id="ev-date"></div><div><label>Type</label><select id="ev-type"></select></div></div>
   <div class="fg"><label>Venue</label><input type="text" id="ev-venue" placeholder="Venue name / location"></div>
   <div class="fg"><label>Notes</label><textarea id="ev-notes" placeholder="Description, highlights&#8230;"></textarea></div>
   <div class="notice" style="margin-top:4px">&#128161; Record income/expenses in the Ledger using Event Income / Event Expense categories.</div>
@@ -558,11 +593,16 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="mh"><div class="mt" id="mo-prod-t">Add Product</div><button class="mc2" onclick="closeM('mo-product')">&#10005;</button></div>
   <input type="hidden" id="pr-id">
   <div class="fg"><label>Product Name</label><input type="text" id="pr-name" placeholder="e.g. Club Patch"></div>
-  <div class="fg irow">
-    <div><label>Category</label><select id="pr-cat"><option value="shirt">Shirt</option><option value="trucker">Trucker Hat</option><option value="stretch">Stretch Hat</option><option value="keyring">Keyring</option><option value="other">Other</option></select></div>
-    <div><label>Has Sizes (S&#8211;6XL)?</label><div class="tg" style="margin-top:6px"><button class="tgb" id="pr-sy" onclick="selSz(true)">Yes</button><button class="tgb tmem" id="pr-sn" onclick="selSz(false)">No</button></div></div>
+  <div class="fg"><label>Category</label><select id="pr-cat"><option value="shirt">Shirt</option><option value="trucker">Trucker Hat</option><option value="stretch">Stretch Hat</option><option value="keyring">Keyring</option><option value="other">Other</option></select></div>
+  <div class="fg"><label>Members Only?</label><div class="tg"><button class="tgb" id="pr-mo-y" onclick="selMO(true)">Yes &#8212; Members Only</button><button class="tgb tmem" id="pr-mo-n" onclick="selMO(false)">No &#8212; All Customers</button></div></div>
+  <div class="fg">
+    <label>Colours <span style="font-size:10px;color:var(--muted)">(1 colour = single-colour product)</span></label>
+    <div id="pr-colours" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px"></div>
   </div>
-  <div class="fg"><label>Members Only? (hides Visitor option)</label><div class="tg"><button class="tgb" id="pr-mo-y" onclick="selMO(true)">Yes &#8212; Members Only</button><button class="tgb tmem" id="pr-mo-n" onclick="selMO(false)">No &#8212; All Customers</button></div></div>
+  <div class="fg">
+    <label>Sizes <span style="font-size:10px;color:var(--muted)">(leave blank for hats, keyrings)</span></label>
+    <div id="pr-sizes" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px"></div>
+  </div>
   <div class="divider"></div>
   <div class="sect-lbl">Variants &amp; Pricing</div>
   <div id="pr-variants-list"></div>
@@ -571,7 +611,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <button class="btn btn-gold" id="pr-save-btn" onclick="saveProduct()">Save Product</button>
   <button class="btn btn-red" id="pr-arch-btn" style="display:none;margin-top:6px" onclick="archiveProduct()">Archive Product</button>
   <button class="btn btn-out" id="pr-rest-btn" style="display:none;margin-top:6px" onclick="restoreProduct()">Restore Product</button>
-</div></div>
+</div></div></div></div>
 
 <!-- TAB DEBT SETTLE MODAL -->
 <div class="mo" id="mo-settletab"><div class="modal">
@@ -592,12 +632,12 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 </div></div>
 
 <script>
-const SIZES=['S','M','L','XL','2XL','3XL','4XL','5XL','6XL'];
+var SIZES=['S','M','L','XL','2XL','3XL','4XL','5XL','6XL'];
 const DEF_COLS=[{name:'Black',hex:'#1a1a1a'},{name:'White',hex:'#f0f0f0'},{name:'Red',hex:'#c0392b'},{name:'Navy',hex:'#1e3a5f'},{name:'Grey',hex:'#777777'},{name:'Gold',hex:'#c9a227'}];
 function skey(pid,vid,sz,col){let k=pid+'_'+vid;if(sz)k+='_'+sz;if(col)k+='_'+col;return k;}
 function isHat(cat){return cat==='trucker'||cat==='stretch';}
-function isSingleColour(p){return (p.memberOnly&&(isHat(p.category)||p.category==='shirt'))||p.category==='keyring';}
-function prodColours(p){return isSingleColour(p)?[{name:'',hex:'#888888'}]:D.colours;}
+function isSingleColour(p){return !p.colours||p.colours.length<=1;}
+function prodColours(p){if(isSingleColour(p))return [{name:'',hex:'#888888'}];return (p.colours||[]).map(function(cn){return D.colours.find(function(c){return c.name===cn;})||{name:cn,hex:'#888888'};});}
 function stockCol(p,colName){return isSingleColour(p)?'':colName;}
 
 function def(){return{
@@ -610,25 +650,25 @@ function def(){return{
   transactions:[],events:[],colours:[...DEF_COLS],
   suppliers:['Road Eagles Shirt Supplier','Lazada','Badge Embroidery Service','Venue Co.','Print & Design'],
   products:[
-    {id:'p1',name:'Club Shirt',category:'shirt',hasSizes:true,memberOnly:true,archived:false,variants:[{id:'v1a',name:'Short Sleeve',memberPrice:350,visitorPrice:450,production:200},{id:'v1b',name:'Long Sleeve',memberPrice:400,visitorPrice:500,production:250},{id:'v1c',name:'Polo Neck',memberPrice:420,visitorPrice:520,production:270}]},
-    {id:'p2',name:'Support Shirt',category:'shirt',hasSizes:true,archived:false,variants:[{id:'v2a',name:'Short Sleeve',memberPrice:300,visitorPrice:400,production:180}]},
-    {id:'p3',name:'Trucker Hat',category:'trucker',hasSizes:false,memberOnly:true,archived:false,variants:[{id:'v3a',name:'Standard',memberPrice:250,visitorPrice:350,production:150}]},
-    {id:'p4',name:'Stretch Hat',category:'stretch',hasSizes:false,memberOnly:true,archived:false,variants:[{id:'v4a',name:'Standard',memberPrice:280,visitorPrice:380,production:170}]},
-    {id:'p5',name:'Keyring',category:'keyring',hasSizes:false,archived:false,variants:[{id:'v5a',name:'Standard',memberPrice:100,visitorPrice:150,production:60}]},
+    {id:'p1',name:'Club Shirt',category:'shirt',hasSizes:true,memberOnly:true,archived:false,colours:['Black'],sizes:['S','M','L','XL','2XL','3XL','4XL','5XL','6XL'],variants:[{id:'v1a',name:'Short Sleeve',memberPrice:350,visitorPrice:450,production:200},{id:'v1b',name:'Long Sleeve',memberPrice:400,visitorPrice:500,production:250},{id:'v1c',name:'Polo Neck',memberPrice:420,visitorPrice:520,production:270}]},
+    {id:'p2',name:'Support Shirt',category:'shirt',hasSizes:true,archived:false,colours:['Black','White','Red'],sizes:['S','M','L','XL','2XL','3XL','4XL','5XL','6XL'],variants:[{id:'v2a',name:'Short Sleeve',memberPrice:300,visitorPrice:400,production:180}]},
+    {id:'p3',name:'Trucker Hat',category:'trucker',hasSizes:false,memberOnly:true,archived:false,colours:['Black'],sizes:[],variants:[{id:'v3a',name:'Standard',memberPrice:250,visitorPrice:350,production:150}]},
+    {id:'p4',name:'Stretch Hat',category:'stretch',hasSizes:false,memberOnly:true,archived:false,colours:['Black'],sizes:[],variants:[{id:'v4a',name:'Standard',memberPrice:280,visitorPrice:380,production:170}]},
+    {id:'p5',name:'Keyring',category:'keyring',hasSizes:false,archived:false,colours:['Black'],sizes:[],variants:[{id:'v5a',name:'Standard',memberPrice:100,visitorPrice:150,production:60}]},
     {id:'p6',name:'Support Trucker Hat',category:'trucker',hasSizes:false,memberOnly:false,archived:false,variants:[{id:'v6a',name:'Standard',memberPrice:250,visitorPrice:350,production:150}]},
     {id:'p7',name:'Support Stretch Hat',category:'stretch',hasSizes:false,memberOnly:false,archived:false,variants:[{id:'v7a',name:'Standard',memberPrice:280,visitorPrice:380,production:170}]},
   ],
   stock:{},
   users:{'8464':{name:'Mike',role:'admin'},'1111':{name:'Dennis',role:'officer'},'2222':{name:'Brian',role:'officer'},'3333':{name:'Simon',role:'officer'}},
   supabaseUrl:'',supabaseKey:'',
-  auditLog:[]
+  auditLog:[],sizes:['S','M','L','XL','2XL','3XL','4XL','5XL','6XL'],eventTypes:['party','ride','fundraiser','meeting','other'],incomeCategories:['merchandise','membership_fee','donation_in','collection_box','event_income','ride_income','other'],expenseCategories:['purchase','petty_cash','donation_out','event_expense','venue','music','marketing','charity_cash','charity_goods','club_donation_out','other']
 };}
 
 // Load, migrate from old keys
 let D=null;
 for(const k of['remct4','remct3','remct2']){const r=localStorage.getItem(k);if(r){D=JSON.parse(r);break;}}
 if(!D)D=def();
-if(!D.colours)D.colours=[...DEF_COLS];if(!D.tabs)D.tabs=[];if(!D.auditLog)D.auditLog=[];
+if(!D.colours)D.colours=[...DEF_COLS];if(!D.tabs)D.tabs=[];if(!D.auditLog)D.auditLog=[];if(!D.sizes)D.sizes=['S','M','L','XL','2XL','3XL','4XL','5XL','6XL'];SIZES=D.sizes;if(!D.eventTypes)D.eventTypes=['party','ride','fundraiser','meeting','other'];if(!D.incomeCategories)D.incomeCategories=['merchandise','membership_fee','donation_in','collection_box','event_income','ride_income','other'];if(!D.expenseCategories)D.expenseCategories=['purchase','petty_cash','donation_out','event_expense','venue','music','marketing','charity_cash','charity_goods','club_donation_out','other'];
 if(D.suppliers&&D.suppliers.length&&typeof D.suppliers[0]==='string'){D.suppliers=D.suppliers.map(function(s,i){return{id:'s'+(i+1),name:s,phone:'',email:'',website:'',contact:'',address:''};});}
 // Migrate existing transactions to have paid:true if missing
 D.transactions.forEach(function(t){if(t.paid===undefined)t.paid=true;if(!t.responsibleMemberId)t.responsibleMemberId='';});
@@ -689,6 +729,11 @@ function audit(action, detail, before, after){
   D.auditLog.push(entry);
   // Keep audit log to last 2000 entries to avoid bloat
   if(D.auditLog.length>2000)D.auditLog=D.auditLog.slice(-2000);
+}
+function refreshSizes(){SIZES=D.sizes||['S','M','L','XL','2XL','3XL','4XL','5XL','6XL'];}
+function refreshCats(){refreshSizes();
+  CATS_I=D.incomeCategories||['merchandise','membership_fee','donation_in','collection_box','event_income','ride_income','other'];
+  CATS_O=D.expenseCategories||['purchase','petty_cash','donation_out','event_expense','venue','music','marketing','charity_cash','charity_goods','club_donation_out','other'];
 }
 function save(){
   D.updated_at=new Date().toISOString();
@@ -864,7 +909,7 @@ function tryLogin(){
           setDot('online');hideOffline();
           syncToSupabase();
         }
-        loadSettings();renderAll();goTo('dash');
+        refreshCats();loadSettings();renderAll();goTo('dash');
       }).catch(function(e){
         document.getElementById('lerr').textContent='';
         console.warn('Supabase login fetch failed:',e.message);
@@ -891,14 +936,14 @@ function goTo(n){
   document.getElementById('scr-'+n).classList.add('on');
   document.getElementById('nb-'+n).classList.add('on');
   document.getElementById('fab').style.display=n==='more'?'none':'flex';
-  ({dash:renderDash,ledger:renderLedger,members:renderMembers,merch:()=>{renderMerch();renderStock();},tabs:renderTabLedger,more:renderSettings}[n]||(() =>{}))();
+  ({dash:renderDash,ledger:renderLedger,members:renderMembers,merch:()=>{renderMerch();renderStock();},tabs:renderTabLedger,events:renderEvents,suppliers:renderSuppliers,products:renderProducts,more:renderSettings}[n]||(() =>{}))();
 }
 function setLTab(b,v){document.querySelectorAll('#ledger-tabs .tab').forEach(t=>t.classList.remove('on'));b.classList.add('on');LF=v;renderLedger();}
 function setMTab(b,v){document.querySelectorAll('#mem-tabs .tab').forEach(t=>t.classList.remove('on'));b.classList.add('on');MF=v;renderMembers();}
 function setRTab(b,v){document.querySelectorAll('#merch-tabs .tab').forEach(t=>t.classList.remove('on'));b.classList.add('on');RF=v;renderMerch();}
 function setSTab(b,v){document.querySelectorAll('#stock-tabs .tab').forEach(t=>t.classList.remove('on'));b.classList.add('on');STF=v;renderStock();}
 function setMV(v){MV=v;document.getElementById('mvt-cat').classList.toggle('on',v==='catalogue');document.getElementById('mvt-stock').classList.toggle('on',v==='stock');document.getElementById('merch-catalogue').style.display=v==='catalogue'?'':'none';document.getElementById('merch-stock').style.display=v==='stock'?'':'none';if(v==='stock')renderStock();}
-function renderAll(){renderDash();renderLedger();renderMembers();renderMerch();renderStock();renderTabLedger();}
+function renderAll(){renderDash();renderLedger();renderMembers();renderMerch();renderStock();renderTabLedger();renderEvents();renderSuppliers();renderProducts();}
 
 // Utils
 function thb(n){return'&#3647;'+(Math.round(n)||0).toLocaleString();}
@@ -911,8 +956,8 @@ function calcBal(){let ci=D.openingClub,co=0,hi=D.openingCharity,ho=0;D.transact
 function mthTx(){const n=new Date(),m=n.getMonth(),y=n.getFullYear();return D.transactions.filter(t=>{if(t.paid===false)return false;const d=new Date(t.date||t.created);return d.getMonth()===m&&d.getFullYear()===y;});}
 function calcFee(j){const f=D.memberFee||2000;if(!j)return f;const d=new Date(j);const curYear=new Date().getFullYear();if(d.getFullYear()<curYear)return f;const mo=d.getMonth()+1;if(mo<=3)return f;if(mo<=6)return Math.round(f*.75);if(mo<=9)return Math.round(f*.5);return Math.round(f*.25);}
 const CM={merchandise:'&#128085;&#65039; Merchandise',membership_fee:'&#129338;&#65039; Membership Fee',donation_in:'&#129309; Donation In',donation_out:'&#128157; Donation Out',collection_box:'&#128230; Collection Box',event_income:'&#127881; Event Income',event_expense:'&#127914; Event Expense',venue:'&#127999;&#65039; Venue',music:'&#127925; Music',marketing:'&#128196; Marketing',purchase:'&#128722; Purchase',petty_cash:'&#128181; Petty Cash',charity_cash:'&#10084;&#65039; Charity Cash',charity_goods:'&#128230; Charity Goods',club_donation_out:'&#129309; Club Donation Out',ride_income:'&#128693;&#65039; Ride Income',stock_order:'&#128230; Stock Order',other:'&#9961; Other'};
-const CATS_I=['merchandise','membership_fee','donation_in','collection_box','event_income','ride_income','other'];
-const CATS_O=['purchase','petty_cash','donation_out','event_expense','venue','music','marketing','charity_cash','charity_goods','club_donation_out','other'];
+var CATS_I=D.incomeCategories||['merchandise','membership_fee','donation_in','collection_box','event_income','ride_income','other'];
+var CATS_O=D.expenseCategories||['purchase','petty_cash','donation_out','event_expense','venue','music','marketing','charity_cash','charity_goods','club_donation_out','other'];
 function txi(t){const m={merchandise:'&#128085;&#65039;',membership_fee:'&#129338;&#65039;',donation_in:'&#129309;',donation_out:'&#128157;',collection_box:'&#128230;',event_income:'&#127881;',event_expense:'&#127914;',venue:'&#127999;&#65039;',music:'&#127925;',marketing:'&#128196;',purchase:'&#128722;',petty_cash:'&#128181;',charity_cash:'&#10084;&#65039;',charity_goods:'&#128230;',club_donation_out:'&#129309;',ride_income:'&#128693;&#65039;',stock_order:'&#128230;',other:'&#128179;'};return m[t.category]||'&#128179;';}
 
 // TX Card
@@ -1250,7 +1295,8 @@ function saveSale(){
 // Order Modal
 function openOrderModal(){closeM('mo-fab');document.getElementById('ord-date').value=nd();['ord-ref','ord-notes','ord-sup'].forEach(id=>document.getElementById(id).value='');document.getElementById('ord-qty').value=1;document.getElementById('ord-total').innerHTML='&#3647;0';const cs=document.getElementById('ord-colour');cs.innerHTML=D.colours.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');const bk=[...cs.options].find(o=>o.value==='Black');if(bk)cs.value='Black';document.getElementById('ord-sup-dl').innerHTML=D.suppliers.map(s=>`<option value="${s}">`).join('');document.getElementById('ord-prod').innerHTML=D.products.filter(p=>!p.archived).sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${p.id}">${p.name}</option>`).join('');updateOrdVars();openM('mo-order');}
 function updateOrdVars(){const p=D.products.find(x=>x.id===document.getElementById('ord-prod').value);if(!p)return;document.getElementById('ord-var').innerHTML=p.variants.map((v,i)=>`<option value="${i}">${v.name}</option>`).join('');updateOrdVarChange();}
-function updateOrdVarChange(){const p=D.products.find(x=>x.id===document.getElementById('ord-prod').value);if(!p)return;document.getElementById('ord-sz-g').style.display=p.hasSizes?'':'none';if(p.hasSizes)document.getElementById('ord-size').innerHTML=SIZES.map(s=>`<option>${s}</option>`).join('');const vi=parseInt(document.getElementById('ord-var').value)||0;const v=p.variants[vi];if(v)document.getElementById('ord-cost').value=v.production||0;const ordColRow=document.getElementById('ord-colour-row');if(ordColRow)ordColRow.style.display=isSingleColour(p)?'none':'';updOrdTotal();}
+function updateOrdVarChange(){const p=D.products.find(x=>x.id===document.getElementById('ord-prod').value);if(!p)return;document.getElementById('ord-sz-g').style.display=p.hasSizes?'':'none';if(p.hasSizes)document.getElementById('ord-size').innerHTML=SIZES.map(s=>`<option>${s}</option>`).join('');const vi=parseInt(document.getElementById('ord-var').value)||0;const v=p.variants[vi];if(v)document.getElementById('ord-cost').value=v.production||0;const ordColRow=document.getElementById('ord-colour-row');if(ordColRow)ordColRow.style.display=isSingleColour(p)?'none':'';
+  if(!isSingleColour(p)){const ocs=document.getElementById('ord-colour');if(ocs)ocs.innerHTML=(p.colours||[]).map(function(cn){return'<option value="'+cn+'">'+cn+'</option>';}).join('');}updOrdTotal();}
 function updOrdTotal(){document.getElementById('ord-total').innerHTML=thb((parseInt(document.getElementById('ord-qty').value)||0)*(parseFloat(document.getElementById('ord-cost').value)||0));}
 function saveOrder(){const p=D.products.find(x=>x.id===document.getElementById('ord-prod').value);if(!p){alert('Select a product');return;}const vi=parseInt(document.getElementById('ord-var').value)||0;const v=p.variants[vi];const qty=parseInt(document.getElementById('ord-qty').value)||0;if(qty<=0){alert('Quantity must be at least 1');return;}const cost=parseFloat(document.getElementById('ord-cost').value)||0;const sz=p.hasSizes?document.getElementById('ord-size').value:null;const rawOrdCol=document.getElementById('ord-colour').value;const col=stockCol(p,rawOrdCol);const sup=document.getElementById('ord-sup').value.trim();if(sup&&!D.suppliers.find(function(x){return(x.name||x)===sup;}))D.suppliers.push({id:uid(),name:sup,phone:'',email:'',website:'',contact:'',address:''});adjStock(p.id,v.id,sz,col,qty,'ordered');D.transactions.push({id:uid(),account:'club',direction:'out',category:'stock_order',amount:cost*qty,description:`Stock order: ${p.name} &#8211; ${v.name}${sz?' ('+sz+')':''}${col?', '+col:''} &#215;${qty}`,supplier:sup,ref:document.getElementById('ord-ref').value.trim(),date:document.getElementById('ord-date').value,created:ni(),notes:document.getElementById('ord-notes').value.trim(),enteredBy:CU.name,productId:p.id,variantId:v.id,qty,unitCost:cost,colour:col,size:sz});save();closeM('mo-order');renderAll();}
 
@@ -1259,8 +1305,10 @@ function openMemberModal(){closeM('mo-fab');document.getElementById('mo-mem-t').
 function saveMember(){const name=document.getElementById('mem-name').value.trim();if(!name){alert('Name required');return;}const id=document.getElementById('mem-id').value;const data={name,role:document.getElementById('mem-role').value,status:document.getElementById('mem-status').value,joinDate:document.getElementById('mem-join').value,phone:document.getElementById('mem-phone').value,email:document.getElementById('mem-email').value.trim(),notes:document.getElementById('mem-notes').value};if(id){const m=D.members.find(x=>x.id===id);if(!m)return;Object.assign(m,data);}else D.members.push({id:uid(),...data,addedBy:CU.name,created:ni()});save();closeM('mo-member');renderMembers();}
 
 // Event Modal
-function openEventModal(){document.getElementById('mo-ev-t').textContent='Add Event';document.getElementById('ev-id').value='';['ev-name','ev-venue','ev-notes'].forEach(id=>document.getElementById(id).value='');document.getElementById('ev-date').value=nd();document.getElementById('ev-type').value='party';openM('mo-event');}
-function editEvent(id){const ev=D.events.find(e=>e.id===id);if(!ev)return;document.getElementById('mo-ev-t').textContent='Edit Event';document.getElementById('ev-id').value=id;document.getElementById('ev-name').value=ev.name;document.getElementById('ev-date').value=ev.date||'';document.getElementById('ev-type').value=ev.type||'party';document.getElementById('ev-venue').value=ev.venue||'';document.getElementById('ev-notes').value=ev.notes||'';openM('mo-event');}
+function openEventModal(){document.getElementById('mo-ev-t').textContent='Add Event';document.getElementById('ev-id').value='';['ev-name','ev-venue','ev-notes'].forEach(id=>document.getElementById(id).value='');document.getElementById('ev-date').value=nd();var etSel=document.getElementById('ev-type');
+  if(etSel){etSel.innerHTML=(D.eventTypes||['party','ride','fundraiser','other']).map(function(t){return'<option value="'+t+'">'+t.charAt(0).toUpperCase()+t.slice(1)+'</option>';}).join('');etSel.value='party';}openM('mo-event');}
+function editEvent(id){const ev=D.events.find(e=>e.id===id);if(!ev)return;document.getElementById('mo-ev-t').textContent='Edit Event';document.getElementById('ev-id').value=id;document.getElementById('ev-name').value=ev.name;document.getElementById('ev-date').value=ev.date||'';var etSelE=document.getElementById('ev-type');
+  if(etSelE){etSelE.innerHTML=(D.eventTypes||['party','ride','fundraiser','other']).map(function(t){return'<option value="'+t+'">'+t.charAt(0).toUpperCase()+t.slice(1)+'</option>';}).join('');etSelE.value=ev.type||'party';}document.getElementById('ev-venue').value=ev.venue||'';document.getElementById('ev-notes').value=ev.notes||'';openM('mo-event');}
 function deleteEvent(id){if(!CU||CU.role!=='admin')return;if(!confirm('Delete this event? Linked transactions will remain.'))return;D.events=D.events.filter(e=>e.id!==id);save();renderEvents();}
 function saveEvent(){const name=document.getElementById('ev-name').value.trim();if(!name){alert('Event name required');return;}if(!D.events)D.events=[];const eid=document.getElementById('ev-id').value;const evData={name,date:document.getElementById('ev-date').value,type:document.getElementById('ev-type').value,venue:document.getElementById('ev-venue').value.trim(),notes:document.getElementById('ev-notes').value.trim()};if(eid){const ev=D.events.find(e=>e.id===eid);if(ev)Object.assign(ev,evData);}else{D.events.push({id:uid(),...evData,created:ni(),addedBy:CU.name});}save();closeM('mo-event');renderEvents();}
 
@@ -1271,9 +1319,67 @@ function selMO(v){_prMO=v;document.getElementById('pr-mo-y').className='tgb'+(v?
 function renderVRows(){document.getElementById('pr-variants-list').innerHTML=_prVars.map((v,i)=>`<div class="vi"><div class="vi-head"><span>Variant ${i+1}</span>${_prVars.length>1?`<button onclick="remVRow(${i})" style="background:none;border:none;color:var(--rl);font-size:15px;cursor:pointer">&#10005;</button>`:''}</div><div class="fg"><input type="text" value="${v.name}" placeholder="e.g. Short Sleeve" oninput="_prVars[${i}].name=this.value"></div><div class="irow3"><div><label>Member (&#3647;)</label><input type="number" value="${v.memberPrice}" oninput="_prVars[${i}].memberPrice=parseFloat(this.value)||0"></div><div><label>Visitor (&#3647;)</label><input type="number" value="${v.visitorPrice}" oninput="_prVars[${i}].visitorPrice=parseFloat(this.value)||0"></div><div><label>Cost (&#3647;)</label><input type="number" value="${v.production}" oninput="_prVars[${i}].production=parseFloat(this.value)||0"></div></div></div>`).join('');}
 function addVRow(){_prVars.push({id:uid(),name:'',memberPrice:0,visitorPrice:0,production:0});renderVRows();}
 function remVRow(i){if(_prVars.length<=1)return;_prVars.splice(i,1);renderVRows();}
-function openAddProductModal(){document.getElementById('mo-prod-t').textContent='Add Product';document.getElementById('pr-id').value='';document.getElementById('pr-name').value='';document.getElementById('pr-cat').value='shirt';selSz(false);selMO(false);_prVars=[{id:uid(),name:'Standard',memberPrice:0,visitorPrice:0,production:0}];renderVRows();document.getElementById('pr-save-btn').textContent='Add Product';document.getElementById('pr-arch-btn').style.display='none';document.getElementById('pr-rest-btn').style.display='none';openM('mo-product');}
-function openEditProductModal(pid){const p=D.products.find(x=>x.id===pid);if(!p)return;document.getElementById('mo-prod-t').textContent='Edit Product';document.getElementById('pr-id').value=pid;document.getElementById('pr-name').value=p.name;document.getElementById('pr-cat').value=p.category;selSz(p.hasSizes);selMO(p.memberOnly||false);_prVars=p.variants.map(v=>({...v}));renderVRows();document.getElementById('pr-save-btn').textContent='Save Changes';document.getElementById('pr-arch-btn').style.display=p.archived?'none':'';document.getElementById('pr-rest-btn').style.display=p.archived?'':'none';openM('mo-product');}
-function saveProduct(){const name=document.getElementById('pr-name').value.trim();if(!name){alert('Product name required');return;}if(_prVars.some(v=>!v.name.trim())){alert('All variants need a name');return;}const pid=document.getElementById('pr-id').value;const data={name,category:document.getElementById('pr-cat').value,hasSizes:_prSz,memberOnly:_prMO,variants:_prVars.map(v=>({...v,name:v.name.trim()}))};if(pid){const p=D.products.find(x=>x.id===pid);if(!p)return;const pb={name:p.name,category:p.category};Object.assign(p,data);audit('PRODUCT_EDIT','Edited: '+name,pb,{name,category:data.category});}else{D.products.push({id:uid(),archived:false,...data});audit('PRODUCT_ADD','Added product: '+name,undefined,{name,category:data.category});}save();closeM('mo-product');renderMerch();}
+function renderPrColours(selected){
+  var el=document.getElementById('pr-colours');if(!el)return;
+  el.innerHTML=(D.colours||[]).map(function(c){
+    var checked=(selected||[]).indexOf(c.name)>=0;
+    return '<label style="display:flex;align-items:center;gap:5px;cursor:pointer;background:var(--sf2);border:1px solid '+(checked?'var(--gold)':'var(--bd)')+';border-radius:20px;padding:4px 10px;font-size:11px">'
+      +'<input type="checkbox" value="'+c.name+'" '+(checked?'checked':'')+' style="margin:0" onchange="updatePrColourStyle(this)">'
+      +'<span style="width:12px;height:12px;border-radius:50%;background:'+c.hex+';flex-shrink:0;display:inline-block"></span>'
+      +c.name+'</label>';
+  }).join('');
+}
+function renderPrSizes(selected){
+  var el=document.getElementById('pr-sizes');if(!el)return;
+  el.innerHTML=SIZES.map(function(s){
+    var checked=(selected||[]).indexOf(s)>=0;
+    return '<label style="display:flex;align-items:center;gap:4px;cursor:pointer;background:var(--sf2);border:1px solid '+(checked?'var(--gold)':'var(--bd)')+';border-radius:20px;padding:4px 10px;font-size:11px">'
+      +'<input type="checkbox" value="'+s+'" '+(checked?'checked':'')+' style="margin:0" onchange="updatePrColourStyle(this)">'+s+'</label>';
+  }).join('');
+}
+function updatePrColourStyle(cb){cb.closest('label').style.borderColor=cb.checked?'var(--gold)':'var(--bd)';}
+function getPrSelectedColours(){
+  var el=document.getElementById('pr-colours');if(!el)return[];
+  return [...el.querySelectorAll('input:checked')].map(function(cb){return cb.value;});
+}
+function getPrSelectedSizes(){
+  var el=document.getElementById('pr-sizes');if(!el)return[];
+  return [...el.querySelectorAll('input:checked')].map(function(cb){return cb.value;});
+}
+function openProductModal(pid){if(pid)openEditProductModal(pid);else openAddProductModal();}
+function openAddProductModal(){document.getElementById('mo-prod-t').textContent='Add Product';
+  document.getElementById('pr-id').value='';
+  document.getElementById('pr-name').value='';
+  document.getElementById('pr-cat').value='shirt';
+  selMO(false);
+  renderPrColours(['Black']);
+  renderPrSizes([]);
+  _prVars=[{id:uid(),name:'Standard',memberPrice:0,visitorPrice:0,production:0}];
+  renderVRows();
+  document.getElementById('pr-save-btn').textContent='Add Product';
+  document.getElementById('pr-arch-btn').style.display='none';
+  document.getElementById('pr-rest-btn').style.display='none';
+  openM('mo-product');
+}
+function openEditProductModal(pid){const p=D.products.find(x=>x.id===pid);if(!p)return;
+  document.getElementById('mo-prod-t').textContent='Edit Product';
+  document.getElementById('pr-id').value=pid;
+  document.getElementById('pr-name').value=p.name;
+  document.getElementById('pr-cat').value=p.category;
+  selMO(p.memberOnly||false);
+  renderPrColours(p.colours||['Black']);
+  renderPrSizes(p.sizes||[]);
+  _prVars=p.variants.map(v=>({...v}));
+  renderVRows();
+  document.getElementById('pr-save-btn').textContent='Save Changes';
+  document.getElementById('pr-arch-btn').style.display=p.archived?'none':'';
+  document.getElementById('pr-rest-btn').style.display=p.archived?'':'none';
+  openM('mo-product');
+}
+function saveProduct(){const name=document.getElementById('pr-name').value.trim();if(!name){alert('Product name required');return;}if(_prVars.some(v=>!v.name.trim())){alert('All variants need a name');return;}const pid=document.getElementById('pr-id').value;const selCols=getPrSelectedColours();
+  const selSzs=getPrSelectedSizes();
+  if(!selCols.length){alert('Please select at least one colour.');return;}
+  const data={name,category:document.getElementById('pr-cat').value,hasSizes:selSzs.length>0,memberOnly:_prMO,colours:selCols,sizes:selSzs,variants:_prVars.map(v=>({...v,name:v.name.trim()}))};if(pid){const p=D.products.find(x=>x.id===pid);if(!p)return;const pb={name:p.name,category:p.category};Object.assign(p,data);audit('PRODUCT_EDIT','Edited: '+name,pb,{name,category:data.category});}else{D.products.push({id:uid(),archived:false,...data});audit('PRODUCT_ADD','Added product: '+name,undefined,{name,category:data.category});}save();closeM('mo-product');renderMerch();}
 function archiveProduct(){const pid=document.getElementById('pr-id').value;if(!pid)return;if(!confirm('Archive this product? Hidden from new sales but kept in reports.'))return;const p=D.products.find(x=>x.id===pid);if(p){audit('PRODUCT_ARCHIVE','Archived: '+p.name);p.archived=true;}save();closeM('mo-product');renderMerch();}
 function restoreProduct(){const pid=document.getElementById('pr-id').value;if(!pid)return;const p=D.products.find(x=>x.id===pid);if(p){audit('PRODUCT_RESTORE','Restored: '+p.name);p.archived=false;}save();closeM('mo-product');renderMerch();}
 
@@ -1287,7 +1393,11 @@ function saveUser(){const name=document.getElementById('usr-name').value.trim();
 function deleteUser(){const old=document.getElementById('usr-old').value;if(!old||old===CU.pin){alert('Cannot remove yourself');return;}if(!confirm('Remove this user?'))return;delete D.users[old];save();closeM('mo-user');renderSettings();}
 
 // Settings
-function loadSettings(){document.getElementById('set-cb').value=D.openingClub||0;document.getElementById('set-hb').value=D.openingCharity||0;document.getElementById('set-fee').value=D.memberFee||2000;document.getElementById('set-lst').value=D.lowStockThreshold||5;if(D.supabaseUrl)document.getElementById('set-su').value=D.supabaseUrl;if(D.supabaseKey)document.getElementById('set-sk').value=D.supabaseKey;}
+function loadSettings(){document.getElementById('set-cb').value=D.openingClub||0;document.getElementById('set-hb').value=D.openingCharity||0;document.getElementById('set-fee').value=D.memberFee||2000;
+  var ci=document.getElementById('set-cats-i');if(ci)ci.value=(D.incomeCategories||CATS_I).join(', ');
+  var et=document.getElementById('set-ev-types');if(et)et.value=(D.eventTypes||['party','ride','fundraiser','other']).join(', ');
+  var sz=document.getElementById('set-sizes');if(sz)sz.value=(D.sizes||SIZES).join(', ');
+  var co=document.getElementById('set-cats-o');if(co)co.value=(D.expenseCategories||CATS_O).join(', ');document.getElementById('set-lst').value=D.lowStockThreshold||5;if(D.supabaseUrl)document.getElementById('set-su').value=D.supabaseUrl;if(D.supabaseKey)document.getElementById('set-sk').value=D.supabaseKey;}
 function renderSettings(){
   if(!CU||CU.role!=='admin')return;
   // Initial stock list
@@ -1322,6 +1432,32 @@ function setIS(el){const sz=el.dataset.sz||null;const k=skey(el.dataset.pid,el.d
 function saveInitStock(){save();alert('Initial stock saved!');renderStock();renderDash();}
 function saveLST(){D.lowStockThreshold=parseInt(document.getElementById('set-lst').value)||5;audit('SETTINGS','Low stock threshold changed to '+D.lowStockThreshold);save();alert('Threshold saved!');renderStock();renderDash();}
 function saveBalances(){const ob=D.openingClub,oh=D.openingCharity;D.openingClub=parseFloat(document.getElementById('set-cb').value)||0;D.openingCharity=parseFloat(document.getElementById('set-hb').value)||0;audit('SETTINGS','Opening balances changed',{club:ob,charity:oh},{club:D.openingClub,charity:D.openingCharity});save();renderDash();alert('Balances saved!');}
+function saveSizes(){
+  var sz=document.getElementById('set-sizes');
+  if(!sz)return;
+  var newSizes=sz.value.split(',').map(function(s){return s.trim();}).filter(Boolean);
+  if(!newSizes.length){alert('Must have at least one size.');return;}
+  D.sizes=newSizes;
+  refreshSizes();
+  audit('SETTINGS','Sizes updated: '+newSizes.join(', '));
+  save();alert('Sizes saved!');
+}
+function saveEventTypes(){
+  var et=document.getElementById('set-ev-types');
+  if(et)D.eventTypes=et.value.split(',').map(function(s){return s.trim().toLowerCase();}).filter(Boolean);
+  audit('SETTINGS','Event types updated');
+  save();alert('Event types saved!');
+}
+function saveCategories(){
+  var ci=document.getElementById('set-cats-i');
+  var co=document.getElementById('set-cats-o');
+  if(ci)D.incomeCategories=ci.value.split(',').map(function(s){return s.trim();}).filter(Boolean);
+  if(co)D.expenseCategories=co.value.split(',').map(function(s){return s.trim();}).filter(Boolean);
+  refreshCats();
+  audit('SETTINGS','Transaction categories updated');
+  save();
+  alert('Categories saved!');
+}
 function saveFee(){const oldFee=D.memberFee;D.memberFee=parseFloat(document.getElementById('set-fee').value)||2000;audit('SETTINGS','Annual fee changed',{fee:oldFee},{fee:D.memberFee});save();alert('Fee saved!');document.getElementById('fee-d').textContent=(D.memberFee).toLocaleString();}
 function saveSync(){
   var url=document.getElementById('set-su').value.trim();
@@ -1630,11 +1766,40 @@ function checkAnnualFeeReset(){
   var curYear=new Date().getFullYear();
   if(!D.lastFeeResetYear)D.lastFeeResetYear=0;
   if(D.lastFeeResetYear>=curYear)return;
-  var paid=D.members.filter(function(m){return m.status==='paid';});
-  if(paid.length>0){
-    paid.forEach(function(m){m.status='unpaid';});
+  var allMembers=D.members.filter(function(m){return m.status!=='prospect';});
+  if(allMembers.length>0){
+    var resetDate=curYear+'-01-01';
+    allMembers.forEach(function(m){
+      // Reset status to unpaid
+      m.status='unpaid';
+      // Create an unpaid tab entry for this member's fee
+      var fee=calcFee(m.joinDate);
+      var existingTab=D.transactions.find(function(t){
+        return t.category==='membership_fee'
+          &&t.paid===false
+          &&t.responsibleMemberId===m.id
+          &&(t.date||'').slice(0,4)===String(curYear);
+      });
+      if(!existingTab&&fee>0){
+        D.transactions.push({
+          id:uid(),
+          account:'club',
+          direction:'in',
+          category:'membership_fee',
+          amount:fee,
+          description:m.name+' - '+curYear+' Annual Fee',
+          date:resetDate,
+          created:ni(),
+          enteredBy:'System',
+          paid:false,
+          responsibleMemberId:m.id,
+          responsibleMemberName:m.name,
+          notes:'Auto-created on annual fee reset'
+        });
+      }
+    });
     D.lastFeeResetYear=curYear;
-    audit('FEE_RESET','Annual fee reset for '+paid.length+' members for '+curYear);
+    audit('FEE_RESET','Annual fee reset for '+allMembers.length+' members for '+curYear+'. Tab entries created.');
     save();
   }
 }
@@ -1741,6 +1906,43 @@ function deleteTxEdit(){
   if(tx)audit('TRANSACTION_DELETE','Deleted: '+tx.description+' '+thb(tx.amount),{id:tx.id,amount:tx.amount,description:tx.description});
   D.transactions=D.transactions.filter(t=>t.id!==id);
   save();closeM('mo-tx-edit');renderAll();
+}
+
+function renderSuppliers(){
+  var el=document.getElementById('sup-list-s');if(!el)return;
+  var sorted=[...D.suppliers].sort(function(a,b){return(a.name||'').localeCompare(b.name||'');});
+  window._supArr=sorted;
+  if(!sorted.length){el.innerHTML='<div class="empty"><div class="ei">&#128230;</div>No suppliers yet</div>';return;}
+  el.innerHTML=sorted.map(function(s,i){
+    var details=[s.contact,s.phone,s.email].filter(Boolean).join(' • ');
+    var editBtn=CU&&CU.role==='admin'?'<button onclick="_supEdit('+i+')" style="background:none;border:1px solid var(--bd);color:var(--muted);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:11px;flex-shrink:0">Edit</button>':'';
+    var delBtn=CU&&CU.role==='admin'?'<button onclick="_supDel('+i+')" style="background:none;border:none;color:var(--rl);font-size:13px;cursor:pointer;flex-shrink:0">&#10005;</button>':'';
+    return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--bd)">'
+      +'<div style="flex:1;min-width:0;cursor:pointer" onclick="_supView('+i+')">'
+      +'<div style="font-size:13px;font-weight:600">'+s.name+'</div>'
+      +(details?'<div style="font-size:10px;color:var(--muted);margin-top:2px">'+details+'</div>':'')
+      +'</div>'+editBtn+delBtn+'</div>';
+  }).join('');
+}
+var _prodArr=[];
+function _prodEdit(i){if(_prodArr[i])openProductModal(_prodArr[i].id);}
+function renderProducts(){
+  var el=document.getElementById('prod-list-s');if(!el)return;
+  var btn=document.getElementById('prod-add-btn');
+  if(btn)btn.style.display=CU&&CU.role==='admin'?'':'none';
+  var active=D.products.filter(function(p){return!p.archived;});
+  var archived=D.products.filter(function(p){return p.archived;});
+  _prodArr=[...active,...archived];
+  if(!_prodArr.length){el.innerHTML='<div class="empty"><div class="ei">&#128085;&#65039;</div>No products yet</div>';return;}
+  el.innerHTML=_prodArr.map(function(p,i){
+    var varList=p.variants.map(function(v){return v.name;}).join(', ');
+    var editBtn=CU&&CU.role==='admin'?'<button onclick="_prodEdit('+i+')" style="background:none;border:1px solid var(--bd);color:var(--muted);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:11px;flex-shrink:0">Edit</button>':'';
+    return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--bd)">'
+      +'<div style="flex:1;min-width:0">'
+      +'<div style="font-size:13px;font-weight:600'+(p.archived?';color:var(--muted)':'')+'">'+p.name+(p.archived?' <span style="font-size:10px">(archived)</span>':'')+'</div>'
+      +'<div style="font-size:10px;color:var(--muted);margin-top:2px">'+p.category+(varList?' • '+varList:'')+(p.memberOnly?' • Members Only':'')+'</div>'
+      +'</div>'+editBtn+'</div>';
+  }).join('');
 }
 
 loadSettings();
