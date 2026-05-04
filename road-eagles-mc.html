@@ -920,7 +920,912 @@ function txCard(t){
   const sign=t.direction==='in'?'+':'-',cls=t.direction==='in'?'p':'n';
   const ab=`<span class="ab ${t.account}">${t.account==='club'?'Club':'Charity'}</span>`;
   const at=CU&&CU.role==='admin'?`<div class="atag">By ${t.enteredBy||'?'} &middot; ${fdt(t.created)}</div>`:'';
-  const dl=CU&&CU.role==='admin'?`<button class="dlink" onclick="delTx('${t.id}')">&#10005; Delete entry</button>`:'';
+  const dl='';
+  const ev=t.eventId&&D.events?D.events.find(e=>e.id===t.eventId):null;
+  return`<div class="txi" onclick="openTxEdit('${t.id}')" style="cursor:pointer"><div class="txic">${txi(t)}</div><div class="txin"><div class="txd">${t.description||(CM[t.category]||t.category)}</div><div class="txm">${ab}<span class="tag ${cls}">${t.direction.toUpperCase()}</span>${fd(t.date||t.created)}</div>${t.supplier?`<div style="font-size:10px;color:var(--dim)">&#127978;&#65039; ${t.supplier}</div>`:''}${t.ref?`<div style="font-size:10px;color:var(--dim)">&#128196; ${t.ref}</div>`:''}${ev?`<div style="font-size:10px;color:var(--dim)">&#127881; ${ev.name}</div>`:''}${at}</div><div><div class="txa ${cls}">${sign}${thb(t.amount)}</div></div></div>${dl}`;
+}
+
+// Dashboard
+function renderDash(){
+  const b=calcBal();
+  document.getElementById('db-cb').innerHTML=thb(b.club);
+  document.getElementById('db-hb').innerHTML=thb(b.charity);
+  document.getElementById('db-mem').textContent=D.members.filter(m=>m.status!=='prospect').length;
+  document.getElementById('db-pros').textContent=D.members.filter(m=>m.status==='prospect').length;
+  const mt=mthTx();
+  document.getElementById('db-in').innerHTML=thb(mt.filter(t=>t.direction==='in').reduce((a,t)=>a+parseFloat(t.amount||0),0));
+  document.getElementById('db-out').innerHTML=thb(mt.filter(t=>t.direction==='out').reduce((a,t)=>a+parseFloat(t.amount||0),0));
+  // Fees collected = transaction total + fees for 'paid' members with no transaction
+  var feesTxTotal=D.transactions.filter(t=>t.category==='membership_fee').reduce((a,t)=>a+parseFloat(t.amount||0),0);
+  var paidMemberIds=D.transactions.filter(t=>t.category==='membership_fee').map(t=>t.description||'');
+  var feesImplied=D.members.filter(function(m){
+    if(m.status!=='paid')return false;
+    // Check if a fee transaction exists for this member
+    var hasTx=D.transactions.some(function(t){return t.category==='membership_fee'&&t.description&&t.description.indexOf(m.name)>=0;});
+    return !hasTx;
+  }).reduce((a,m)=>a+calcFee(m.joinDate),0);
+  document.getElementById('db-fees-due').innerHTML=thb(D.members.filter(m=>m.status==='unpaid').reduce((a,m)=>a+calcFee(m.joinDate),0));
+  document.getElementById('db-merch').innerHTML=thb(D.transactions.filter(t=>t.category==='merchandise').reduce((a,t)=>a+parseFloat(t.amount||0),0));
+  let low=0,out=0;
+  D.products.filter(p=>!p.archived).forEach(p=>p.variants.forEach(v=>{
+    const szs=p.hasSizes?SIZES:[null];
+    szs.forEach(sz=>{const pcols=prodColours(p);pcols.forEach(c=>{const q=getStock(p.id,v.id,sz,c.name);if(q<=0)out++;else if(q<=(D.lowStockThreshold||5))low++;});});
+  }));
+  document.getElementById('db-low').textContent=low;
+  document.getElementById('db-out2').textContent=out;
+  const openTabs=(D.tabs||[]).filter(t=>!t.settled);
+  const unpaidTx=D.transactions.filter(t=>t.paid===false);
+  const totalTabItems=openTabs.length+unpaidTx.length;
+  const tabOwed=openTabs.reduce((a,t)=>a+parseFloat(t.amount||0),0);
+  const unpaidIn=unpaidTx.filter(t=>t.direction==='in').reduce((a,t)=>a+parseFloat(t.amount||0),0);
+  const unpaidOut=unpaidTx.filter(t=>t.direction==='out').reduce((a,t)=>a+parseFloat(t.amount||0),0);
+  document.getElementById('db-tabs').textContent=totalTabItems;
+  document.getElementById('db-tabamt').innerHTML=thb(tabOwed+unpaidIn);
+  const rec=[...D.transactions].reverse().slice(0,8);
+  document.getElementById('db-tx').innerHTML=rec.length?rec.map(txCard).join(''):'<div class="empty"><div class="ei">&#128203;</div>No transactions yet</div>';
+}
+
+// Ledger
+function renderLedger(){
+  const s=(document.getElementById('txs').value||'').toLowerCase();
+  let txs=[...D.transactions].reverse();
+  if(LF==='paid')txs=txs.filter(t=>t.paid!==false);
+  else if(LF==='club')txs=txs.filter(t=>t.account==='club'&&t.paid!==false);
+  else if(LF==='charity')txs=txs.filter(t=>t.account==='charity');
+  else if(LF==='in')txs=txs.filter(t=>t.direction==='in');
+  else if(LF==='out')txs=txs.filter(t=>t.direction==='out');
+  else if(LF==='merch')txs=txs.filter(t=>t.category==='merchandise');
+  else if(LF==='donation')txs=txs.filter(t=>['donation_in','donation_out','charity_cash','charity_goods','collection_box','club_donation_out'].includes(t.category));
+  else if(LF==='event')txs=txs.filter(t=>['event_income','event_expense','venue','music','marketing'].includes(t.category));
+  else if(LF==='fee')txs=txs.filter(t=>t.category==='membership_fee');
+  else if(LF==='stock')txs=txs.filter(t=>t.category==='stock_order');
+  if(s)txs=txs.filter(t=>(t.description||'').toLowerCase().includes(s)||(t.supplier||'').toLowerCase().includes(s));
+  const el=document.getElementById('ledger-list');
+  el.innerHTML=txs.length?txs.map(txCard).join(''):'<div class="empty"><div class="ei">&#128203;</div>No entries match</div>';
+}
+function delTx(id){if(!CU||CU.role!=='admin')return;if(!confirm('Delete permanently?'))return;const tx=D.transactions.find(t=>t.id===id);if(tx)audit('TRANSACTION_DELETE','Deleted: '+tx.description+' '+thb(tx.amount),{id:tx.id,amount:tx.amount});D.transactions=D.transactions.filter(t=>t.id!==id);save();renderAll();}
+
+// Members
+function renderMembers(){
+  const s=(document.getElementById('mems').value||'').toLowerCase();
+  let ms=[...D.members].sort((a,b)=>a.name.localeCompare(b.name));
+  if(MF==='member')ms=ms.filter(m=>m.status!=='prospect');
+  else if(MF==='prospect')ms=ms.filter(m=>m.status==='prospect');
+  else if(MF==='unpaid')ms=ms.filter(m=>m.status==='unpaid');
+  if(s)ms=ms.filter(m=>m.name.toLowerCase().includes(s));
+  document.getElementById('fee-d').textContent=(D.memberFee||2000).toLocaleString();
+  const RL={president:'President',vice_president:'Vice President',treasurer:'Treasurer',member:'Member',prospect:'Prospect'};
+  document.getElementById('mem-list').innerHTML=ms.map(m=>{
+    const init=m.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    const sc={paid:'paid',unpaid:'unpaid',prospect:'prospect'};
+    const sl={paid:'Fee Paid &#10003;',unpaid:'Fee Unpaid &#9888;&#65039;',prospect:'Prospect'};
+    return`<div class="mc"><div class="mav">${init}</div><div class="min"><div class="mn">${m.name}</div><div class="mr">${RL[m.role]||m.role}</div>${m.status!=='prospect'?`<div style="font-size:11px;color:var(--muted);margin-top:2px">${new Date().getFullYear()} fee: ${thb(calcFee(m.joinDate))}</div>`:''}
+        ${m.phone?`<div style="font-size:10px;color:var(--dim)">&#128222; ${m.phone}</div>`:''}
+        ${m.email?`<div style="font-size:10px;color:var(--dim)">&#9993; ${m.email}</div>`:''}</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><span class="ms ${sc[m.status]||'prospect'}">${sl[m.status]||m.status}</span>${m.status==='unpaid'?`<button style="font-size:10px;background:none;border:1px solid var(--grn);color:var(--grnl);border-radius:20px;padding:3px 8px;cursor:pointer" onclick="markPaid('${m.id}')">Mark Paid</button>`:''}${CU&&CU.role==='admin'?`<button style="font-size:10px;background:none;border:1px solid var(--bd);color:var(--muted);border-radius:20px;padding:3px 8px;cursor:pointer" onclick="editMem('${m.id}')">Edit</button>`:''}</div></div>`;
+  }).join('')||'<div class="empty"><div class="ei">&#128101;</div>No members match</div>';
+}
+function markPaid(id){const m=D.members.find(x=>x.id===id);if(!m)return;m.status='paid';audit('FEE_PAID','Fee marked paid for: '+m.name);D.transactions.push({id:uid(),account:'club',direction:'in',category:'membership_fee',amount:calcFee(m.joinDate),description:`Membership fee – ${m.name} (${new Date().getFullYear()})`,supplier:'',ref:'',date:nd(),created:ni(),notes:'',enteredBy:CU.name});save();renderAll();}
+function editMem(id){const m=D.members.find(x=>x.id===id);if(!m)return;document.getElementById('mo-mem-t').textContent='Edit Member';document.getElementById('mem-id').value=id;document.getElementById('mem-name').value=m.name;document.getElementById('mem-role').value=m.role;document.getElementById('mem-status').value=m.status;document.getElementById('mem-join').value=m.joinDate||'';document.getElementById('mem-phone').value=m.phone||'';document.getElementById('mem-email').value=m.email||'';document.getElementById('mem-notes').value=m.notes||'';document.getElementById('mem-del').style.display='';openM('mo-member');}
+function deleteMember(){const id=document.getElementById('mem-id').value;if(!id||!CU||CU.role!=='admin')return;if(!confirm('Delete member?'))return;D.members=D.members.filter(m=>m.id!==id);save();closeM('mo-member');renderMembers();}
+
+// Merch Catalogue
+function renderMerch(){
+  let ps=[...D.products].sort((a,b)=>a.name.localeCompare(b.name));if(RF!=='all')ps=ps.filter(p=>p.category===RF);
+  const active=ps.filter(p=>!p.archived),archived=ps.filter(p=>p.archived);
+  const CL={shirt:'Shirt',trucker:'Trucker Hat',stretch:'Stretch Hat',keyring:'Keyring',other:'Other'};
+  function pc(p){
+    return`<div class="pc${p.archived?' archived':''}"><div class="ph"><div class="pn">${p.name}</div><div style="display:flex;gap:6px;align-items:center">${p.archived?'<span class="pill archived">Archived</span>':''}<span class="pill">${CL[p.category]||p.category}</span><button onclick="openEditProductModal('${p.id}')" style="background:none;border:1px solid var(--bd);color:var(--muted);border-radius:8px;padding:3px 9px;cursor:pointer;font-size:11px">Edit</button></div></div>${p.hasSizes?`<div style="font-size:10px;color:var(--dim);margin-bottom:6px">Sizes: ${SIZES.join(', ')}</div>`:''}<div>${p.variants.map(v=>{const sampleCol=isSingleColour(p)?'':(D.colours.length>0?D.colours[0].name:'Black');
+          // Sum stock across all sizes and colours for this variant
+          var totalQ=0;
+          if(p.hasSizes){
+            SIZES.forEach(function(sz){prodColours(p).forEach(function(c){totalQ+=getStock(p.id,v.id,sz,c.name);});});
+          } else {
+            prodColours(p).forEach(function(c){totalQ+=getStock(p.id,v.id,null,c.name);});
+          }
+          const q=totalQ;const st=stSt(q);const stl={ok:'In Stock',low:'Low Stock',out:'Out of Stock'};return`<div class="vrow"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span class="vn">${v.name}</span><span class="pill ${st==='ok'?'':st}" style="cursor:pointer" onclick="setMV('stock')">${stl[st]} &#8250;</span></div><div class="pps"><div class="pp">Member <span class="pv">${thb(v.memberPrice)}</span></div><div class="pp">Visitor <span class="pv">${(p.memberOnly||false)?'<span style="color:var(--dim)">Members Only</span>':thb(v.visitorPrice)}</span></div><div class="pp">Cost <span class="pv">${thb(v.production)}</span></div><div class="pp">Margin <span class="pv" style="color:var(--grnl)">${thb(v.memberPrice-v.production)}</span></div></div></div>`;}).join('')}</div></div>`;
+  }
+  let html=active.map(pc).join('');
+  if(archived.length)html+=`<div style="font-size:11px;color:var(--muted);margin:14px 0 8px;text-transform:uppercase;letter-spacing:1px">Archived</div>`+archived.map(pc).join('');
+  document.getElementById('merch-list').innerHTML=html||'<div class="empty"><div class="ei">&#128085;&#65039;</div>No products</div>';
+}
+
+// Stock View
+function renderStock(){
+  const t=D.lowStockThreshold||5;
+  const rows=[];
+  D.products.filter(p=>!p.archived).forEach(p=>p.variants.forEach(v=>{
+    const szs=p.hasSizes?SIZES:[null];
+    const pcols=prodColours(p);
+    szs.forEach(sz=>{
+      pcols.forEach(c=>{
+        if(STF!=='all'&&STF!=='low'&&p.category!==STF)return;
+        const q=getStock(p.id,v.id,sz,c.name);
+        if(STF==='low'&&q>t)return;
+        rows.push({pid:p.id,vid:v.id,pname:p.name,vname:v.name,cat:p.category,sz,col:c.name,chex:c.hex,qty:q});
+      });
+    });
+  }));
+  const el=document.getElementById('stock-list');
+  if(!rows.length){el.innerHTML='<div class="empty"><div class="ei">&#128230;</div>No stock entries</div>';return;}
+  const g={};
+  rows.forEach(r=>{const k=r.pid+'_'+r.vid;if(!g[k])g[k]={n:r.pname,v:r.vname,items:[]};g[k].items.push(r);});
+  el.innerHTML=Object.values(g).map(grp=>{
+    return '<div style="margin-bottom:16px"><div style="font-size:13px;font-weight:600;margin-bottom:6px">'+grp.n+' &#8212; '+grp.v+'</div>'+
+    grp.items.map(r=>{
+      const st=stSt(r.qty);
+      const fc=st==='ok'?'var(--grnl)':st==='low'?'var(--warn)':'var(--rl)';
+      const lbl=[r.sz,r.col].filter(Boolean).join(', ');
+      const pct=Math.min(100,r.qty*5);
+      return '<div class="si"><div class="si-head"><span class="si-name"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+r.chex+';border:1px solid rgba(255,255,255,.15);margin-right:5px;vertical-align:middle"></span>'+lbl+'</span><span class="si-qty '+st+'">'+r.qty+'</span></div><div class="stock-bar"><div class="stock-fill" style="width:'+pct+'%;background:'+fc+'"></div></div></div>';
+    }).join('')+'</div>';
+  }).join('');
+}
+
+// Events
+function setTabLTab(b,v){document.querySelectorAll('#tab-ledger-tabs .tab').forEach(t=>t.classList.remove('on'));b.classList.add('on');TLF=v;renderTabLedger();}
+
+function markTxPaid(id){
+  const tx=D.transactions.find(t=>t.id===id);
+  if(!tx)return;
+  if(!confirm('Mark this as paid/received? It will move to the main ledger.'))return;
+  tx.paid=true;
+  tx.paidDate=nd();
+  tx.paidBy=CU.name;
+  audit('TX_PAID','Marked paid: '+tx.description+' '+thb(tx.amount));
+  save();renderAll();
+}
+
+function renderTabLedger(){
+  // Collect unpaid transactions
+  let items=D.transactions.filter(t=>t.paid===false);
+  // Also collect merchandise tabs from D.tabs
+  const tabs=(D.tabs||[]).filter(t=>!t.settled).map(t=>({
+    id:t.id,isTab:true,direction:'in',account:'club',
+    category:'merchandise',amount:t.amount,
+    description:t.description,date:t.date,
+    enteredBy:t.enteredBy,paid:false,
+    responsibleMemberName:t.memberName,
+    responsibleMemberId:t.memberId
+  }));
+  let all=[...items,...tabs];
+  if(TLF==='in')all=all.filter(t=>t.direction==='in');
+  else if(TLF==='out')all=all.filter(t=>t.direction==='out');
+  else if(TLF==='merch')all=all.filter(t=>t.category==='merchandise');
+  all.sort((a,b)=>new Date(b.date||b.created||0)-new Date(a.date||a.created||0));
+  const totalIn=all.filter(t=>t.direction==='in').reduce((s,t)=>s+parseFloat(t.amount||0),0);
+  const totalOut=all.filter(t=>t.direction==='out').reduce((s,t)=>s+parseFloat(t.amount||0),0);
+  const bar=document.getElementById('tab-total-bar');
+  if(bar)bar.innerHTML=`<span style="color:var(--grnl)">Owed to club: ${thb(totalIn)}</span> &middot; <span style="color:var(--rl)">Club owes: ${thb(totalOut)}</span>`;
+  const el=document.getElementById('tab-ledger-list');
+  if(!all.length){el.innerHTML='<div class="empty"><div class="ei">&#128203;</div>All clear! No outstanding items</div>';return;}
+  el.innerHTML=all.map(t=>{
+    const dir=t.direction==='in'?'in':'out';
+    const dirLabel=t.direction==='in'?'&#11014;&#65039; Owed to club':'&#11015;&#65039; Club owes';
+    const dirCol=t.direction==='in'?'var(--grnl)':'var(--rl)';
+    const resp=t.responsibleMemberName||t.enteredBy||'?';
+    const markBtn=t.isTab
+      ?`<button onclick="openSettleTab('${t.id}')" style="margin-top:8px;background:none;border:1px solid var(--grn);color:var(--grnl);border-radius:20px;padding:4px 12px;cursor:pointer;font-size:11px;width:100%">&#10003; Mark Paid</button>`
+      :`<button onclick="markTxPaid('${t.id}')" style="margin-top:8px;background:none;border:1px solid var(--grn);color:var(--grnl);border-radius:20px;padding:4px 12px;cursor:pointer;font-size:11px;width:100%">&#10003; Mark Paid / Received</button>`;
+    return`<div class="tab-card ${dir}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600">${t.description||CM[t.category]||t.category}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:3px">${fd(t.date||t.created)} &middot; By ${t.enteredBy||'?'}</div>
+          <div style="font-size:10px;color:var(--gold);margin-top:2px">&#128100; ${resp}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:17px;font-weight:700;color:${dirCol}">${thb(t.amount)}</div>
+          <span class="tbbadge ${dir}">${dirLabel}</span>
+        </div>
+      </div>
+      ${markBtn}
+    </div>`;
+  }).join('');
+}
+
+var _evFilter='all';
+function setEvTab(b,v){document.querySelectorAll('#ev-tabs .tab').forEach(function(t){t.classList.remove('on');});b.classList.add('on');_evFilter=v;renderEvents();}
+function renderEvents(){
+  const el=document.getElementById('event-list');
+  if(!D.events||!D.events.length){el.innerHTML='<div class="empty"><div class="ei">&#127881;</div>No events yet</div>';return;}
+  el.innerHTML=[...D.events].reverse().map(ev=>{
+    const et=D.transactions.filter(t=>t.eventId===ev.id);
+    const eI=et.filter(t=>t.direction==='in').reduce((a,t)=>a+parseFloat(t.amount||0),0);
+    const eO=et.filter(t=>t.direction==='out').reduce((a,t)=>a+parseFloat(t.amount||0),0);
+    return`<div class="ec"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><div class="en" style="margin:0">${ev.name}</div><div style="display:flex;gap:5px"><button onclick="editEvent('${ev.id}')" style="background:none;border:1px solid var(--bd);color:var(--muted);border-radius:8px;padding:2px 8px;cursor:pointer;font-size:11px">Edit</button>${CU&&CU.role==='admin'?`<button onclick="deleteEvent('${ev.id}')" style="background:none;border:1px solid var(--red);color:var(--rl);border-radius:8px;padding:2px 8px;cursor:pointer;font-size:11px">Delete</button>`:''}</div></div><div class="em"><span>&#128197; ${fd(ev.date)}</span><span>&#128205; ${ev.venue||'TBC'}</span><span>&#127917; ${ev.type}</span></div>${et.length?`<div style="margin-top:8px;font-size:12px">Income: <span style="color:var(--grnl)">${thb(eI)}</span> &middot; Costs: <span style="color:var(--rl)">${thb(eO)}</span> &middot; Net: <span style="color:${eI-eO>=0?'var(--grnl)':'var(--rl)'}">${thb(eI-eO)}</span></div>`:''}</div>`;
+  }).join('');
+}
+
+// Modals
+function openM(id){document.getElementById(id).classList.add('on');}
+function closeM(id){document.getElementById(id).classList.remove('on');}
+function openFab(){openM('mo-fab');}
+
+// TX Modal
+let _ta='club',_td='in';
+function openTxModal(dir){
+  closeM('mo-fab');_td=dir;_ta='club';
+  selDir(dir);selAcc('club');
+  selTxPay('paid');
+  document.getElementById('tx-date').value=nd();
+  ['tx-amt','tx-desc','tx-sup','tx-ref','tx-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('tx-ev').innerHTML='<option value="">&#8212; None &#8212;</option>'+(D.events||[]).map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
+  document.getElementById('sup-dl').innerHTML=[...D.suppliers].sort(function(a,b){return(a.name||'').localeCompare(b.name||'');}).map(function(s){return'<option value="'+(s.name||s)+'">';}).join('');
+  const rmSel=document.getElementById('tx-resp-member');
+  if(rmSel)rmSel.innerHTML='<option value="">&#8212; Default to me ('+CU.name+') &#8212;</option>'+[...D.members].filter(m=>m.status!=='prospect').sort((a,b)=>a.name.localeCompare(b.name)).map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
+  openM('mo-tx');
+}
+function selAcc(a){_ta=a;document.getElementById('tacc-c').className='tgb'+(a==='club'?' club':'');document.getElementById('tacc-h').className='tgb'+(a==='charity'?' charity':'');updateCats();}
+function selDir(d){_td=d;document.getElementById('tdir-i').className='tgb'+(d==='in'?' tin':'');document.getElementById('tdir-o').className='tgb'+(d==='out'?' tout':'');updateCats();}
+function updateCats(){const cats=_td==='in'?CATS_I:CATS_O;document.getElementById('tx-cat').innerHTML=cats.map(c=>`<option value="${c}">${CM[c]||c}</option>`).join('');}
+function saveTx(){
+  const amt=parseFloat(document.getElementById('tx-amt').value)||0;
+  if(!amt){alert('Please enter an amount');return;}
+  const sup=document.getElementById('tx-sup').value.trim();
+  if(sup&&!D.suppliers.find(function(x){return(x.name||x)===sup;}))D.suppliers.push({id:uid(),name:sup,phone:'',email:'',website:'',contact:'',address:''});
+  const isPaid=_txPay!=='unpaid';
+  const respSel=document.getElementById('tx-resp-member');
+  const respId=respSel?respSel.value:'';
+  const respMem=respId?D.members.find(function(m){return m.id===respId;}):null;
+  const respName=respMem?respMem.name:CU.name;
+  const tx={id:uid(),account:_ta,direction:_td,category:document.getElementById('tx-cat').value,amount:amt,description:document.getElementById('tx-desc').value.trim(),supplier:sup,ref:document.getElementById('tx-ref').value.trim(),eventId:document.getElementById('tx-ev').value||'',date:document.getElementById('tx-date').value,created:ni(),notes:document.getElementById('tx-notes').value.trim(),enteredBy:CU.name,paid:isPaid,responsibleMemberId:respId,responsibleMemberName:respName};
+  audit('TRANSACTION_ADD',tx.description+' '+thb(tx.amount),undefined,{paid:isPaid,direction:_td,amount:amt});
+  D.transactions.push(tx);
+  save();closeM('mo-tx');renderAll();
+  if(!isPaid)goTo('tabs');
+}
+
+// Sale Modal
+let _cu='member';
+let _txPay='paid';
+function selTxPay(v){
+  _txPay=v;
+  document.getElementById('txpay-paid').className='tgb'+(v==='paid'?' tin':'');
+  document.getElementById('txpay-unpaid').className='tgb'+(v==='unpaid'?' tout':'');
+  const rg=document.getElementById('tx-resp-g');
+  if(rg)rg.style.display=v==='unpaid'?'':'none';
+}
+function openSaleModal(){closeM('mo-fab');_cu='member';selCust('member');selPayment('paid');document.getElementById('sale-date').value=nd();document.getElementById('sale-qty').value=1;document.getElementById('sale-notes').value='';document.getElementById('sale-stock-info').style.display='none';const cs=document.getElementById('sale-colour');cs.innerHTML=D.colours.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');const bk=[...cs.options].find(o=>o.value==='Black');if(bk)cs.value='Black';document.getElementById('sale-prod').innerHTML=D.products.filter(p=>!p.archived).sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${p.id}">${p.name}</option>`).join('');// populate member list for tab
+const memSel=document.getElementById('sale-tab-member');memSel.innerHTML=D.members.filter(m=>m.status!=='prospect').map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
+updateSaleVars();openM('mo-sale');}
+let _payMode='paid';
+function selPayment(m){_payMode=m;document.getElementById('pay-now').className='tgb'+(m==='paid'?' tin':'');document.getElementById('pay-tab').className='tgb'+(m==='tab'?' tout':'');}
+function updateSaleVars(){
+  const p=D.products.find(x=>x.id===document.getElementById('sale-prod').value);if(!p)return;
+  document.getElementById('sale-var').innerHTML=p.variants.map((v,i)=>`<option value="${i}">${v.name}</option>`).join('');
+  document.getElementById('sale-sz-g').style.display=p.hasSizes?'':'none';
+  if(p.hasSizes)document.getElementById('sale-size').innerHTML=SIZES.map(s=>`<option>${s}</option>`).join('');
+  const visBtn=document.getElementById('cust-v');
+  const custRow=document.getElementById('sale-cust-row');
+  if(p.memberOnly){
+    visBtn.style.display='none';
+    if(custRow)custRow.querySelector('label').textContent='CUSTOMER TYPE (MEMBERS ONLY)';
+    selCust('member');
+  } else {
+    visBtn.style.display='';
+    if(custRow)custRow.querySelector('label').textContent='Customer Type';
+  }
+  const colRow=document.getElementById('sale-colour-row');
+  if(colRow)colRow.style.display=isSingleColour(p)?'none':'';
+  // Member selector: mandatory for memberOnly, optional for others
+  const memLbl=document.getElementById('sale-member-lbl');
+  if(memLbl)memLbl.textContent=p.memberOnly?'Member / Officer (required)':'Member / Officer (optional)';
+  updateSalePrice();updateSaleStock();
+}
+function updateSaleVarChange(){updateSalePrice();updateSaleStock();}
+function updateSalePrice(){const p=D.products.find(x=>x.id===document.getElementById('sale-prod').value);if(!p)return;const v=p.variants[parseInt(document.getElementById('sale-var').value)||0];document.getElementById('sale-price').value=_cu==='member'?v.memberPrice:v.visitorPrice;updSaleTotal();}
+function updSaleTotal(){document.getElementById('sale-total').innerHTML=thb((parseFloat(document.getElementById('sale-price').value)||0)*(parseInt(document.getElementById('sale-qty').value)||1));}
+function updateSaleStock(){const p=D.products.find(x=>x.id===document.getElementById('sale-prod').value);if(!p)return;const vi=parseInt(document.getElementById('sale-var').value)||0;const v=p.variants[vi];const sz=p.hasSizes?document.getElementById('sale-size').value:null;const col=document.getElementById('sale-colour').value;const q=getStock(p.id,v.id,sz,col);const el=document.getElementById('sale-stock-info');const st=stSt(q);const c2=st==='ok'?'var(--grnl)':st==='low'?'var(--warn)':'var(--rl)';el.style.display='';el.innerHTML=`<span style="color:${c2};font-weight:600">Stock on hand: ${q}${q<=0?' &#8212; Out of stock':q<=(D.lowStockThreshold||5)?' &#8212; Low stock':''}</span>`;}
+function selCust(c){_cu=c;document.getElementById('cust-m').className='tgb'+(c==='member'?' tmem':'');document.getElementById('cust-v').className='tgb'+(c==='visitor'?' tvis':'');updateSalePrice();}
+function saveSale(){
+  const p=D.products.find(x=>x.id===document.getElementById('sale-prod').value);
+  const vi=parseInt(document.getElementById('sale-var').value)||0;
+  const v=p.variants[vi];
+  const pr=parseFloat(document.getElementById('sale-price').value)||0;
+  const qty=parseInt(document.getElementById('sale-qty').value)||1;
+  const sz=p.hasSizes?document.getElementById('sale-size').value:null;
+  const rawCol=document.getElementById('sale-colour').value;
+  const col=stockCol(p,rawCol);
+  const saleDate=document.getElementById('sale-date').value;
+  const notes=document.getElementById('sale-notes').value.trim();
+  const colDesc=col?', '+col:'';
+  const selMemId=document.getElementById('sale-tab-member').value;
+  const selMem=selMemId?D.members.find(m=>m.id===selMemId):null;
+  if(p.memberOnly&&!selMemId){alert('Please select the member purchasing this item.');return;}
+  const memberLabel=selMem?' – '+selMem.name:'';
+  const desc=`${p.name} &#8211; ${v.name}${sz?' ('+sz+')':''}${colDesc} &#215;${qty} (${_cu}${memberLabel})`;
+  adjStock(p.id,v.id,sz,col,qty,'sold');audit('SALE',desc+' '+thb(pr*qty));
+  if(_payMode==='tab'){
+    // Tab sale — stock deducted, income NOT counted until paid
+    const memberId=selMemId;
+    const member=selMem;
+    if(!D.tabs)D.tabs=[];
+    D.tabs.push({id:uid(),memberId,memberName:member?member.name:'Unknown',description:desc,amount:pr*qty,date:saleDate,created:ni(),enteredBy:CU.name,settled:false,settledDate:null,settledNotes:'',productId:p.id,variantId:v.id,qty,unitPrice:pr,customerType:_cu,colour:col,size:sz,notes});
+  } else {
+    D.transactions.push({id:uid(),account:'club',direction:'in',category:'merchandise',amount:pr*qty,description:desc,supplier:'',ref:'',date:saleDate,created:ni(),notes,enteredBy:CU.name,productId:p.id,variantId:v.id,qty,unitPrice:pr,customerType:_cu,colour:col,size:sz});
+  }
+  save();closeM('mo-sale');renderAll();
+}
+
+// Order Modal
+function openOrderModal(){closeM('mo-fab');document.getElementById('ord-date').value=nd();['ord-ref','ord-notes','ord-sup'].forEach(id=>document.getElementById(id).value='');document.getElementById('ord-qty').value=1;document.getElementById('ord-total').innerHTML='&#3647;0';const cs=document.getElementById('ord-colour');cs.innerHTML=D.colours.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');const bk=[...cs.options].find(o=>o.value==='Black');if(bk)cs.value='Black';document.getElementById('ord-sup-dl').innerHTML=D.suppliers.map(s=>`<option value="${s}">`).join('');document.getElementById('ord-prod').innerHTML=D.products.filter(p=>!p.archived).sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${p.id}">${p.name}</option>`).join('');updateOrdVars();openM('mo-order');}
+function updateOrdVars(){const p=D.products.find(x=>x.id===document.getElementById('ord-prod').value);if(!p)return;document.getElementById('ord-var').innerHTML=p.variants.map((v,i)=>`<option value="${i}">${v.name}</option>`).join('');updateOrdVarChange();}
+function updateOrdVarChange(){const p=D.products.find(x=>x.id===document.getElementById('ord-prod').value);if(!p)return;document.getElementById('ord-sz-g').style.display=p.hasSizes?'':'none';if(p.hasSizes)document.getElementById('ord-size').innerHTML=SIZES.map(s=>`<option>${s}</option>`).join('');const vi=parseInt(document.getElementById('ord-var').value)||0;const v=p.variants[vi];if(v)document.getElementById('ord-cost').value=v.production||0;const ordColRow=document.getElementById('ord-colour-row');if(ordColRow)ordColRow.style.display=isSingleColour(p)?'none':'';updOrdTotal();}
+function updOrdTotal(){document.getElementById('ord-total').innerHTML=thb((parseInt(document.getElementById('ord-qty').value)||0)*(parseFloat(document.getElementById('ord-cost').value)||0));}
+function saveOrder(){const p=D.products.find(x=>x.id===document.getElementById('ord-prod').value);if(!p){alert('Select a product');return;}const vi=parseInt(document.getElementById('ord-var').value)||0;const v=p.variants[vi];const qty=parseInt(document.getElementById('ord-qty').value)||0;if(qty<=0){alert('Quantity must be at least 1');return;}const cost=parseFloat(document.getElementById('ord-cost').value)||0;const sz=p.hasSizes?document.getElementById('ord-size').value:null;const rawOrdCol=document.getElementById('ord-colour').value;const col=stockCol(p,rawOrdCol);const sup=document.getElementById('ord-sup').value.trim();if(sup&&!D.suppliers.find(function(x){return(x.name||x)===sup;}))D.suppliers.push({id:uid(),name:sup,phone:'',email:'',website:'',contact:'',address:''});adjStock(p.id,v.id,sz,col,qty,'ordered');D.transactions.push({id:uid(),account:'club',direction:'out',category:'stock_order',amount:cost*qty,description:`Stock order: ${p.name} &#8211; ${v.name}${sz?' ('+sz+')':''}${col?', '+col:''} &#215;${qty}`,supplier:sup,ref:document.getElementById('ord-ref').value.trim(),date:document.getElementById('ord-date').value,created:ni(),notes:document.getElementById('ord-notes').value.trim(),enteredBy:CU.name,productId:p.id,variantId:v.id,qty,unitCost:cost,colour:col,size:sz});save();closeM('mo-order');renderAll();}
+
+// Member Modal
+function openMemberModal(){closeM('mo-fab');document.getElementById('mo-mem-t').textContent='Add Member / Prospect';document.getElementById('mem-id').value='';['mem-name','mem-phone','mem-email','mem-notes'].forEach(id=>document.getElementById(id).value='');document.getElementById('mem-role').value='prospect';document.getElementById('mem-status').value='prospect';document.getElementById('mem-join').value=nd();document.getElementById('mem-del').style.display='none';openM('mo-member');}
+function saveMember(){const name=document.getElementById('mem-name').value.trim();if(!name){alert('Name required');return;}const id=document.getElementById('mem-id').value;const data={name,role:document.getElementById('mem-role').value,status:document.getElementById('mem-status').value,joinDate:document.getElementById('mem-join').value,phone:document.getElementById('mem-phone').value,email:document.getElementById('mem-email').value.trim(),notes:document.getElementById('mem-notes').value};if(id){const m=D.members.find(x=>x.id===id);if(!m)return;Object.assign(m,data);}else D.members.push({id:uid(),...data,addedBy:CU.name,created:ni()});save();closeM('mo-member');renderMembers();}
+
+// Event Modal
+function openEventModal(){document.getElementById('mo-ev-t').textContent='Add Event';document.getElementById('ev-id').value='';['ev-name','ev-venue','ev-notes'].forEach(id=>document.getElementById(id).value='');document.getElementById('ev-date').value=nd();document.getElementById('ev-type').value='party';openM('mo-event');}
+function editEvent(id){const ev=D.events.find(e=>e.id===id);if(!ev)return;document.getElementById('mo-ev-t').textContent='Edit Event';document.getElementById('ev-id').value=id;document.getElementById('ev-name').value=ev.name;document.getElementById('ev-date').value=ev.date||'';document.getElementById('ev-type').value=ev.type||'party';document.getElementById('ev-venue').value=ev.venue||'';document.getElementById('ev-notes').value=ev.notes||'';openM('mo-event');}
+function deleteEvent(id){if(!CU||CU.role!=='admin')return;if(!confirm('Delete this event? Linked transactions will remain.'))return;D.events=D.events.filter(e=>e.id!==id);save();renderEvents();}
+function saveEvent(){const name=document.getElementById('ev-name').value.trim();if(!name){alert('Event name required');return;}if(!D.events)D.events=[];const eid=document.getElementById('ev-id').value;const evData={name,date:document.getElementById('ev-date').value,type:document.getElementById('ev-type').value,venue:document.getElementById('ev-venue').value.trim(),notes:document.getElementById('ev-notes').value.trim()};if(eid){const ev=D.events.find(e=>e.id===eid);if(ev)Object.assign(ev,evData);}else{D.events.push({id:uid(),...evData,created:ni(),addedBy:CU.name});}save();closeM('mo-event');renderEvents();}
+
+// Product Modal
+let _prSz=false,_prMO=false,_prVars=[];
+function selSz(v){_prSz=v;document.getElementById('pr-sy').className='tgb'+(v?' tmem':'');document.getElementById('pr-sn').className='tgb'+(!v?' tmem':'');}
+function selMO(v){_prMO=v;document.getElementById('pr-mo-y').className='tgb'+(v?' tout':'');document.getElementById('pr-mo-n').className='tgb'+(!v?' tmem':'');}
+function renderVRows(){document.getElementById('pr-variants-list').innerHTML=_prVars.map((v,i)=>`<div class="vi"><div class="vi-head"><span>Variant ${i+1}</span>${_prVars.length>1?`<button onclick="remVRow(${i})" style="background:none;border:none;color:var(--rl);font-size:15px;cursor:pointer">&#10005;</button>`:''}</div><div class="fg"><input type="text" value="${v.name}" placeholder="e.g. Short Sleeve" oninput="_prVars[${i}].name=this.value"></div><div class="irow3"><div><label>Member (&#3647;)</label><input type="number" value="${v.memberPrice}" oninput="_prVars[${i}].memberPrice=parseFloat(this.value)||0"></div><div><label>Visitor (&#3647;)</label><input type="number" value="${v.visitorPrice}" oninput="_prVars[${i}].visitorPrice=parseFloat(this.value)||0"></div><div><label>Cost (&#3647;)</label><input type="number" value="${v.production}" oninput="_prVars[${i}].production=parseFloat(this.value)||0"></div></div></div>`).join('');}
+function addVRow(){_prVars.push({id:uid(),name:'',memberPrice:0,visitorPrice:0,production:0});renderVRows();}
+function remVRow(i){if(_prVars.length<=1)return;_prVars.splice(i,1);renderVRows();}
+function openAddProductModal(){document.getElementById('mo-prod-t').textContent='Add Product';document.getElementById('pr-id').value='';document.getElementById('pr-name').value='';document.getElementById('pr-cat').value='shirt';selSz(false);selMO(false);_prVars=[{id:uid(),name:'Standard',memberPrice:0,visitorPrice:0,production:0}];renderVRows();document.getElementById('pr-save-btn').textContent='Add Product';document.getElementById('pr-arch-btn').style.display='none';document.getElementById('pr-rest-btn').style.display='none';openM('mo-product');}
+function openEditProductModal(pid){const p=D.products.find(x=>x.id===pid);if(!p)return;document.getElementById('mo-prod-t').textContent='Edit Product';document.getElementById('pr-id').value=pid;document.getElementById('pr-name').value=p.name;document.getElementById('pr-cat').value=p.category;selSz(p.hasSizes);selMO(p.memberOnly||false);_prVars=p.variants.map(v=>({...v}));renderVRows();document.getElementById('pr-save-btn').textContent='Save Changes';document.getElementById('pr-arch-btn').style.display=p.archived?'none':'';document.getElementById('pr-rest-btn').style.display=p.archived?'':'none';openM('mo-product');}
+function saveProduct(){const name=document.getElementById('pr-name').value.trim();if(!name){alert('Product name required');return;}if(_prVars.some(v=>!v.name.trim())){alert('All variants need a name');return;}const pid=document.getElementById('pr-id').value;const data={name,category:document.getElementById('pr-cat').value,hasSizes:_prSz,memberOnly:_prMO,variants:_prVars.map(v=>({...v,name:v.name.trim()}))};if(pid){const p=D.products.find(x=>x.id===pid);if(!p)return;const pb={name:p.name,category:p.category};Object.assign(p,data);audit('PRODUCT_EDIT','Edited: '+name,pb,{name,category:data.category});}else{D.products.push({id:uid(),archived:false,...data});audit('PRODUCT_ADD','Added product: '+name,undefined,{name,category:data.category});}save();closeM('mo-product');renderMerch();}
+function archiveProduct(){const pid=document.getElementById('pr-id').value;if(!pid)return;if(!confirm('Archive this product? Hidden from new sales but kept in reports.'))return;const p=D.products.find(x=>x.id===pid);if(p){audit('PRODUCT_ARCHIVE','Archived: '+p.name);p.archived=true;}save();closeM('mo-product');renderMerch();}
+function restoreProduct(){const pid=document.getElementById('pr-id').value;if(!pid)return;const p=D.products.find(x=>x.id===pid);if(p){audit('PRODUCT_RESTORE','Restored: '+p.name);p.archived=false;}save();closeM('mo-product');renderMerch();}
+
+// PIN change (all users)
+function changePin(){const o=document.getElementById('cp-old').value.trim(),n=document.getElementById('cp-new').value.trim(),c=document.getElementById('cp-conf').value.trim();if(!o||!n||!c){alert('Fill in all fields');return;}if(o!==CU.pin){alert('Current PIN is incorrect');return;}if(n.length!==4){alert('PIN must be exactly 4 digits');return;}if(n!==c){alert('New PINs do not match');return;}if(D.users[n]&&n!==CU.pin){alert('That PIN is already in use');return;}delete D.users[CU.pin];D.users[n]={name:CU.name,role:CU.role};CU.pin=n;save();['cp-old','cp-new','cp-conf'].forEach(id=>document.getElementById(id).value='');alert('PIN changed!');}
+
+// User Modal (Admin)
+function openAddUserModal(){document.getElementById('mo-usr-t').textContent='Add User';['usr-name','usr-pin','usr-old'].forEach(id=>document.getElementById(id).value='');document.getElementById('usr-role').value='officer';document.getElementById('usr-del-btn').style.display='none';openM('mo-user');}
+function editUser(pin){const u=D.users[pin];document.getElementById('mo-usr-t').textContent='Edit User';document.getElementById('usr-name').value=u.name;document.getElementById('usr-pin').value=pin;document.getElementById('usr-role').value=u.role;document.getElementById('usr-old').value=pin;document.getElementById('usr-del-btn').style.display=pin===CU.pin?'none':'';openM('mo-user');}
+function saveUser(){const name=document.getElementById('usr-name').value.trim();const pin=String(document.getElementById('usr-pin').value).trim();if(!name||!pin){alert('Name and PIN required');return;}if(pin.length!==4){alert('PIN must be exactly 4 digits');return;}const old=document.getElementById('usr-old').value;if(old&&old!==pin&&D.users[old])delete D.users[old];D.users[pin]={name,role:document.getElementById('usr-role').value};save();closeM('mo-user');renderSettings();}
+function deleteUser(){const old=document.getElementById('usr-old').value;if(!old||old===CU.pin){alert('Cannot remove yourself');return;}if(!confirm('Remove this user?'))return;delete D.users[old];save();closeM('mo-user');renderSettings();}
+
+// Settings
+function loadSettings(){document.getElementById('set-cb').value=D.openingClub||0;document.getElementById('set-hb').value=D.openingCharity||0;document.getElementById('set-fee').value=D.memberFee||2000;document.getElementById('set-lst').value=D.lowStockThreshold||5;if(D.supabaseUrl)document.getElementById('set-su').value=D.supabaseUrl;if(D.supabaseKey)document.getElementById('set-sk').value=D.supabaseKey;}
+function renderSettings(){
+  if(!CU||CU.role!=='admin')return;
+  // Initial stock list
+  let shtml='';
+  D.products.filter(p=>!p.archived).forEach(p=>{
+    p.variants.forEach(v=>{
+      const lbl=`${p.name} &#8211; ${v.name}`;
+      const szs=p.hasSizes?SIZES:[null];
+      const pcolsInit=prodColours(p);
+      szs.forEach(sz=>{
+        pcolsInit.forEach(c=>{
+          const k=skey(p.id,v.id,sz,c.name);
+          const cur=(D.stock[k]||{}).initial||0;
+          const rowLbl=[sz,c.name].filter(Boolean).join(', ')||'(all)';
+          shtml+=`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bd)">
+            <div style="flex:1;font-size:11px">${lbl} &mdash; ${rowLbl}</div>
+            <input type="number" value="${cur}" min="0" data-pid="${p.id}" data-vid="${v.id}" data-sz="${sz||''}" data-col="${c.name}" style="width:60px;padding:6px 8px;font-size:13px;text-align:center" onchange="setIS(this)">
+          </div>`;
+        });
+      });
+    });
+  });
+  document.getElementById('init-stock-list').innerHTML=shtml||'<div style="color:var(--muted);font-size:12px;padding:8px 0">No active products yet</div>';
+  // Users
+  document.getElementById('user-list-s').innerHTML=Object.entries(D.users).map(([pin,u])=>`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bd)"><div style="flex:1"><div style="font-size:13px;font-weight:600">${u.name}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase">${u.role}</div></div><div style="font-size:11px;color:var(--dim)">${'&#9679;'.repeat(pin.length)}</div><button onclick="editUser('${pin}')" style="background:none;border:1px solid var(--bd);color:var(--muted);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:11px">Edit</button></div>`).join('');
+  // Colours
+  document.getElementById('colour-list-s').innerHTML=D.colours.map((c,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bd)"><span style="width:18px;height:18px;border-radius:50%;background:${c.hex};border:1px solid rgba(255,255,255,.2);flex-shrink:0"></span><div style="flex:1;font-size:12px">${c.name}</div><button onclick="delColour(${i})" style="background:none;border:none;color:var(--rl);font-size:13px;cursor:pointer">&#10005;</button></div>`).join('');
+  // Suppliers
+  // Build supplier list with index-based onclick (no quote escaping)
+var _supArr=[...D.suppliers].sort(function(a,b){return(a.name||'').localeCompare(b.name||'');});
+window._supArr=_supArr;
+document.getElementById('sup-list-s').innerHTML=_supArr.map(function(s,i){
+  var details=[s.contact,s.phone,s.email].filter(Boolean).join(' • ');
+  var editBtn=CU&&CU.role==='admin'?'<button onclick="_supEdit('+i+')" style="background:none;border:1px solid var(--bd);color:var(--muted);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:11px;flex-shrink:0">Edit</button>':'';
+  var delBtn='<button onclick="_supDel('+i+')" style="background:none;border:none;color:var(--rl);font-size:13px;cursor:pointer;flex-shrink:0">&#10005;</button>';
+  var viewDiv='<div style="flex:1;min-width:0;cursor:pointer" onclick="_supView('+i+')">'
+    +'<div style="font-size:12px;font-weight:600">'+s.name+'</div>'
+    +(details?'<div style="font-size:10px;color:var(--muted)">'+details+'</div>':'')
+    +'</div>';
+  return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--bd)">'+viewDiv+editBtn+delBtn+'</div>';
+}).join('');
+}
+function setIS(el){const sz=el.dataset.sz||null;const k=skey(el.dataset.pid,el.dataset.vid,sz,el.dataset.col);if(!D.stock[k])D.stock[k]={initial:0,ordered:0,sold:0};D.stock[k].initial=parseInt(el.value)||0;}
+function saveInitStock(){save();alert('Initial stock saved!');renderStock();renderDash();}
+function saveLST(){D.lowStockThreshold=parseInt(document.getElementById('set-lst').value)||5;audit('SETTINGS','Low stock threshold changed to '+D.lowStockThreshold);save();alert('Threshold saved!');renderStock();renderDash();}
+function saveBalances(){const ob=D.openingClub,oh=D.openingCharity;D.openingClub=parseFloat(document.getElementById('set-cb').value)||0;D.openingCharity=parseFloat(document.getElementById('set-hb').value)||0;audit('SETTINGS','Opening balances changed',{club:ob,charity:oh},{club:D.openingClub,charity:D.openingCharity});save();renderDash();alert('Balances saved!');}
+function saveFee(){const oldFee=D.memberFee;D.memberFee=parseFloat(document.getElementById('set-fee').value)||2000;audit('SETTINGS','Annual fee changed',{fee:oldFee},{fee:D.memberFee});save();alert('Fee saved!');document.getElementById('fee-d').textContent=(D.memberFee).toLocaleString();}
+function saveSync(){
+  var url=document.getElementById('set-su').value.trim();
+  var key=document.getElementById('set-sk').value.trim();
+  if(!url||!key){alert('Please enter both the Project URL and Anon Key.');return;}
+  // Save credentials immediately to dedicated key
+  localStorage.setItem('remct_sync',JSON.stringify({url:url,key:key}));
+  D.supabaseUrl=url;
+  D.supabaseKey=key;
+  // Step 1: Try to pull existing data from Supabase first
+  var base=url.charAt(url.length-1)==='/'?url.slice(0,-1):url;
+  fetch(base+'/rest/v1/club_data?id=eq.main&select=data,updated_at',{
+    method:'GET',
+    headers:{'apikey':key,'Authorization':'Bearer '+key}
+  }).then(function(r){
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    return r.json();
+  }).then(function(rows){
+    if(rows&&rows.length>0&&rows[0].data&&Object.keys(rows[0].data).length>0){
+      // Remote has real data — load it
+      var remoteData=rows[0].data;
+      D=remoteData;
+      D.supabaseUrl=url;
+      D.supabaseKey=key;
+      if(!D.colours)D.colours=[...DEF_COLS];
+      if(!D.tabs)D.tabs=[];
+      if(!D.stock)D.stock={};
+      if(!D.events)D.events=[];
+      if(!D.suppliers)D.suppliers=[];
+      if(D.lowStockThreshold===undefined)D.lowStockThreshold=5;
+      D.products.forEach(function(p){
+        if(p.archived===undefined)p.archived=false;
+        if(p.memberOnly===undefined)p.memberOnly=false;
+        p.variants.forEach(function(v){if(!v.id)v.id='v'+Math.random().toString(36).slice(2,8);});
+      });
+      localStorage.setItem('remct4',JSON.stringify(D));
+      loadSettings();renderAll();
+      setDot('online');
+      alert('Connected! Data loaded from Supabase.');
+    } else {
+      // Remote is empty — push local data up
+      save();
+      setDot('online');
+      alert('Connected! Your data has been saved to Supabase.');
+    }
+  }).catch(function(e){
+    setDot('offline');
+    alert('Connection failed: '+e.message+'. Check your URL and Anon Key.');
+  });
+}
+function manualSync(){
+  if(!navigator.onLine){showOffline();return;}
+  var sb=document.getElementById('sync-btn');
+  if(sb){sb.textContent='...';sb.disabled=true;}
+  setDot('syncing');
+  loadFromSupabase(function(reloaded){
+    if(sb){sb.textContent='↻';sb.disabled=false;}
+    if(reloaded){
+      loadSettings();renderAll();
+      setDot('online');hideOffline();
+    } else {
+      // Nothing newer on remote - push our data up
+      syncToSupabase(function(ok){
+        setDot(ok?'online':'offline');
+        if(!ok)showOffline();
+      });
+    }
+  });
+}
+function addColour(){const name=document.getElementById('new-colour').value.trim();const hex=document.getElementById('new-colour-hex').value;if(!name)return;if(!D.colours.find(c=>c.name===name)){D.colours.push({name,hex});audit('SETTINGS','Colour added: '+name+' ('+hex+')');}else{alert('Colour already exists.');return;}document.getElementById('new-colour').value='';save();renderSettings();}
+function delColour(i){const c=D.colours[i];if(c)audit('SETTINGS','Colour removed: '+c.name);D.colours.splice(i,1);save();renderSettings();}
+function addSupplier(){const s=document.getElementById('new-sup').value.trim();if(!s)return;if(!D.suppliers.includes(s))D.suppliers.push(s);document.getElementById('new-sup').value='';save();renderSettings();}
+function delSup(sid){var idx=D.suppliers.findIndex(function(x){return x.id===sid;});if(idx<0)return;var s=D.suppliers[idx];if(!confirm('Delete supplier: '+s.name+'?'))return;audit('SETTINGS','Supplier removed: '+s.name);D.suppliers.splice(idx,1);save();renderSettings();}
+
+// Reports
+function showReport(type){
+  const T={monthly:'&#128197; Monthly Statement',meeting:'&#128101; Club Meeting Report',annual:'&#128198; Annual Summary',membership:'&#128101; Membership Report',merchandise:'&#128717;&#65039; Merchandise Sales',stock:'&#128230; Stock Report',tabs:'&#128203; Tab Debts Report',donations:'&#129309; Donation Report',suppliers:'&#127978;&#65039; Purchase Ledger',cogs:'&#128208; Cost of Goods',analysis:'&#128202; Analysis Report',audit:'&#128269; Audit Trail'};
+  document.getElementById('rpt-t').innerHTML=T[type]||'Report';
+  const fn={monthly:rMonth,meeting:rMeeting,annual:rAnnual,membership:rMem,merchandise:rMerch,stock:rStock,tabs:rTabs,donations:rDon,suppliers:rSup,cogs:rCOGS,analysis:rAnalysis,audit:rAudit};
+  document.getElementById('rpt-b').innerHTML=(fn[type]||rMonth)();
+  var pdfBtn=document.getElementById('rpt-pdf-btn');
+  if(pdfBtn)pdfBtn.style.display='';
+  openM('mo-report');
+}
+function br(l,v,c){return`<div class="brow"><span class="blbl">${l}</span><span style="font-size:15px;font-weight:700;color:${c||'var(--gl)'};">${v}</span></div>`;}
+function sumio(txs){const i=txs.filter(t=>t.direction==='in').reduce((a,t)=>a+parseFloat(t.amount||0),0),o=txs.filter(t=>t.direction==='out').reduce((a,t)=>a+parseFloat(t.amount||0),0);return{i,o,n:i-o};}
+function catBd(txs){const c={};txs.forEach(t=>{const a=(t.direction==='in'?1:-1)*(parseFloat(t.amount)||0);c[t.category]=(c[t.category]||0)+a;});return Object.entries(c).map(([k,v])=>br(CM[k]||k,thb(Math.abs(v)),v>=0?'var(--grnl)':'var(--rl)')).join('');}
+function rMonth(){const n=new Date(),l=n.toLocaleString('en-GB',{month:'long',year:'numeric'}),mt=mthTx(),c=sumio(mt.filter(t=>t.account==='club')),h=sumio(mt.filter(t=>t.account==='charity'));return`<div style="font-size:12px;color:var(--muted);margin-bottom:12px">${l}</div><div class="balbar"><h3>&#128693;&#65039; Club Account</h3>${br('Income',thb(c.i),'var(--grnl)')}${br('Expenses',thb(c.o),'var(--rl)')}${br('Net',thb(c.n))}</div><div class="balbar"><h3>&#10084;&#65039; Charity Account</h3>${br('Donations In',thb(h.i),'var(--grnl)')}${br('Out',thb(h.o),'var(--rl)')}${br('Net',thb(h.n))}</div>`;}
+function rAnnual(){const b=calcBal(),c=D.transactions.filter(t=>t.account==='club'),h=D.transactions.filter(t=>t.account==='charity');return`<div class="balbar"><h3>&#128693;&#65039; Club Account</h3>${catBd(c)}${br('Balance',thb(b.club))}</div><div class="balbar"><h3>&#10084;&#65039; Charity Account</h3>${catBd(h)}${br('Balance',thb(b.charity))}</div>`;}
+function rMem(){const paid=D.members.filter(m=>m.status==='paid'),un=D.members.filter(m=>m.status==='unpaid'),pr=D.members.filter(m=>m.status==='prospect');const fe=un.reduce((a,m)=>a+calcFee(m.joinDate),0);const RL={president:'President',vice_president:'Vice President',treasurer:'Treasurer',member:'Member',prospect:'Prospect'};function mr(m){return`<div class="brow"><span class="blbl">${m.name}${m.email?` <span style="font-size:9px;color:var(--dim)">&#9993; ${m.email}</span>`:''}</span><span style="font-size:11px;color:var(--muted)">${RL[m.role]||m.role} &middot; ${thb(calcFee(m.joinDate))}</span></div>`;}const paidTotal=paid.reduce((a,m)=>a+calcFee(m.joinDate),0);return`<div class="balbar"><h3>&#9989; Paid (${paid.length}) &#8212; ${thb(paidTotal)}</h3>${paid.map(mr).join('')||'<div style="color:var(--dim);font-size:12px;padding:6px 0">None</div>'}</div><div class="balbar"><h3>&#8987; Unpaid (${un.length}) &#8212; ${thb(fe)} outstanding</h3>${un.map(mr).join('')||'<div style="color:var(--dim);font-size:12px;padding:6px 0">None</div>'}</div><div class="balbar"><h3>&#128064; Prospects (${pr.length})</h3>${pr.map(m=>`<div class="brow"><span class="blbl">${m.name}</span><span style="font-size:11px;color:var(--muted)">${RL[m.role]||m.role}</span></div>`).join('')||'<div style="color:var(--dim);font-size:12px;padding:6px 0">None</div>'}</div>`;}
+function rMerch(){const s=D.transactions.filter(t=>t.category==='merchandise');const tot=s.reduce((a,t)=>a+parseFloat(t.amount||0),0);const ms=s.filter(t=>t.customerType==='member').reduce((a,t)=>a+parseFloat(t.amount||0),0);const vs=s.filter(t=>t.customerType==='visitor').reduce((a,t)=>a+parseFloat(t.amount||0),0);const bp={};s.forEach(t=>{const k=t.description||'?';bp[k]=(bp[k]||0)+parseFloat(t.amount||0);});const bc={};s.forEach(t=>{if(t.colour){bc[t.colour]=(bc[t.colour]||0)+parseFloat(t.amount||0);}});return`<div class="balbar"><h3>&#128085;&#65039; Merchandise Sales</h3>${br('Total',thb(tot))}${br('Member Sales',thb(ms),'var(--gold)')}${br('Visitor Sales',thb(vs),'var(--blul)')}${br('Transactions',s.length,'var(--muted)')}</div><div class="balbar"><h3>By Item</h3>${Object.entries(bp).sort((a,b)=>b[1]-a[1]).slice(0,12).map(([d,v])=>br(d.length>32?d.slice(0,32)+'&#8230;':d,thb(v),'var(--gl)')).join('')||'<div style="color:var(--dim);font-size:12px">No sales yet</div>'}</div>${Object.keys(bc).length?`<div class="balbar"><h3>By Colour</h3>${Object.entries(bc).sort((a,b)=>b[1]-a[1]).map(([c,v])=>br(c,thb(v),'var(--muted)')).join('')}</div>`:''}`;}
+function rStock(){
+  const t=D.lowStockThreshold||5;
+  const rows=[];
+  D.products.filter(p=>!p.archived).forEach(p=>p.variants.forEach(v=>{
+    const szs=p.hasSizes?SIZES:[null];
+    const pcols=prodColours(p);
+    szs.forEach(sz=>pcols.forEach(c=>{
+      const q=getStock(p.id,v.id,sz,c.name);
+      const colLabel=c.name?', '+c.name:'';
+      rows.push({name:p.name+' – '+v.name+(sz?' ('+sz+')'  :'')+colLabel,qty:q,st:stSt(q)});
+    }));
+  }));
+  const out=rows.filter(r=>r.st==='out');
+  const low=rows.filter(r=>r.st==='low');
+  const ok=rows.filter(r=>r.st==='ok');
+  function rr(r){return '<div class="brow"><span class="blbl" style="font-size:11px">'+r.name+'</span><span style="font-weight:700;color:'+(r.st==='ok'?'var(--grnl)':r.st==='low'?'var(--warn)':'var(--rl)')+'">'+r.qty+'</span></div>';}
+  var html='';
+  if(out.length)html+='<div class="balbar"><h3>&#128308; Out of Stock ('+out.length+')</h3>'+out.map(rr).join('')+'</div>';
+  html+='<div class="balbar"><h3>&#9888;&#65039; Low Stock &le;'+t+' ('+low.length+')</h3>'+(low.length?low.map(rr).join(''):'<div style="color:var(--dim);font-size:12px;padding:6px 0">None &#8212; all good!</div>')+'</div>';
+  html+='<div class="balbar"><h3>&#128994; In Stock ('+ok.length+')</h3>'+ok.map(rr).join('')+'</div>';
+  return html;
+}
+
+function rDon(){const di=D.transactions.filter(t=>['donation_in','collection_box'].includes(t.category)),dout=D.transactions.filter(t=>['donation_out','charity_cash','charity_goods','club_donation_out'].includes(t.category));const it=di.reduce((a,t)=>a+parseFloat(t.amount||0),0),ot=dout.reduce((a,t)=>a+parseFloat(t.amount||0),0);return`<div class="balbar"><h3>&#10084;&#65039; Donations</h3>${br('Received',thb(it),'var(--grnl)')}${br('Given Out',thb(ot),'var(--rl)')}${br('Net',thb(it-ot))}</div><div class="balbar"><h3>Payments Out</h3>${dout.length?dout.map(t=>`<div class="brow"><span class="blbl" style="font-size:11px">${t.description||CM[t.category]}</span><span style="color:var(--rl)">${thb(t.amount)}</span></div>`).join(''):'<div style="color:var(--dim);font-size:12px;padding:6px 0">None yet</div>'}</div>`;}
+function rSup(){const p=D.transactions.filter(t=>t.direction==='out'),tot=p.reduce((a,t)=>a+parseFloat(t.amount||0),0),bs={};p.forEach(t=>{const s=t.supplier||'Unspecified';bs[s]=(bs[s]||0)+parseFloat(t.amount||0);});return`<div class="balbar"><h3>&#127978;&#65039; Purchase Ledger</h3>${br('Total Spent',thb(tot),'var(--rl)')}${Object.entries(bs).sort((a,b)=>b[1]-a[1]).map(([s,v])=>br(s,thb(v),'var(--muted)')).join('')}</div>`;}
+function rCOGS(){var rows=D.products.map(function(p){var vRows=p.variants.map(function(v){var memM=v.memberPrice-v.production;var visRow=!p.memberOnly?' &bull; Visitor '+thb(v.visitorPrice)+' (margin '+thb(v.visitorPrice-v.production)+')':'';return '<div class="brow" style="padding:3px 0"><span class="blbl" style="font-size:11px">'+v.name+'</span><span style="font-size:10px;color:var(--muted)">Cost '+thb(v.production)+' &#8594; Member '+thb(v.memberPrice)+' (margin '+thb(memM)+')'+visRow+'</span></div>';}).join('');return '<div style="padding:8px 0;border-bottom:1px solid rgba(201,162,39,.1)"><div style="font-size:12px;font-weight:600;margin-bottom:4px">'+p.name+(p.archived?' <span style="font-size:9px;color:var(--muted)">(archived)</span>':'')+'</div>'+vRows+'</div>';}).join('');return '<div class="balbar"><h3>&#128208; Cost of Goods</h3>'+rows+'</div>';}
+function rAudit(){if(!CU||CU.role!=='admin')return'<div class="empty">Admin only</div>';const s=[...D.transactions].sort((a,b)=>new Date(b.created)-new Date(a.created));return`<div style="font-size:11px;color:var(--muted);margin-bottom:10px">${s.length} total entries</div>${s.map(t=>`<div class="txi" style="font-size:11px"><div class="txic" style="font-size:15px">${txi(t)}</div><div class="txin"><div class="txd">${t.description||(CM[t.category]||t.category)}</div><div class="txm"><span class="ab ${t.account}">${t.account}</span>${fd(t.date)} &middot; ${t.enteredBy||'?'}</div><div class="atag">REAL: ${fdt(t.created)}</div></div><div class="txa ${t.direction==='in'?'p':'n'}">${t.direction==='in'?'+':'-'}${thb(t.amount)}</div></div>`).join('')||'<div class="empty"><div class="ei">&#128203;</div>No entries</div>'}`;}
+
+
+// Tab Debt Report
+function rTabs(){
+  if(!D.tabs||!D.tabs.length)return'<div class="empty"><div class="ei">&#128203;</div>No tab records yet</div>';
+  const open=D.tabs.filter(t=>!t.settled);
+  const done=D.tabs.filter(t=>t.settled);
+  const totalOwed=open.reduce((a,t)=>a+parseFloat(t.amount||0),0);
+  // group open by member
+  const byMem={};
+  open.forEach(t=>{if(!byMem[t.memberId])byMem[t.memberId]={name:t.memberName,items:[],total:0};byMem[t.memberId].items.push(t);byMem[t.memberId].total+=parseFloat(t.amount||0);});
+  function tabRow(t,showSettle){return`<div class="tab-card${t.settled?' settled':''}">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+      <div style="flex:1"><div style="font-size:13px;font-weight:600">${t.memberName}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${t.description}</div>
+        <div style="font-size:10px;color:var(--dim);margin-top:2px">&#128197; ${fd(t.date)} &middot; By ${t.enteredBy||'?'}</div>
+        ${t.settled?`<div style="font-size:10px;color:var(--grnl);margin-top:2px">&#10003; Settled ${fd(t.settledDate)}${t.settledNotes?' &mdash; '+t.settledNotes:''}</div>`:''}
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-size:16px;font-weight:700;color:${t.settled?'var(--grnl)':'var(--warn)'}">${thb(t.amount)}</div>
+        <span class="tbbadge ${t.settled?'stld':'owed'}">${t.settled?'Settled':'Owed'}</span>
+        ${showSettle&&!t.settled?`<br><button onclick="openSettleTab('${t.id}')" style="margin-top:6px;background:none;border:1px solid var(--grn);color:var(--grnl);border-radius:20px;padding:3px 10px;cursor:pointer;font-size:11px">Mark Paid</button>`:''}
+      </div>
+    </div>
+  </div>`;}
+  return`<div class="balbar"><h3>&#128203; Outstanding Tab Debts</h3>${br('Open Tabs',open.length,'var(--warn)')}${br('Total Owed',thb(totalOwed),'var(--warn)')}</div>
+  ${Object.values(byMem).sort((a,b)=>b.total-a.total).map(g=>`<div style="margin-bottom:14px"><div style="font-size:13px;font-weight:600;margin-bottom:6px">&#128100; ${g.name} &mdash; <span style="color:var(--warn)">${thb(g.total)} owed</span></div>${g.items.map(t=>tabRow(t,true)).join('')}</div>`).join('')||'<div style="color:var(--grnl);font-size:13px;padding:10px 0">&#10003; No outstanding tab debts!</div>'}
+  ${done.length?`<div class="divider"></div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Settled (${done.length})</div>${done.slice(0,20).map(t=>tabRow(t,false)).join('')}`:''}`;}
+
+function openSettleTab(id){
+  const tab=(D.tabs||[]).find(t=>t.id===id);if(!tab)return;
+  document.getElementById('st-id').value=id;
+  document.getElementById('st-date').value=nd();
+  document.getElementById('st-notes').value='';
+  document.getElementById('st-summary').innerHTML=`<strong>${tab.memberName}</strong><br><span style="color:var(--muted)">${tab.description}</span><br><span style="font-size:16px;font-weight:700;color:var(--warn)">${thb(tab.amount)}</span> owed since ${fd(tab.date)}`;
+  openM('mo-settletab');
+}
+function settleTab(){
+  const id=document.getElementById('st-id').value;
+  const tab=(D.tabs||[]).find(t=>t.id===id);if(!tab)return;
+  const settledDate=document.getElementById('st-date').value;
+  const settledNotes=document.getElementById('st-notes').value.trim();
+  tab.settled=true;tab.settledDate=settledDate;tab.settledNotes=settledNotes;tab.settledBy=CU.name;tab.settledAt=ni();audit('TAB_SETTLED','Settled tab: '+tab.description+' '+thb(tab.amount)+' for '+tab.memberName);
+  // Record as income transaction now payment received
+  D.transactions.push({id:uid(),account:'club',direction:'in',category:'merchandise',amount:tab.amount,description:`Tab settled: ${tab.description}`,supplier:'',ref:'',date:settledDate,created:ni(),notes:settledNotes||'Tab payment received',enteredBy:CU.name,productId:tab.productId,variantId:tab.variantId,qty:tab.qty,unitPrice:tab.unitPrice,customerType:tab.customerType,colour:tab.colour,size:tab.size});
+  save();closeM('mo-settletab');renderAll();alert('Tab settled! Income recorded in Ledger.');
+}
+
+function rAnalysis(){
+  var now=new Date();var curY=now.getFullYear();var curM=now.getMonth();
+  var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var yearOpts='';for(var y=2026;y<=curY;y++)yearOpts+='<option value="'+y+'"'+(y===curY?' selected':'')+'>'+y+'</option>';
+  var mthOpts='';for(var i=0;i<12;i++)mthOpts+='<option value="'+i+'"'+(i===curM?' selected':'')+'>'+months[i]+'</option>';
+  setTimeout(function(){selAnView('actual');renderAnalysis();},50);
+  return '<div style="margin-bottom:14px">'
+    +'<div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">'
+    +'<select id="an-type" onchange="renderAnalysis()" style="flex:1;min-width:90px"><option value="month">Monthly</option><option value="year">Annual</option></select>'
+    +'<select id="an-month" onchange="renderAnalysis()" style="flex:1;min-width:90px">'+mthOpts+'</select>'
+    +'<select id="an-year" onchange="renderAnalysis()" style="flex:1;min-width:70px">'+yearOpts+'</select>'
+    +'</div>'
+    +'<div class="tg" style="margin-bottom:12px">'
+    +'<button class="tgb tin" id="an-actual" onclick="selAnView(\u0027actual\u0027)">&#10003; Actual</button>'
+    +'<button class="tgb" id="an-committed" onclick="selAnView(\u0027committed\u0027)">&#128203; Committed</button>'
+    +'<button class="tgb" id="an-combined" onclick="selAnView(\u0027combined\u0027)">&#8853; Combined</button>'
+    +'</div>'
+    +'<div id="an-body"></div></div>';
+}
+var _anView='actual';
+function selAnView(v){
+  _anView=v;
+  ['actual','committed','combined'].forEach(function(x){
+    var b=document.getElementById('an-'+x);
+    if(b)b.className='tgb'+(x===v?' tin':'');
+  });
+  renderAnalysis();
+}
+function renderAnalysis(){
+  var el=document.getElementById('an-body');if(!el)return;
+  var type=document.getElementById('an-type')?document.getElementById('an-type').value:'month';
+  var yr=parseInt(document.getElementById('an-year')?document.getElementById('an-year').value:new Date().getFullYear());
+  var mo=parseInt(document.getElementById('an-month')?document.getElementById('an-month').value:new Date().getMonth());
+  var msel=document.getElementById('an-month');
+  if(msel)msel.style.display=type==='month'?'':'none';
+  var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var label=type==='month'?months[mo]+' '+yr:'Year '+yr;
+  function filterTx(txList){return txList.filter(function(t){var d=new Date(t.date||t.created);return type==='month'?(d.getFullYear()===yr&&d.getMonth()===mo):(d.getFullYear()===yr);});}
+  var paidTx=filterTx(D.transactions.filter(function(t){return t.paid!==false;}));
+  var unpaidTx=filterTx(D.transactions.filter(function(t){return t.paid===false;}));
+  var allTx=filterTx(D.transactions);
+  var txToUse=_anView==='actual'?paidTx:_anView==='committed'?unpaidTx:allTx;
+  if(!txToUse.length){var vl={actual:'actual paid',committed:'committed/unpaid',combined:'combined'};el.innerHTML='<div class="empty"><div class="ei">&#128202;</div>No '+vl[_anView]+' data for '+label+'</div>';return;}
+  var inc={},exp={};
+  txToUse.forEach(function(t){var a=parseFloat(t.amount)||0;var cat=CM[t.category]||t.category;if(t.direction==='in'){inc[cat]=(inc[cat]||0)+a;}else{exp[cat]=(exp[cat]||0)+a;}});
+  var totalIn=Object.values(inc).reduce(function(a,b){return a+b;},0);
+  var totalOut=Object.values(exp).reduce(function(a,b){return a+b;},0);
+  var vc=_anView==='actual'?'var(--grnl)':_anView==='committed'?'var(--warn)':'var(--blul)';
+  var h='<div class="balbar"><h3>&#128202; '+label+' &mdash; <span style="color:'+vc+'">'+_anView.toUpperCase()+'</span></h3>'
+    +'<div class="brow"><span class="blbl">Total Income</span><span style="font-weight:700;color:var(--grnl)">'+thb(totalIn)+'</span></div>'
+    +'<div class="brow"><span class="blbl">Total Outgoings</span><span style="font-weight:700;color:var(--rl)">'+thb(totalOut)+'</span></div>'
+    +'<div class="brow"><span class="blbl">Net</span><span style="font-weight:700;color:'+(totalIn-totalOut>=0?'var(--grnl)':'var(--rl)')+'">'+thb(totalIn-totalOut)+'</span></div>'
+    +'</div>';
+  if(Object.keys(inc).length){h+='<div class="balbar"><h3>&#11014;&#65039; Income by Category</h3>';Object.entries(inc).sort(function(a,b){return b[1]-a[1];}).forEach(function(e){h+=br(e[0],thb(e[1]),'var(--grnl)');});h+='</div>';}
+  if(Object.keys(exp).length){h+='<div class="balbar"><h3>&#11015;&#65039; Outgoings by Category</h3>';Object.entries(exp).sort(function(a,b){return b[1]-a[1];}).forEach(function(e){h+=br(e[0],thb(e[1]),'var(--rl)');});h+='</div>';}
+  el.innerHTML=h;
+}
+
+
+function exportReportPDF(){
+  var content=document.getElementById('rpt-b');
+  if(!content)return;
+  var rTitle=document.getElementById('rpt-t')?document.getElementById('rpt-t').textContent:'Report';
+  var w=window.open('','_blank');
+  w.document.write('<html><head><title>Road Eagles MC - '+rTitle+'</title>'
+    +'<style>body{font-family:Arial,sans-serif;padding:20px;color:#111;max-width:700px;margin:0 auto}'
+    +'.balbar{border:1px solid #c9a227;border-radius:8px;padding:12px;margin-bottom:12px;background:#fff8e8}'
+    +'.balbar h3{font-size:10px;color:#7a5f10;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px}'
+    +'.brow{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0e0b0}'
+    +'.brow:last-child{border:none}'
+    +'h1{color:#c9a227;font-size:22px;margin-bottom:4px}'
+    +'p{color:#666;font-size:12px;margin-bottom:16px}'
+    +'@media print{button{display:none}}'
+    +'</style></head><body>'
+    +'<h1>Road Eagles MC Thailand</h1>'
+    +'<p>'+rTitle+' &mdash; Printed '+new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})+'</p>'
+    +content.innerHTML
+    +'<br><button onclick="window.print()" style="background:#c9a227;border:none;padding:10px 24px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600">Print / Save as PDF</button>'
+    +'</body></html>');
+  w.document.close();
+}
+
+function rMeeting(){
+  var now=new Date();var curY=now.getFullYear();var curM=now.getMonth();
+  var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var yearOpts='';for(var y=2026;y<=curY;y++)yearOpts+='<option value="'+y+'"'+(y===curY?' selected':'')+'>'+y+'</option>';
+  var mthOpts='';for(var i=0;i<12;i++)mthOpts+='<option value="'+i+'"'+(i===curM?' selected':'')+'>'+months[i]+'</option>';
+  setTimeout(renderMeeting,50);
+  return '<div style="margin-bottom:12px;display:flex;gap:8px">'
+    +'<select id="mt-type" onchange="renderMeeting()" style="flex:1"><option value="month">Monthly</option><option value="year">Annual</option></select>'
+    +'<select id="mt-month" onchange="renderMeeting()" style="flex:1">'+mthOpts+'</select>'
+    +'<select id="mt-year" onchange="renderMeeting()" style="flex:1">'+yearOpts+'</select>'
+    +'</div><div id="mt-body"></div>';
+}
+function renderMeeting(){
+  var el=document.getElementById('mt-body');if(!el)return;
+  var type=document.getElementById('mt-type')?document.getElementById('mt-type').value:'month';
+  var yr=parseInt(document.getElementById('mt-year')?document.getElementById('mt-year').value:new Date().getFullYear());
+  var mo=parseInt(document.getElementById('mt-month')?document.getElementById('mt-month').value:new Date().getMonth());
+  var msel=document.getElementById('mt-month');if(msel)msel.style.display=type==='month'?'':'none';
+  var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var label=type==='month'?months[mo]+' '+yr:'Year '+yr;
+  var periodTx=D.transactions.filter(function(t){if(t.paid===false)return false;var d=new Date(t.date||t.created);return type==='month'?(d.getFullYear()===yr&&d.getMonth()===mo):(d.getFullYear()===yr);});
+  var bal=calcBal();
+  var pIn=periodTx.filter(function(t){return t.direction==='in';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  var pOut=periodTx.filter(function(t){return t.direction==='out';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  var unpaidFees=D.members.filter(function(m){return m.status==='unpaid';});
+  var feesTotal=unpaidFees.reduce(function(a,m){return a+calcFee(m.joinDate);},0);
+  var openTabs=(D.tabs||[]).filter(function(t){return !t.settled;});
+  var unpaidTx=D.transactions.filter(function(t){return t.paid===false;});
+  var tabTotal=openTabs.reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  var unpaidTxTotal=unpaidTx.reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  var stockRows=[];
+  D.products.filter(function(p){return !p.archived;}).forEach(function(p){
+    var total=0;
+    p.variants.forEach(function(v){var szs=p.hasSizes?SIZES:[null];szs.forEach(function(sz){prodColours(p).forEach(function(c){total+=getStock(p.id,v.id,sz,c.name);});});});
+    stockRows.push({name:p.name,total:total});
+  });
+  var inStock=stockRows.filter(function(r){return r.total>0;}).length;
+  var lowStock=0;
+  D.products.filter(function(p){return !p.archived;}).forEach(function(p){p.variants.forEach(function(v){var szs=p.hasSizes?SIZES:[null];szs.forEach(function(sz){prodColours(p).forEach(function(c){var q=getStock(p.id,v.id,sz,c.name);if(q>0&&q<=(D.lowStockThreshold||5))lowStock++;});});});});
+  var paid=D.members.filter(function(m){return m.status==='paid';}).length;
+  var unpaidM=D.members.filter(function(m){return m.status==='unpaid';}).length;
+  var prospects=D.members.filter(function(m){return m.status==='prospect';}).length;
+  var h='<div class="balbar"><h3>&#128101; Club Meeting Report &mdash; '+label+'</h3></div>'
+    +'<div class="balbar"><h3>&#128693;&#65039; Account Balances</h3>'
+    +br('Club Account',thb(bal.club))+br('Charity Account',thb(bal.charity),'var(--grnl)')+br('Combined',thb(bal.club+bal.charity))+'</div>'
+    +'<div class="balbar"><h3>&#128201; '+label+' Income &amp; Expenditure</h3>'
+    +br('Income',thb(pIn),'var(--grnl)')+br('Expenditure',thb(pOut),'var(--rl)')+br('Net',thb(pIn-pOut),(pIn-pOut>=0?'var(--grnl)':'var(--rl)'))+'</div>'
+    +'<div class="balbar"><h3>&#128203; Outstanding Items</h3>'
+    +br('Unpaid Fees ('+unpaidFees.length+' members)',thb(feesTotal),'var(--warn)')+br('Merch Tabs',thb(tabTotal),'var(--warn)')+br('Other Unpaid ('+unpaidTx.length+')',thb(unpaidTxTotal),'var(--warn)')+'</div>'
+    +'<div class="balbar"><h3>&#128101; Membership</h3>'
+    +br('Paid',paid,'var(--grnl)')+br('Unpaid',unpaidM,'var(--warn)')+br('Prospects',prospects,'var(--muted)')+'</div>'
+    +'<div class="balbar"><h3>&#128230; Merchandise Stock</h3>'
+    +stockRows.map(function(r){return br(r.name,r.total===0?'Out of Stock':r.total,(r.total===0?'var(--rl)':r.total<=(D.lowStockThreshold||5)?'var(--warn)':'var(--grnl)'));}).join('')
+    +'</div>';
+  el.innerHTML=h;
+}
+function checkAnnualFeeReset(){
+  var curYear=new Date().getFullYear();
+  if(!D.lastFeeResetYear)D.lastFeeResetYear=0;
+  if(D.lastFeeResetYear>=curYear)return;
+  var paid=D.members.filter(function(m){return m.status==='paid';});
+  if(paid.length>0){
+    paid.forEach(function(m){m.status='unpaid';});
+    D.lastFeeResetYear=curYear;
+    audit('FEE_RESET','Annual fee reset for '+paid.length+' members for '+curYear);
+    save();
+  }
+}
+function clearAuditLog(){
+  var d=document.getElementById('audit-clear-date');
+  if(!d||!d.value){alert('Please select a date');return;}
+  if(!confirm('Clear all audit entries before '+fd(d.value)+'?'))return;
+  var before=D.auditLog.length;
+  D.auditLog=D.auditLog.filter(function(e){return e.ts>=d.value;});
+  audit('AUDIT_CLEAR','Cleared '+(before-D.auditLog.length)+' audit entries before '+fd(d.value));
+  save();showReport('audit');
+}
+function openAddSupplier(){document.getElementById('mo-sup-t').textContent='Add Supplier';document.getElementById('sup-id').value='';['sup-name','sup-contact','sup-phone','sup-email','sup-website','sup-address'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('sup-save-btn').textContent='Add Supplier';openM('mo-supplier');}
+function openEditSupplier(sid){var s=D.suppliers.find(function(x){return x.id===sid;});if(!s)return;document.getElementById('mo-sup-t').textContent='Edit Supplier';document.getElementById('sup-id').value=sid;document.getElementById('sup-name').value=s.name||'';document.getElementById('sup-contact').value=s.contact||'';document.getElementById('sup-phone').value=s.phone||'';document.getElementById('sup-email').value=s.email||'';document.getElementById('sup-website').value=s.website||'';document.getElementById('sup-address').value=s.address||'';document.getElementById('sup-save-btn').textContent='Save Changes';openM('mo-supplier');}
+function viewSupplier(sid){var s=D.suppliers.find(function(x){return x.id===sid;});if(!s)return;document.getElementById('sup-view-title').textContent=s.name;var body='';if(s.contact)body+='<div class="brow"><span class="blbl">Contact</span><span>'+s.contact+'</span></div>';if(s.phone)body+='<div class="brow"><span class="blbl">Phone</span><a href="tel:'+s.phone+'" style="color:var(--gold)">'+s.phone+'</a></div>';if(s.email)body+='<div class="brow"><span class="blbl">Email</span><a href="mailto:'+s.email+'" style="color:var(--gold)">'+s.email+'</a></div>';if(s.website)body+='<div class="brow"><span class="blbl">Website</span><a href="'+s.website+'" target="_blank" style="color:var(--gold)">'+s.website+'</a></div>';if(s.address)body+='<div class="brow"><span class="blbl">Address</span><span style="font-size:11px">'+s.address+'</span></div>';if(!body)body='<div style="color:var(--muted);font-size:12px;text-align:center;padding:12px">No additional details recorded.</div>';document.getElementById('sup-view-body').innerHTML=body;var eb=document.getElementById('sup-edit-btn');if(eb){eb.style.display=(CU&&CU.role==='admin')?'':'none';eb.onclick=function(){closeM('mo-supplier-view');openEditSupplier(sid);};}openM('mo-supplier-view');}
+function saveSupplier(){var name=document.getElementById('sup-name').value.trim();if(!name){alert('Supplier name is required.');return;}var sid=document.getElementById('sup-id').value;var data={name:name,contact:document.getElementById('sup-contact').value.trim(),phone:document.getElementById('sup-phone').value.trim(),email:document.getElementById('sup-email').value.trim(),website:document.getElementById('sup-website').value.trim(),address:document.getElementById('sup-address').value.trim()};if(sid){var s=D.suppliers.find(function(x){return x.id===sid;});if(s){var before={name:s.name};Object.assign(s,data);audit('SETTINGS','Supplier edited: '+name,before,{name:name});}}else{if(D.suppliers.find(function(x){return x.name.toLowerCase()===name.toLowerCase();})){alert('Supplier already exists.');return;}data.id=uid();D.suppliers.push(data);audit('SETTINGS','Supplier added: '+name);}save();closeM('mo-supplier');renderSettings();}
+
+function _supView(i){if(window._supArr&&window._supArr[i])viewSupplier(window._supArr[i].id);}
+function _supEdit(i){if(window._supArr&&window._supArr[i])openEditSupplier(window._supArr[i].id);}
+function _supDel(i){if(window._supArr&&window._supArr[i])delSup(window._supArr[i].id);}
+function saveBackupSettings(){var days=parseInt(document.getElementById('set-backup-days').value)||7;D.backupReminderDays=days;save();alert('Backup reminder set to every '+days+' days.');}
+function exportBackup(){
+  var now=new Date();
+  var pad=function(n,w){return String(n).padStart(w,'0');};
+  var ts=pad(now.getFullYear(),4)+pad(now.getMonth()+1,2)+pad(now.getDate(),2)+'-'+pad(now.getHours(),2)+':'+pad(now.getMinutes(),2)+':'+pad(now.getSeconds(),2);
+  var filename='road-eagles-backup-'+ts+'.json';
+  var blob=new Blob([JSON.stringify(D,null,2)],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(a.href);
+  D.lastBackupDate=now.toISOString();save();
+  var lbl=document.getElementById('last-backup-lbl');if(lbl)lbl.textContent=now.toLocaleString('en-GB');
+  audit('BACKUP_EXPORT','Backup exported: '+filename);
+}
+function restoreBackup(){
+  var fi=document.getElementById('restore-file');if(!fi||!fi.files||!fi.files.length){alert('Please select a backup JSON file first.');return;}
+  var c1=prompt('WARNING: This will overwrite ALL current data including Supabase.\nType CONFIRM to proceed:');
+  if(c1!=='CONFIRM'){alert('Restore cancelled.');return;}
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var restored=JSON.parse(e.target.result);
+      if(!restored.members||!restored.transactions||!restored.products){alert('Invalid backup file.');return;}
+      var url=D.supabaseUrl;var key=D.supabaseKey;
+      D=restored;D.supabaseUrl=url;D.supabaseKey=key;
+      if(!D.colours)D.colours=[...DEF_COLS];if(!D.tabs)D.tabs=[];if(!D.stock)D.stock={};
+      if(!D.events)D.events=[];if(!D.suppliers)D.suppliers=[];if(!D.auditLog)D.auditLog=[];
+      if(D.lowStockThreshold===undefined)D.lowStockThreshold=5;
+      D.products.forEach(function(p){if(p.archived===undefined)p.archived=false;if(p.memberOnly===undefined){var cn=['Club Shirt','Trucker Hat','Stretch Hat','Club Trucker','Club Stretch'];p.memberOnly=cn.some(function(n){return p.name.indexOf(n)>=0;});}p.variants.forEach(function(v){if(!v.id)v.id='v'+Math.random().toString(36).slice(2,8);});});
+      D.transactions.forEach(function(t){if(t.paid===undefined)t.paid=true;});
+      if(D.suppliers&&D.suppliers.length&&typeof D.suppliers[0]==='string'){D.suppliers=D.suppliers.map(function(s,i){return{id:'s'+(i+1),name:s,phone:'',email:'',website:'',contact:'',address:''};});}
+      audit('BACKUP_RESTORE','Data restored from backup file');
+      save();loadSettings();renderAll();
+      alert('Restore complete! All data has been restored and pushed to Supabase.');
+    }catch(err){alert('Failed to read backup file: '+err.message);}
+  };
+  reader.readAsText(fi.files[0]);
+}
+function checkBackupReminder(){
+  if(!CU||CU.role!=='admin')return;
+  var days=D.backupReminderDays!==undefined?D.backupReminderDays:7;
+  if(days===0)return;
+  if(!D.lastBackupDate){var tx=D.transactions.length>0?new Date(D.transactions[0].created):null;if(!tx)return;if(Math.floor((Date.now()-tx.getTime())/86400000)>=days)showBackupReminder();return;}
+  if(Math.floor((Date.now()-new Date(D.lastBackupDate).getTime())/86400000)>=days)showBackupReminder();
+}
+function showBackupReminder(){
+  var lbl=document.getElementById('last-backup-lbl');
+  if(confirm('Backup Reminder: Last backup was '+(lbl?lbl.textContent:'unknown')+'.\nExport a backup now?'))exportBackup();
+}
+
+var _txeDir='in',_txeAcc='club';
+function selTxeDir(d){_txeDir=d;document.getElementById('txe-dir-i').className='tgb'+(d==='in'?' tin':'');document.getElementById('txe-dir-o').className='tgb'+(d==='out'?' tout':'');updateTxeCats();}
+function selTxeAcc(a){_txeAcc=a;document.getElementById('txe-acc-c').className='tgb'+(a==='club'?' club':'');document.getElementById('txe-acc-h').className='tgb'+(a==='charity'?' charity':'');}
+function selTxePay(v){document.getElementById('txe-pay-paid').className='tgb'+(v==='paid'?' tin':'');document.getElementById('txe-pay-unpaid').className='tgb'+(v==='unpaid'?' tout':'');}
+function updateTxeCats(){const cats=_txeDir==='in'?CATS_I:CATS_O;const sel=document.getElementById('txe-cat');if(sel)sel.innerHTML=cats.map(c=>'<option value="'+c+'">'+(CM[c]||c)+'</option>').join('');}
+function openTxEdit(id){
+  const tx=D.transactions.find(t=>t.id===id);if(!tx)return;
+  document.getElementById('txe-id').value=id;
+  document.getElementById('txe-amt').value=tx.amount||0;
+  document.getElementById('txe-date').value=tx.date||nd();
+  document.getElementById('txe-desc').value=tx.description||'';
+  document.getElementById('txe-notes').value=tx.notes||'';
+  _txeDir=tx.direction||'in';_txeAcc=tx.account||'club';
+  selTxeDir(_txeDir);selTxeAcc(_txeAcc);
+  updateTxeCats();
+  const catSel=document.getElementById('txe-cat');
+  if(catSel&&tx.category){const opt=[...catSel.options].find(o=>o.value===tx.category);if(opt)catSel.value=tx.category;}
+  const isPaid=tx.paid!==false;
+  selTxePay(isPaid?'paid':'unpaid');
+  openM('mo-tx-edit');
+}
+function saveTxEdit(){
+  const id=document.getElementById('txe-id').value;
+  const tx=D.transactions.find(t=>t.id===id);if(!tx)return;
+  const before={amount:tx.amount,description:tx.description,paid:tx.paid};
+  tx.amount=parseFloat(document.getElementById('txe-amt').value)||0;
+  tx.date=document.getElementById('txe-date').value;
+  tx.description=document.getElementById('txe-desc').value.trim();
+  tx.notes=document.getElementById('txe-notes').value.trim();
+  tx.direction=_txeDir;tx.account=_txeAcc;
+  tx.category=document.getElementById('txe-cat').value;
+  const nowPaid=document.getElementById('txe-pay-paid').className.includes('tin');
+  tx.paid=nowPaid;
+  audit('TRANSACTION_EDIT','Edited: '+tx.description+' '+thb(tx.amount),before,{amount:tx.amount,description:tx.description,paid:tx.paid});
+  save();closeM('mo-tx-edit');renderAll();
+}
+function deleteTxEdit(){
+  const id=document.getElementById('txe-id').value;
+  if(!CU||CU.role!=='admin'){alert('Only admin can delete transactions.');return;}
+  if(!confirm('Delete this transaction permanently?'))return;
+  const tx=D.transactions.find(t=>t.id===id);
+  if(tx)audit('TRANSACTION_DELETE','Deleted: '+tx.description+' '+thb(tx.amount),{id:tx.id,amount:tx.amount,description:tx.description});
+  D.transactions=D.transactions.filter(t=>t.id!==id);
+  save();closeM('mo-tx-edit');renderAll();
+}
+
+loadSettings();
+</script>
+
+
+<script>
+// Back button handler
+// Modal open → close modal
+// Non-home screen → go home
+// Home screen → double-press exits
+var _lastBack=0;
+window.addEventListener('popstate',function(e){
+  var now=Date.now();
+  // 1. If any modal open — close it, stay on screen
+  var openModal=document.querySelector('.mo.on');
+  if(openModal){
+    openModal.classList.remove('on');
+    history.pushState(null,'',location.href);
+    return;
+  }
+  // 2. If on non-home screen — go home
+  var activeScr=document.querySelector('.scr.on');
+  if(activeScr&&activeScr.id!=='scr-dash'){
+    goTo('dash');
+    _lastBack=0;
+    history.pushState(null,'',location.href);
+    return;
+  }
+  // 3. On home / login — double-press exits
+  if(now-_lastBack<2200){
+    history.back();
+  } else {
+    _lastBack=now;
+    history.pushState(null,'',location.href);
+    var t=document.getElementById('back-toast');
+    if(t){t.style.display='flex';clearTimeout(t._to);t._to=setTimeout(function(){t.style.display='none';},2000);}
+  }
+});
+history.pushState(null,'',location.href);
+</script>
+<script>
+window.addEventListener('load',function(){
+  // Check initial online state
+  if(!navigator.onLine){
+    var bar=document.getElementById('offline-bar');
+    if(bar)bar.style.display='';
+    setDot('offline');
+  }
+  try{
+    var icon=document.getElementById('llogo').src;
+    var manifest=JSON.stringify({name:'Road Eagles MC Thailand',short_name:'Road Eagles',
+      description:'Road Eagles MC Thailand Club Management',start_url:'./',scope:'./',
+      display:'standalone',background_color:'#0a0a0a',theme_color:'#c9a227',
+      orientation:'portrait-primary',
+      icons:[{src:icon,sizes:'480x480',type:'image/png',purpose:'any maskable'}]});
+    var blob=new Blob([manifest],{type:'application/manifest+json'});
+    var link=document.createElement('link');link.rel='manifest';link.href=URL.createObjectURL(blob);
+    document.head.appendChild(link);
+    var al=document.createElement('link');al.rel='apple-touch-icon';al.href=icon;
+    document.head.appendChild(al);
+  }catch(e){}
+});
+</script>
+<div id="back-toast" style="display:none;position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(30,30,30,.95);color:#f0f0f0;padding:10px 20px;border-radius:24px;font-size:13px;z-index:999;align-items:center;gap:8px;border:1px solid var(--bd);white-space:nowrap">&#9888;&#65039; Press back again to exit</div>
+</body>
+</htmlconst ad='';
   const ev=t.eventId&&D.events?D.events.find(e=>e.id===t.eventId):null;
   return`<div class="txi" onclick="openTxEdit('${t.id}')" style="cursor:pointer"><div class="txic">${txi(t)}</div><div class="txin"><div class="txd">${t.description||(CM[t.category]||t.category)}</div><div class="txm">${ab}<span class="tag ${cls}">${t.direction.toUpperCase()}</span>${fd(t.date||t.created)}</div>${t.supplier?`<div style="font-size:10px;color:var(--dim)">&#127978;&#65039; ${t.supplier}</div>`:''}${t.ref?`<div style="font-size:10px;color:var(--dim)">&#128196; ${t.ref}</div>`:''}${ev?`<div style="font-size:10px;color:var(--dim)">&#127881; ${ev.name}</div>`:''}${at}</div><div><div class="txa ${cls}">${sign}${thb(t.amount)}</div></div></div>${dl}`;
 }
