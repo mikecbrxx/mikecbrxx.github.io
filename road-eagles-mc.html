@@ -1748,11 +1748,12 @@ loadSettings();
 
 <script>
 // Back button handler
-// Modal → close modal (reset timer)
-// Non-home screen → go home (reset timer)
-// Home → double-press exits
 var _lastBack=0;
+var _backBusy=false;
 window.addEventListener('popstate',function(e){
+  if(_backBusy)return;
+  _backBusy=true;
+  setTimeout(function(){_backBusy=false;},50);
   var now=Date.now();
   // 1. Close any open modal
   var openModal=document.querySelector('.mo.on');
@@ -1770,14 +1771,16 @@ window.addEventListener('popstate',function(e){
     history.pushState(null,'',location.href);
     return;
   }
-  // 3. On home — double-press to exit
-  if(now-_lastBack<2200){
+  // 3. On home — double-press within 2.5s to exit
+  if(now-_lastBack<2500){
+    var t=document.getElementById('back-toast');
+    if(t)t.style.display='none';
     history.back();
   } else {
     _lastBack=now;
     history.pushState(null,'',location.href);
     var t=document.getElementById('back-toast');
-    if(t){t.style.display='flex';clearTimeout(t._to);t._to=setTimeout(function(){t.style.display='none';},2000);}
+    if(t){t.style.display='flex';clearTimeout(t._to);t._to=setTimeout(function(){t.style.display='none';_lastBack=0;},2500);}
   }
 });
 history.pushState(null,'',location.href);
