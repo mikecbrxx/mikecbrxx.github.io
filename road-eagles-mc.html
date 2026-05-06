@@ -157,7 +157,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.11</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.12</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -1750,8 +1750,8 @@ function exportReportPDF(){
   if(!content)return;
   var rTitle=document.getElementById('rpt-t')?document.getElementById('rpt-t').textContent:'Report';
   var w=window.open('','_blank');
-  w.document.write('<html><head><title>Road Eagles MC - '+rTitle+'</title>'
-    +'<style>body{font-family:Arial,sans-serif;padding:20px;color:#111;max-width:700px;margin:0 auto}'
+  w.document.write('<html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Road Eagles MC - '+rTitle+'</title>'
+    +'<style>body{font-family:Arial,sans-serif;padding:16px;color:#111;max-width:100%}'
     +'.balbar{border:1px solid #c9a227;border-radius:8px;padding:12px;margin-bottom:12px;background:#fff8e8}'
     +'.balbar h3{font-size:10px;color:#7a5f10;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px}'
     +'.brow{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0e0b0}'
