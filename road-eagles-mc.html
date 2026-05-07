@@ -158,7 +158,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.15</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.16</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -1877,11 +1877,30 @@ function exportBackup(){
   var pad=function(n,w){return String(n).padStart(w,'0');};
   var ts=pad(now.getFullYear(),4)+pad(now.getMonth()+1,2)+pad(now.getDate(),2)+'-'+pad(now.getHours(),2)+':'+pad(now.getMinutes(),2)+':'+pad(now.getSeconds(),2);
   var filename='road-eagles-backup-'+ts+'.json';
-  var blob=new Blob([JSON.stringify(D,null,2)],{type:'application/json'});
+  var payload=JSON.stringify(D,null,2);
+  var blob=new Blob([payload],{type:'application/json'});
+  // Try Web Share API first (Android share sheet - Drive, WhatsApp, email etc.)
+  if(navigator.share&&navigator.canShare){
+    var file=new File([blob],filename,{type:'application/json'});
+    if(navigator.canShare({files:[file]})){
+      navigator.share({files:[file],title:'Road Eagles MC Backup',text:'Club data backup '+ts})
+        .then(function(){
+          D.lastBackupDate=now.toISOString();save();
+          var lbl=document.getElementById('last-backup-lbl');if(lbl)lbl.textContent=now.toLocaleString('en-GB');
+          audit('BACKUP_EXPORT','Backup shared: '+filename);
+        })
+        .catch(function(e){if(e.name!=='AbortError')downloadBackup(blob,filename,now);});
+      return;
+    }
+  }
+  // Fallback to direct download
+  downloadBackup(blob,filename,now);
+}
+function downloadBackup(blob,filename,now){
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(a.href);
   D.lastBackupDate=now.toISOString();save();
   var lbl=document.getElementById('last-backup-lbl');if(lbl)lbl.textContent=now.toLocaleString('en-GB');
-  audit('BACKUP_EXPORT','Backup exported: '+filename);
+  audit('BACKUP_EXPORT','Backup downloaded: '+filename);
 }
 function restoreBackup(){
   var fi=document.getElementById('restore-file');if(!fi||!fi.files||!fi.files.length){alert('Please select a backup JSON file first.');return;}
