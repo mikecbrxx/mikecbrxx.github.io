@@ -2,3 +2,4 @@
 # The current version as of 28th april, is v9 with 4 critical changes applied. there are more to come but these are mostly bug fixes. 
 # Last release was rolled back as not pulling data from Supabase
 latest release on 3rd May is to add changes to colours, events and suppliers. major change to product handling is pending.
+layest fix version is 2.15. Most bugs are now corrected. 7th May 08.47
