@@ -3,3 +3,4 @@
 # Last release was rolled back as not pulling data from Supabase
 latest release on 3rd May is to add changes to colours, events and suppliers. major change to product handling is pending.
 layest fix version is 2.15. Most bugs are now corrected. 7th May 08.47
+v2.16 at 09.08 on 7th May is a release condidate. last testing and will then create a main version.
