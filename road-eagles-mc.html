@@ -175,7 +175,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.28</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.29</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -2062,28 +2062,27 @@ function _exitReset(){
   if(t)t.style.display='none';
 }
 
-// Push 2 states upfront as buffer
-// Use replaceState inside handler to maintain buffer without re-triggering popstate
-history.pushState(null,'',location.href);
+// One state only - consumed on second back press to trigger exit
 history.pushState(null,'',location.href);
 
 window.addEventListener('popstate',function(e){
-  // replaceState maintains the buffer WITHOUT firing a new popstate event
-  history.replaceState(null,'',location.href);
-
   if(_exitWarned){
-    // Second press within 2.5s - exit
+    // Second press - exit by letting the browser go back naturally
     _exitReset();
-    history.go(-2);
-    return;
+    return;  // Don't pushState - let browser navigate back/exit
   }
-  // First press - show warning, start timer
+  // First press - warn, push state back so second press is intercepted
   _exitWarned=true;
+  history.pushState(null,'',location.href);
   var t=document.getElementById('back-toast');
   if(t){
     t.style.display='flex';
     if(_exitTimer)clearTimeout(_exitTimer);
-    _exitTimer=setTimeout(_exitReset,2500);
+    _exitTimer=setTimeout(function(){
+      _exitReset();
+      // Replenish the state we consumed during the warning
+      history.pushState(null,'',location.href);
+    },2500);
   }
 });
 </script>
