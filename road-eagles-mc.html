@@ -136,7 +136,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .sw::before{content:'🔍';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none}
 .sect-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;margin-top:4px}
 .vi{background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:10px 12px;margin-bottom:8px}
-.back-btn{display:none;align-items:center;gap:5px;background:none;border:1px solid var(--bd);color:var(--fg);border-radius:20px;padding:5px 14px;cursor:pointer;font-size:13px;font-weight:500}
+.back-btn{display:none;align-items:center;gap:5px;background:var(--sf2);border:1px solid var(--bd);color:var(--fg);border-radius:20px;padding:7px 16px;cursor:pointer;font-size:14px;font-weight:600;min-height:36px}
 .back-btn.visible{display:flex}
 .tab-card{background:var(--sf2);border:1px solid var(--bd);border-radius:12px;padding:13px;margin-bottom:8px}
 .tab-card.owed{border-left:3px solid var(--warn)}
@@ -175,7 +175,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.24</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.25</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -989,7 +989,7 @@ function setMTab(b,v){document.querySelectorAll('#mem-tabs .tab').forEach(t=>t.c
 function setRTab(b,v){document.querySelectorAll('#merch-tabs .tab').forEach(t=>t.classList.remove('on'));b.classList.add('on');RF=v;renderMerch();}
 function setSTab(b,v){document.querySelectorAll('#stock-tabs .tab').forEach(t=>t.classList.remove('on'));b.classList.add('on');STF=v;renderStock();}
 function setMV(v){MV=v;document.getElementById('mvt-cat').classList.toggle('on',v==='catalogue');document.getElementById('mvt-stock').classList.toggle('on',v==='stock');document.getElementById('merch-catalogue').style.display=v==='catalogue'?'':'none';document.getElementById('merch-stock').style.display=v==='stock'?'':'none';if(v==='stock')renderStock();}
-function renderAll(){renderDash();renderLedger();renderMembers();renderMerch();renderStock();renderTabLedger();renderEvents();renderSuppliers();renderProducts();}
+function renderAll(){renderDash();renderLedger();renderMembers();renderMerch();renderStock();renderTabLedger();renderEvents();renderSuppliers();renderProducts();var as=document.querySelector('.scr.on');if(as)updateBackBtn(as.id);}
 
 // Utils
 function thb(n){return'&#3647;'+(Math.round(n)||0).toLocaleString();}
@@ -2060,20 +2060,21 @@ function _exitReset(){
   if(t)t.style.display='none';
 }
 
-// Single history entry as buffer
-history.pushState(null,'',location.href);
+// Push many states upfront - never push inside the handler
+// This gives us a large buffer without causing re-entrant popstate events
+for(var _i=0;_i<20;_i++)history.pushState(null,'',location.href);
 
 window.addEventListener('popstate',function(e){
-  // Always replenish buffer so back key keeps working
-  history.pushState(null,'',location.href);
+  // Do NOT call pushState here - it causes re-entrant popstate events
+  // The 20 states pushed upfront give enough buffer
 
   if(_exitWarned){
-    // Second press - exit
+    // Second press within 2.5s - exit by going back past all our states
     _exitReset();
-    history.go(-2);
+    history.go(-20);
     return;
   }
-  // First press - warn and start timer
+  // First press - show warning
   _exitWarned=true;
   var t=document.getElementById('back-toast');
   if(t){
@@ -2081,6 +2082,8 @@ window.addEventListener('popstate',function(e){
     if(_exitTimer)clearTimeout(_exitTimer);
     _exitTimer=setTimeout(_exitReset,2500);
   }
+  // Push one more state to replace the one just consumed
+  history.pushState(null,'',location.href);
 });
 </script>
 <script>
