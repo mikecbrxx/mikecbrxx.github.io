@@ -175,7 +175,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.30</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.33</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -985,13 +985,14 @@ function goTo(n){
   document.getElementById('nb-'+n).classList.add('on');
   document.getElementById('fab').style.display=n==='more'?'none':'flex';
   ({dash:renderDash,ledger:renderLedger,members:renderMembers,merch:()=>{renderMerch();renderStock();},tabs:renderTabLedger,events:renderEvents,suppliers:renderSuppliers,products:renderProducts,more:renderSettings}[n]||(() =>{}))();
+  updateBackBtn(n==='dash'?'scr-dash':'scr-'+n);
 }
 function setLTab(b,v){document.querySelectorAll('#ledger-tabs .tab').forEach(t=>t.classList.remove('on'));b.classList.add('on');LF=v;renderLedger();}
 function setMTab(b,v){document.querySelectorAll('#mem-tabs .tab').forEach(t=>t.classList.remove('on'));b.classList.add('on');MF=v;renderMembers();}
 function setRTab(b,v){document.querySelectorAll('#merch-tabs .tab').forEach(t=>t.classList.remove('on'));b.classList.add('on');RF=v;renderMerch();}
 function setSTab(b,v){document.querySelectorAll('#stock-tabs .tab').forEach(t=>t.classList.remove('on'));b.classList.add('on');STF=v;renderStock();}
 function setMV(v){MV=v;document.getElementById('mvt-cat').classList.toggle('on',v==='catalogue');document.getElementById('mvt-stock').classList.toggle('on',v==='stock');document.getElementById('merch-catalogue').style.display=v==='catalogue'?'':'none';document.getElementById('merch-stock').style.display=v==='stock'?'':'none';if(v==='stock')renderStock();}
-function renderAll(){renderDash();renderLedger();renderMembers();renderMerch();renderStock();renderTabLedger();renderEvents();renderSuppliers();renderProducts();var as=document.querySelector('.scr.on');if(as)updateBackBtn(as.id);}
+function renderAll(){renderDash();renderLedger();renderMembers();renderMerch();renderStock();renderTabLedger();renderEvents();renderSuppliers();renderProducts();}
 
 // Utils
 function thb(n){return'&#3647;'+(Math.round(n)||0).toLocaleString();}
@@ -2050,50 +2051,46 @@ loadSettings();
 
 
 <script>
-// Hardware back key - exit with double-press confirmation
-// Software back button handles all in-app navigation
+// Hardware back key - double press to exit
+// Strategy: 1 buffer state + replaceState (no re-entrant popstate)
+// On exit: stop replacing - let browser consume the last state and close app
 var _exitWarned=false;
 var _exitTimer=null;
+var _exitReady=false;
 
-function _exitReset(){
-  _exitWarned=false;
-  if(_exitTimer){clearTimeout(_exitTimer);_exitTimer=null;}
-  var t=document.getElementById('back-toast');
-  if(t)t.style.display='none';
-}
-
-// Push ONE extra state. This is the buffer that gets consumed on press.
-// We will replenish it ONLY after the first press (inside the handler).
-// We will NOT replenish after timer reset - so after timer expires,
-// the buffer is gone and the next press exits naturally.
+// Push just ONE buffer state
 history.pushState(null,'',location.href);
 
 window.addEventListener('popstate',function(e){
-  if(_exitWarned){
-    // Second press within 2.5s - exit cleanly
-    _exitReset();
-    // No pushState - let browser exit
+  if(_exitReady){
+    // Clean exit - don't replace state, app will close
     return;
   }
-  // First press - show warning
-  _exitWarned=true;
-  // Push ONE state so next press is also intercepted
-  history.pushState(null,'',location.href);
-  var t=document.getElementById('back-toast');
-  if(t){
-    t.style.display='flex';
-    if(_exitTimer)clearTimeout(_exitTimer);
-    _exitTimer=setTimeout(function(){
-      // Timer expired without second press
-      // Reset warned state but DO push a new buffer state
-      // so the sequence can start again from scratch
-      _exitWarned=false;
-      if(_exitTimer){clearTimeout(_exitTimer);_exitTimer=null;}
-      var toast=document.getElementById('back-toast');
-      if(toast)toast.style.display='none';
-      history.pushState(null,'',location.href);
-    },2500);
+  // Maintain buffer with replaceState (safe - does NOT fire popstate)
+  history.replaceState(null,'',location.href);
+
+  if(_exitWarned){
+    // Second press within 2.5s - trigger exit
+    _exitWarned=false;
+    if(_exitTimer){clearTimeout(_exitTimer);_exitTimer=null;}
+    var t=document.getElementById('back-toast');
+    if(t)t.style.display='none';
+    _exitReady=true;
+    history.back(); // Consume our buffer state - app closes
+    return;
   }
+
+  // First press - show warning, start timer
+  _exitWarned=true;
+  var t=document.getElementById('back-toast');
+  if(t)t.style.display='flex';
+  if(_exitTimer)clearTimeout(_exitTimer);
+  _exitTimer=setTimeout(function(){
+    _exitWarned=false;
+    _exitTimer=null;
+    var t=document.getElementById('back-toast');
+    if(t)t.style.display='none';
+  },2500);
 });
 </script>
 <script>
