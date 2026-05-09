@@ -175,7 +175,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.29</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.30</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -2050,8 +2050,8 @@ loadSettings();
 
 
 <script>
-// Hardware back key - exit confirmation only
-// All in-app navigation handled by software Back button
+// Hardware back key - exit with double-press confirmation
+// Software back button handles all in-app navigation
 var _exitWarned=false;
 var _exitTimer=null;
 
@@ -2062,25 +2062,35 @@ function _exitReset(){
   if(t)t.style.display='none';
 }
 
-// One state only - consumed on second back press to trigger exit
+// Push ONE extra state. This is the buffer that gets consumed on press.
+// We will replenish it ONLY after the first press (inside the handler).
+// We will NOT replenish after timer reset - so after timer expires,
+// the buffer is gone and the next press exits naturally.
 history.pushState(null,'',location.href);
 
 window.addEventListener('popstate',function(e){
   if(_exitWarned){
-    // Second press - exit by letting the browser go back naturally
+    // Second press within 2.5s - exit cleanly
     _exitReset();
-    return;  // Don't pushState - let browser navigate back/exit
+    // No pushState - let browser exit
+    return;
   }
-  // First press - warn, push state back so second press is intercepted
+  // First press - show warning
   _exitWarned=true;
+  // Push ONE state so next press is also intercepted
   history.pushState(null,'',location.href);
   var t=document.getElementById('back-toast');
   if(t){
     t.style.display='flex';
     if(_exitTimer)clearTimeout(_exitTimer);
     _exitTimer=setTimeout(function(){
-      _exitReset();
-      // Replenish the state we consumed during the warning
+      // Timer expired without second press
+      // Reset warned state but DO push a new buffer state
+      // so the sequence can start again from scratch
+      _exitWarned=false;
+      if(_exitTimer){clearTimeout(_exitTimer);_exitTimer=null;}
+      var toast=document.getElementById('back-toast');
+      if(toast)toast.style.display='none';
       history.pushState(null,'',location.href);
     },2500);
   }
