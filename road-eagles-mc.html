@@ -175,7 +175,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.25</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.26</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -961,7 +961,7 @@ function logout(){audit('LOGOUT','User logged out');save();CU=null;PIN='';dots()
 function handleBackBtn(){
   // Close print overlay if open
   var po=document.getElementById('print-overlay');
-  if(po&&po.style.display!=='none'){po.style.display='none';return;}
+  if(po&&po.style.display!=='none'){po.style.display='none';updateBackBtn(document.querySelector('.scr.on')?document.querySelector('.scr.on').id:'');return;}
   // Close any open modal
   var om=document.querySelector('.mo.on');
   if(om){om.classList.remove('on');return;}
@@ -972,8 +972,9 @@ function handleBackBtn(){
 function updateBackBtn(screenId){
   var btn=document.getElementById('back-btn');
   if(!btn)return;
-  // Show back button on all screens except home
-  if(screenId==='scr-dash'){btn.classList.remove('visible');}
+  // Hide on home screen, show on all others
+  var onHome=(!screenId)||(screenId==='scr-dash');
+  if(onHome){btn.classList.remove('visible');}
   else{btn.classList.add('visible');}
 }
 function goTo(n){
@@ -2065,16 +2066,16 @@ function _exitReset(){
 for(var _i=0;_i<20;_i++)history.pushState(null,'',location.href);
 
 window.addEventListener('popstate',function(e){
-  // Do NOT call pushState here - it causes re-entrant popstate events
-  // The 20 states pushed upfront give enough buffer
+  // NEVER call pushState inside this handler - it causes immediate re-entrant popstate
+  // The 20 states pushed upfront provide the buffer
 
   if(_exitWarned){
-    // Second press within 2.5s - exit by going back past all our states
+    // Second press within 2.5s - exit
     _exitReset();
     history.go(-20);
     return;
   }
-  // First press - show warning
+  // First press - show warning, start timer
   _exitWarned=true;
   var t=document.getElementById('back-toast');
   if(t){
@@ -2082,8 +2083,7 @@ window.addEventListener('popstate',function(e){
     if(_exitTimer)clearTimeout(_exitTimer);
     _exitTimer=setTimeout(_exitReset,2500);
   }
-  // Push one more state to replace the one just consumed
-  history.pushState(null,'',location.href);
+  // NO pushState here
 });
 </script>
 <script>
