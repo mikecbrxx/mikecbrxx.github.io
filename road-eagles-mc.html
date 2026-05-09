@@ -175,7 +175,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.33</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.35</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -533,7 +533,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="mh"><div class="mt" id="mo-mem-t">Add Member</div><button class="mc2" onclick="closeM('mo-member')">&#10005;</button></div>
   <input type="hidden" id="mem-id">
   <div class="fg"><label>Full Name</label><input type="text" id="mem-name" placeholder="Full name"></div>
-  <div class="fg irow"><div><label>Role</label><select id="mem-role"><option value="prospect">Prospect</option><option value="member">Member</option><option value="treasurer">Treasurer</option><option value="vice_president">Vice President</option><option value="president">President</option></select></div><div><label>Status</label><select id="mem-status"><option value="prospect">Prospect</option><option value="unpaid">Unpaid</option><option value="paid">Paid</option></select></div></div>
+  <div class="fg irow"><div><label>Role</label><select id="mem-role"><option value="prospect">Prospect</option><option value="member">Member</option><option value="treasurer">Treasurer</option><option value="vice_president">Vice President</option><option value="president">President</option></select></div><div><label>Status</label><select id="mem-status"><option value="prospect">Prospect</option><option value="unpaid">Unpaid</option><option value="paid">Paid</option><option value="inactive">Inactive</option></select></div></div>
   <div class="fg irow"><div><label>Join Date</label><input type="date" id="mem-join"></div><div><label>Phone</label><input type="tel" id="mem-phone"></div></div>
   <div class="fg"><label>Email</label><input type="email" id="mem-email" placeholder="email@example.com"></div>
   <div class="fg"><label>Notes</label><input type="text" id="mem-notes" placeholder="Optional notes"></div>
@@ -962,10 +962,16 @@ function logout(){audit('LOGOUT','User logged out');save();CU=null;PIN='';dots()
 function handleBackBtn(){
   // Close print overlay if open
   var po=document.getElementById('print-overlay');
-  if(po&&po.style.display!=='none'){po.style.display='none';updateBackBtn(document.querySelector('.scr.on')?document.querySelector('.scr.on').id:'');return;}
-  // Close any open modal
+  if(po&&po.style.display!=='none'){
+    po.style.display='none';
+    // Re-check button state
+    var btn=document.getElementById('back-btn');
+    if(btn){var as2=document.querySelector('.scr.on');if(!as2||as2.id==='scr-dash')btn.classList.remove('visible');else btn.classList.add('visible');}
+    return;
+  }
+  // Close any open modal - use closeM to trigger button re-evaluation
   var om=document.querySelector('.mo.on');
-  if(om){om.classList.remove('on');return;}
+  if(om){closeM(om.id);return;}
   // Go home from non-home screen
   var as=document.querySelector('.scr.on');
   if(as&&as.id!=='scr-dash'){goTo('dash');return;}
@@ -1094,11 +1100,33 @@ function renderMembers(){
   document.getElementById('mem-list').innerHTML=ms.map(m=>{
     const init=m.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
     const sc={paid:'paid',unpaid:'unpaid',prospect:'prospect'};
-    const sl={paid:'Fee Paid &#10003;',unpaid:'Fee Unpaid &#9888;&#65039;',prospect:'Prospect'};
-    return`<div class="mc"><div class="mav">${init}</div><div class="min"><div class="mn">${m.name}</div><div class="mr">${RL[m.role]||m.role}</div>${m.status!=='prospect'?`<div style="font-size:11px;color:var(--muted);margin-top:2px">${new Date().getFullYear()} fee: ${thb(calcFee(m.joinDate))}</div>`:''}
+    const sl={paid:'Fee Paid &#10003;',unpaid:'Fee Unpaid &#9888;&#65039;',prospect:'Prospect',inactive:'&#128683; Inactive'};
+    return`<div class="mc" style="${m.status==='inactive'?'opacity:0.5':''}"><div class="mav" style="${m.status==='inactive'?'background:var(--muted)':''}">\${init}</div><div class="min"><div class="mn">${m.name}</div><div class="mr">${RL[m.role]||m.role}</div>${m.status!=='prospect'?`<div style="font-size:11px;color:var(--muted);margin-top:2px">${new Date().getFullYear()} fee: ${thb(calcFee(m.joinDate))}</div>`:''}
         ${m.phone?`<div style="font-size:10px;color:var(--dim)">&#128222; ${m.phone}</div>`:''}
-        ${m.email?`<div style="font-size:10px;color:var(--dim)">&#9993; ${m.email}</div>`:''}</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><span class="ms ${sc[m.status]||'prospect'}">${sl[m.status]||m.status}</span>${m.status==='unpaid'?`<button style="font-size:10px;background:none;border:1px solid var(--grn);color:var(--grnl);border-radius:20px;padding:3px 8px;cursor:pointer" onclick="markPaid('${m.id}')">Mark Paid</button>`:''}${CU&&CU.role==='admin'?`<button style="font-size:10px;background:none;border:1px solid var(--bd);color:var(--muted);border-radius:20px;padding:3px 8px;cursor:pointer" onclick="editMem('${m.id}')">Edit</button>`:''}</div></div>`;
+        ${m.email?`<div style="font-size:10px;color:var(--dim)">&#9993; ${m.email}</div>`:''}</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><span class="ms ${sc[m.status]||'prospect'}">${sl[m.status]||m.status}</span>${m.status==='unpaid'?`<button style="font-size:10px;background:none;border:1px solid var(--grn);color:var(--grnl);border-radius:20px;padding:3px 8px;cursor:pointer" onclick="markPaid('${m.id}')">Mark Paid</button>`:''}${m.status!=='prospect'?`<button style="font-size:10px;background:none;border:1px solid var(--bd);color:var(--muted);border-radius:20px;padding:3px 8px;margin-left:4px;cursor:pointer" onclick="toggleInactive('${m.id}')">${m.status==='inactive'?'&#9654; Reactivate':'&#128683; Deactivate'}</button>`:''}${CU&&CU.role==='admin'?`<button style="font-size:10px;background:none;border:1px solid var(--bd);color:var(--muted);border-radius:20px;padding:3px 8px;margin-left:4px;cursor:pointer" onclick="editMem('${m.id}')">Edit</button>`:''}</div></div>`;
   }).join('')||'<div class="empty"><div class="ei">&#128101;</div>No members match</div>';
+}
+function toggleInactive(id){
+  var m=D.members.find(function(x){return x.id===id;});
+  if(!m)return;
+  var curYear=new Date().getFullYear();
+  if(m.status==='inactive'){
+    // Reactivating
+    var wasPaidThisYear=m._paidYear===curYear;
+    m.status=wasPaidThisYear?'paid':'unpaid';
+    m._paidYear=undefined;
+    audit('MEMBER_REACTIVATE','Reactivated: '+m.name);
+  } else {
+    // Deactivating
+    if(m.status==='paid'){m._paidYear=curYear;}
+    m.status='inactive';
+    audit('MEMBER_DEACTIVATE','Deactivated: '+m.name);
+    // Remove any unpaid fee tab for this member this year
+    D.transactions=D.transactions.filter(function(t){
+      return !(t.category==='membership_fee'&&t.paid===false&&t.responsibleMemberId===id&&(t.date||'').slice(0,4)===String(curYear));
+    });
+  }
+  save();renderAll();
 }
 function markPaid(id){
   const m=D.members.find(x=>x.id===id);if(!m)return;
@@ -1267,8 +1295,24 @@ function renderEvents(){
 }
 
 // Modals
-function openM(id){document.getElementById(id).classList.add('on');}
-function closeM(id){document.getElementById(id).classList.remove('on');}
+function openM(id){
+  document.getElementById(id).classList.add('on');
+  // Show back button whenever anything is open (modal or non-home screen)
+  var btn=document.getElementById('back-btn');
+  if(btn)btn.classList.add('visible');
+}
+function closeM(id){
+  document.getElementById(id).classList.remove('on');
+  // Re-evaluate back button - hide only if on home with no modals open
+  var btn=document.getElementById('back-btn');
+  if(btn){
+    var anyModal=document.querySelector('.mo.on');
+    var activeScr=document.querySelector('.scr.on');
+    var onHome=!activeScr||activeScr.id==='scr-dash';
+    if(onHome&&!anyModal)btn.classList.remove('visible');
+    else btn.classList.add('visible');
+  }
+}
 function openFab(){openM('mo-fab');}
 
 // TX Modal
@@ -1316,7 +1360,7 @@ function selTxPay(v){
   if(rg)rg.style.display=v==='unpaid'?'':'none';
 }
 function openSaleModal(){closeM('mo-fab');_cu='member';selCust('member');selPayment('paid');document.getElementById('sale-date').value=nd();document.getElementById('sale-qty').value=1;document.getElementById('sale-notes').value='';document.getElementById('sale-stock-info').style.display='none';const cs=document.getElementById('sale-colour');cs.innerHTML=D.colours.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');const bk=[...cs.options].find(o=>o.value==='Black');if(bk)cs.value='Black';document.getElementById('sale-prod').innerHTML=D.products.filter(p=>!p.archived).sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${p.id}">${p.name}</option>`).join('');// populate member list for tab
-const memSel=document.getElementById('sale-tab-member');memSel.innerHTML=D.members.filter(m=>m.status!=='prospect').map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
+const memSel=document.getElementById('sale-tab-member');memSel.innerHTML=D.members.filter(m=>m.status!=='prospect'&&m.status!=='inactive').map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
 updateSaleVars();openM('mo-sale');}
 let _payMode='paid';
 function selPayment(m){_payMode=m;document.getElementById('pay-now').className='tgb'+(m==='paid'?' tin':'');document.getElementById('pay-tab').className='tgb'+(m==='tab'?' tout':'');}
@@ -1648,7 +1692,7 @@ function sumio(txs){const i=txs.filter(t=>t.direction==='in').reduce((a,t)=>a+pa
 function catBd(txs){const c={};txs.forEach(t=>{const a=(t.direction==='in'?1:-1)*(parseFloat(t.amount)||0);c[t.category]=(c[t.category]||0)+a;});return Object.entries(c).map(([k,v])=>br(CM[k]||k,thb(Math.abs(v)),v>=0?'var(--grnl)':'var(--rl)')).join('');}
 function rMonth(){const n=new Date(),l=n.toLocaleString('en-GB',{month:'long',year:'numeric'}),mt=mthTx(),c=sumio(mt.filter(t=>t.account==='club')),h=sumio(mt.filter(t=>t.account==='charity'));return`<div style="font-size:12px;color:var(--muted);margin-bottom:12px">${l}</div><div class="balbar"><h3>&#128693;&#65039; Club Account</h3>${br('Income',thb(c.i),'var(--grnl)')}${br('Expenses',thb(c.o),'var(--rl)')}${br('Net',thb(c.n))}</div><div class="balbar"><h3>&#10084;&#65039; Charity Account</h3>${br('Donations In',thb(h.i),'var(--grnl)')}${br('Out',thb(h.o),'var(--rl)')}${br('Net',thb(h.n))}</div>`;}
 function rAnnual(){const b=calcBal(),c=D.transactions.filter(t=>t.account==='club'),h=D.transactions.filter(t=>t.account==='charity');return`<div class="balbar"><h3>&#128693;&#65039; Club Account</h3>${catBd(c)}${br('Balance',thb(b.club))}</div><div class="balbar"><h3>&#10084;&#65039; Charity Account</h3>${catBd(h)}${br('Balance',thb(b.charity))}</div>`;}
-function rMem(){const paid=D.members.filter(m=>m.status==='paid'),un=D.members.filter(m=>m.status==='unpaid'),pr=D.members.filter(m=>m.status==='prospect');const fe=un.reduce((a,m)=>a+calcFee(m.joinDate),0);const RL={president:'President',vice_president:'Vice President',treasurer:'Treasurer',member:'Member',prospect:'Prospect'};function mr(m){return`<div class="brow"><span class="blbl">${m.name}${m.email?` <span style="font-size:9px;color:var(--dim)">&#9993; ${m.email}</span>`:''}</span><span style="font-size:11px;color:var(--muted)">${RL[m.role]||m.role} &middot; ${thb(calcFee(m.joinDate))}</span></div>`;}const paidTotal=paid.reduce((a,m)=>a+calcFee(m.joinDate),0);return`<div class="balbar"><h3>&#9989; Paid (${paid.length}) &#8212; ${thb(paidTotal)}</h3>${paid.map(mr).join('')||'<div style="color:var(--dim);font-size:12px;padding:6px 0">None</div>'}</div><div class="balbar"><h3>&#8987; Unpaid (${un.length}) &#8212; ${thb(fe)} outstanding</h3>${un.map(mr).join('')||'<div style="color:var(--dim);font-size:12px;padding:6px 0">None</div>'}</div><div class="balbar"><h3>&#128064; Prospects (${pr.length})</h3>${pr.map(m=>`<div class="brow"><span class="blbl">${m.name}</span><span style="font-size:11px;color:var(--muted)">${RL[m.role]||m.role}</span></div>`).join('')||'<div style="color:var(--dim);font-size:12px;padding:6px 0">None</div>'}</div>`;}
+function rMem(){const paid=D.members.filter(m=>m.status==='paid'),un=D.members.filter(m=>m.status==='unpaid'),pr=D.members.filter(m=>m.status==='prospect'),ia=D.members.filter(m=>m.status==='inactive');const fe=un.reduce((a,m)=>a+calcFee(m.joinDate),0);const RL={president:'President',vice_president:'Vice President',treasurer:'Treasurer',member:'Member',prospect:'Prospect'};function mr(m){return`<div class="brow"><span class="blbl">${m.name}${m.email?` <span style="font-size:9px;color:var(--dim)">&#9993; ${m.email}</span>`:''}</span><span style="font-size:11px;color:var(--muted)">${RL[m.role]||m.role} &middot; ${thb(calcFee(m.joinDate))}</span></div>`;}const paidTotal=paid.reduce((a,m)=>a+calcFee(m.joinDate),0);return`<div class="balbar"><h3>&#9989; Paid (${paid.length}) &#8212; ${thb(paidTotal)}</h3>${paid.map(mr).join('')||'<div style="color:var(--dim);font-size:12px;padding:6px 0">None</div>'}</div><div class="balbar"><h3>&#8987; Unpaid (${un.length}) &#8212; ${thb(fe)} outstanding</h3>${un.map(mr).join('')||'<div style="color:var(--dim);font-size:12px;padding:6px 0">None</div>'}</div><div class="balbar"><h3>&#128064; Prospects (${pr.length})</h3>${pr.map(m=>`<div class="brow"><span class="blbl">${m.name}</span><span style="font-size:11px;color:var(--muted)">${RL[m.role]||m.role}</span></div>`).join('')||'<div style="color:var(--dim);font-size:12px;padding:6px 0">None</div>'}</div><div class="balbar"><h3>&#128683; Inactive (${ia.length})</h3>${ia.map(m=>`<div class="brow"><span class="blbl" style="color:var(--muted)">${m.name}</span><span style="font-size:11px;color:var(--dim)">${RL[m.role]||m.role}</span></div>`).join('')||'<div style="color:var(--dim);font-size:12px;padding:6px 0">None</div>'}</div>`;}
 function rMerch(){const s=D.transactions.filter(t=>t.category==='merchandise');const tot=s.reduce((a,t)=>a+parseFloat(t.amount||0),0);const ms=s.filter(t=>t.customerType==='member').reduce((a,t)=>a+parseFloat(t.amount||0),0);const vs=s.filter(t=>t.customerType==='visitor').reduce((a,t)=>a+parseFloat(t.amount||0),0);const bp={};s.forEach(t=>{const k=t.description||'?';bp[k]=(bp[k]||0)+parseFloat(t.amount||0);});const bc={};s.forEach(t=>{if(t.colour){bc[t.colour]=(bc[t.colour]||0)+parseFloat(t.amount||0);}});return`<div class="balbar"><h3>&#128085;&#65039; Merchandise Sales</h3>${br('Total',thb(tot))}${br('Member Sales',thb(ms),'var(--gold)')}${br('Visitor Sales',thb(vs),'var(--blul)')}${br('Transactions',s.length,'var(--muted)')}</div><div class="balbar"><h3>By Item</h3>${Object.entries(bp).sort((a,b)=>b[1]-a[1]).slice(0,12).map(([d,v])=>br(d.length>32?d.slice(0,32)+'&#8230;':d,thb(v),'var(--gl)')).join('')||'<div style="color:var(--dim);font-size:12px">No sales yet</div>'}</div>${Object.keys(bc).length?`<div class="balbar"><h3>By Colour</h3>${Object.entries(bc).sort((a,b)=>b[1]-a[1]).map(([c,v])=>br(c,thb(v),'var(--muted)')).join('')}</div>`:''}`;}
 function rStock(){
   const t=D.lowStockThreshold||5;
@@ -1858,7 +1902,7 @@ function checkAnnualFeeReset(){
   var curYear=new Date().getFullYear();
   if(!D.lastFeeResetYear)D.lastFeeResetYear=0;
   if(D.lastFeeResetYear>=curYear)return;
-  var allMembers=D.members.filter(function(m){return m.status!=='prospect';});
+  var allMembers=D.members.filter(function(m){return m.status!=='prospect'&&m.status!=='inactive';});
   if(allMembers.length>0){
     var resetDate=curYear+'-01-01';
     allMembers.forEach(function(m){
