@@ -173,7 +173,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.22</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.23</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -2028,57 +2028,74 @@ loadSettings();
 
 
 <script>
-// Back button handler - Android PWA safe
-// Uses replaceState (not pushState) inside handler to avoid re-triggering popstate
-var _backState='idle';
+// Back button handler
+// Strategy: use a busy flag to block re-entrant popstate events
+// caused by our own history.pushState calls inside the handler.
+// State machine: idle -> warned -> exit (or reset after 2.5s)
+var _backWarned=false;
 var _backTimer=null;
+var _backBusy=false;
 
-function _resetBackState(){
-  _backState='idle';
+function _backReset(){
+  _backWarned=false;
   if(_backTimer){clearTimeout(_backTimer);_backTimer=null;}
   var t=document.getElementById('back-toast');
   if(t)t.style.display='none';
 }
 
-// One extra state so first back press is intercepted
+// Push two states so we always have a buffer to absorb
+history.pushState(null,'',location.href);
 history.pushState(null,'',location.href);
 
 window.addEventListener('popstate',function(e){
-  // Immediately replace current state to keep one buffer entry
-  // replaceState does NOT fire popstate - safe to call here
+  // Block re-entrant calls from our own pushState
+  if(_backBusy)return;
+  _backBusy=true;
+  setTimeout(function(){_backBusy=false;},200);
+
+  // Replenish the history buffer immediately
   history.pushState(null,'',location.href);
 
-  // 1. Close any open modal
+  // STEP 1: Close any open modal or print overlay
+  var printOverlay=document.getElementById('print-overlay');
+  if(printOverlay&&printOverlay.style.display!=='none'){
+    printOverlay.style.display='none';
+    _backReset();
+    return;
+  }
   var openModal=document.querySelector('.mo.on');
   if(openModal){
     openModal.classList.remove('on');
-    _resetBackState();
+    _backReset();
     return;
   }
 
-  // 2. Go home from any non-home screen
+  // STEP 2: Go home from any non-home screen
   var activeScr=document.querySelector('.scr.on');
   if(activeScr&&activeScr.id!=='scr-dash'){
     goTo('dash');
-    _resetBackState();
+    _backReset();
     return;
   }
 
-  // 3. On home - state machine
-  if(_backState==='warned'){
-    _resetBackState();
-    // Go back twice to get past our buffer state
-    history.go(-2);
+  // STEP 3: On home screen
+  if(_backWarned){
+    // Second press within 2.5s - exit
+    _backReset();
+    history.go(-3);
     return;
   }
 
-  // First press - warn
-  _backState='warned';
+  // First press on home - show warning, start 2.5s timer
+  _backWarned=true;
   var t=document.getElementById('back-toast');
   if(t){
     t.style.display='flex';
     if(_backTimer)clearTimeout(_backTimer);
-    _backTimer=setTimeout(_resetBackState,2500);
+    _backTimer=setTimeout(function(){
+      // Timer expired - full reset, back to step 1 of hierarchy
+      _backReset();
+    },2500);
   }
 });
 </script>
