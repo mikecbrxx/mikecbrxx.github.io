@@ -136,7 +136,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .sw::before{content:'🔍';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none}
 .sect-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;margin-top:4px}
 .vi{background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:10px 12px;margin-bottom:8px}
-.back-btn{display:none;position:fixed;left:16px;bottom:74px;z-index:99;width:52px;height:52px;border-radius:50%;background:var(--sf2);color:var(--fg);border:2px solid var(--bd);font-size:26px;cursor:pointer;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.back-btn{display:none;position:fixed;left:16px;bottom:74px;z-index:99;width:52px;height:52px;border-radius:50%;background:#27ae60;color:#fff;border:none;font-size:32px;line-height:1;cursor:pointer;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.4);padding:0;text-align:center}
 .back-btn.visible{display:flex}
 .tab-card{background:var(--sf2);border:1px solid var(--bd);border-radius:12px;padding:13px;margin-bottom:8px}
 .tab-card.owed{border-left:3px solid var(--warn)}
@@ -175,7 +175,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.27</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.28</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -449,7 +449,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
       </div>
     </div>
   </div>
-  <button class="back-btn" id="back-btn" onclick="handleBackBtn()">&#8592;</button>
+  <button class="back-btn" id="back-btn" onclick="handleBackBtn()"><span style="display:block;line-height:1;margin-top:-1px">&#10094;</span></button>
   <button class="fab" id="fab" onclick="openFab()">+</button>
   <div class="bn">
     <button class="nb on" id="nb-dash" onclick="goTo('dash')"><span class="ni">&#127968;</span>Home</button>
@@ -2062,18 +2062,19 @@ function _exitReset(){
   if(t)t.style.display='none';
 }
 
-// Push many states upfront - never push inside the handler
-// This gives us a large buffer without causing re-entrant popstate events
-for(var _i=0;_i<20;_i++)history.pushState(null,'',location.href);
+// Push 2 states upfront as buffer
+// Use replaceState inside handler to maintain buffer without re-triggering popstate
+history.pushState(null,'',location.href);
+history.pushState(null,'',location.href);
 
 window.addEventListener('popstate',function(e){
-  // NEVER call pushState inside this handler - it causes immediate re-entrant popstate
-  // The 20 states pushed upfront provide the buffer
+  // replaceState maintains the buffer WITHOUT firing a new popstate event
+  history.replaceState(null,'',location.href);
 
   if(_exitWarned){
     // Second press within 2.5s - exit
     _exitReset();
-    history.go(-20);
+    history.go(-2);
     return;
   }
   // First press - show warning, start timer
@@ -2084,7 +2085,6 @@ window.addEventListener('popstate',function(e){
     if(_exitTimer)clearTimeout(_exitTimer);
     _exitTimer=setTimeout(_exitReset,2500);
   }
-  // NO pushState here
 });
 </script>
 <script>
