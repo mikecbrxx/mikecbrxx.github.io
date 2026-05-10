@@ -175,7 +175,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.38</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.39</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -1536,7 +1536,7 @@ function archiveProduct(){const pid=document.getElementById('pr-id').value;if(!p
 function restoreProduct(){const pid=document.getElementById('pr-id').value;if(!pid)return;const p=D.products.find(x=>x.id===pid);if(p){audit('PRODUCT_RESTORE','Restored: '+p.name);p.archived=false;}save();closeM('mo-product');renderMerch();}
 
 // PIN change (all users)
-function changePin(){const o=document.getElementById('cp-old').value.trim(),n=document.getElementById('cp-new').value.trim(),c=document.getElementById('cp-conf').value.trim();if(!o||!n||!c){alert('Fill in all fields');return;}if(o!==CU.pin){alert('Current PIN is incorrect');return;}if(n.length!==6){alert('PIN must be exactly 4 digits');return;}if(n!==c){alert('New PINs do not match');return;}if(D.users[n]&&n!==CU.pin){alert('That PIN is already in use');return;}delete D.users[CU.pin];D.users[n]={name:CU.name,role:CU.role};CU.pin=n;save();['cp-old','cp-new','cp-conf'].forEach(id=>document.getElementById(id).value='');alert('PIN changed!');}
+function changePin(){const o=document.getElementById('cp-old').value.trim(),n=document.getElementById('cp-new').value.trim(),c=document.getElementById('cp-conf').value.trim();if(!o||!n||!c){alert('Fill in all fields');return;}if(o!==CU.pin){alert('Current PIN is incorrect');return;}if(n.length!==4){alert('PIN must be exactly 4 digits');return;}if(n!==c){alert('New PINs do not match');return;}if(D.users[n]&&n!==CU.pin){alert('That PIN is already in use');return;}delete D.users[CU.pin];D.users[n]={name:CU.name,role:CU.role};CU.pin=n;save();['cp-old','cp-new','cp-conf'].forEach(id=>document.getElementById(id).value='');alert('PIN changed!');}
 
 // User Modal (Admin)
 function openAddUserModal(){document.getElementById('mo-usr-t').textContent='Add User';['usr-name','usr-pin','usr-old'].forEach(id=>document.getElementById(id).value='');document.getElementById('usr-role').value='officer';document.getElementById('usr-del-btn').style.display='none';openM('mo-user');}
