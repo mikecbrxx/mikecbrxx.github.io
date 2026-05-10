@@ -175,7 +175,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.37</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.38</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -975,8 +975,10 @@ function handleBackBtn(){
   var as=document.querySelector('.scr.on');
   if(as&&as.id!=='scr-dash'){
     var prev=_navStack.pop();
+    _navBack=true;
     if(prev&&prev!=='dash'){goTo(prev);}
     else{goTo('dash');}
+    _navBack=false;
     return;
   }
 }
@@ -989,14 +991,17 @@ function updateBackBtn(screenId){
   else{btn.classList.add('visible');}
 }
 var _navStack=[];
+var _navBack=false; // true when navigating via back button - don't push to stack
 function goTo(n){
-  // Track navigation stack for back button
-  var cur=document.querySelector('.scr.on');
-  if(cur&&cur.id!=='scr-'+n){
-    var curName=cur.id.replace('scr-','');
-    if(_navStack.length===0||_navStack[_navStack.length-1]!==curName){
-      _navStack.push(curName);
-      if(_navStack.length>10)_navStack.shift(); // cap stack
+  if(!_navBack){
+    // Only push to stack on forward navigation
+    var cur=document.querySelector('.scr.on');
+    if(cur&&cur.id!=='scr-'+n){
+      var curName=cur.id.replace('scr-','');
+      if(_navStack.length===0||_navStack[_navStack.length-1]!==curName){
+        _navStack.push(curName);
+        if(_navStack.length>10)_navStack.shift();
+      }
     }
   }
   document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
