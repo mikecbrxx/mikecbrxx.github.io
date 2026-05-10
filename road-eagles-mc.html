@@ -175,7 +175,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.39</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.40</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -579,7 +579,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
     </div>
     <div style="display:flex;gap:8px;margin-top:4px">
       <button class="btn btn-gold" onclick="saveTxEdit()" style="flex:2">Save Changes</button>
-      <button class="btn" onclick="deleteTxEdit()" style="flex:1;background:var(--red);border-color:var(--red);color:#fff">Delete</button>
+      <button class="btn" id="txe-del-btn" onclick="deleteTxEdit()" style="flex:1;background:var(--red);border-color:var(--red);color:#fff;display:none">Delete</button>
     </div>
   </div>
 </div>
@@ -2064,6 +2064,8 @@ function selTxePay(v){document.getElementById('txe-pay-paid').className='tgb'+(v
 function updateTxeCats(){const cats=_txeDir==='in'?CATS_I:CATS_O;const sel=document.getElementById('txe-cat');if(sel)sel.innerHTML=cats.map(c=>'<option value="'+c+'">'+(CM[c]||c)+'</option>').join('');}
 function openTxEdit(id){
   const tx=D.transactions.find(t=>t.id===id);if(!tx)return;
+  var delBtn=document.getElementById('txe-del-btn');
+  if(delBtn)delBtn.style.display=CU&&CU.role==='admin'?'':'none';
   document.getElementById('txe-id').value=id;
   document.getElementById('txe-amt').value=tx.amount||0;
   document.getElementById('txe-date').value=tx.date||nd();
