@@ -175,7 +175,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.40</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.41</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -1120,7 +1120,7 @@ function renderMembers(){
     const init=m.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
     const sc={paid:'paid',unpaid:'unpaid',prospect:'prospect'};
     const sl={paid:'Fee Paid &#10003;',unpaid:'Fee Unpaid &#9888;&#65039;',prospect:'Prospect',inactive:'&#128683; Inactive'};
-    return`<div class="mc" style="${m.status==='inactive'?'opacity:0.5':''}"><div class="mav" style="${m.status==='inactive'?'background:var(--muted)':''}">\${init}</div><div class="min"><div class="mn">${m.name}</div><div class="mr">${RL[m.role]||m.role}</div>${m.status!=='prospect'?`<div style="font-size:11px;color:var(--muted);margin-top:2px">${new Date().getFullYear()} fee: ${thb(calcFee(m.joinDate))}</div>`:''}
+    return`<div class="mc" style="${m.status==='inactive'?'opacity:0.5':''}"><div class="mav" style="${m.status==='inactive'?'background:var(--muted)':''}">${init}</div><div class="min"><div class="mn">${m.name}</div><div class="mr">${RL[m.role]||m.role}</div>${m.status!=='prospect'?`<div style="font-size:11px;color:var(--muted);margin-top:2px">${new Date().getFullYear()} fee: ${thb(calcFee(m.joinDate))}</div>`:''}
         ${m.phone?`<div style="font-size:10px;color:var(--dim)">&#128222; ${m.phone}</div>`:''}
         ${m.email?`<div style="font-size:10px;color:var(--dim)">&#9993; ${m.email}</div>`:''}</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><span class="ms ${sc[m.status]||'prospect'}">${sl[m.status]||m.status}</span>${m.status==='unpaid'?`<button style="font-size:10px;background:none;border:1px solid var(--grn);color:var(--grnl);border-radius:20px;padding:3px 8px;cursor:pointer" onclick="markPaid('${m.id}')">Mark Paid</button>`:''}${m.status!=='prospect'?`<button style="font-size:10px;background:none;border:1px solid var(--bd);color:var(--muted);border-radius:20px;padding:3px 8px;margin-left:4px;cursor:pointer" onclick="toggleInactive('${m.id}')">${m.status==='inactive'?'&#9654; Reactivate':'&#128683; Deactivate'}</button>`:''}${CU&&CU.role==='admin'?`<button style="font-size:10px;background:none;border:1px solid var(--bd);color:var(--muted);border-radius:20px;padding:3px 8px;margin-left:4px;cursor:pointer" onclick="editMem('${m.id}')">Edit</button>`:''}</div></div>`;
   }).join('')||'<div class="empty"><div class="ei">&#128101;</div>No members match</div>';
