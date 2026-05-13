@@ -175,7 +175,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.43</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.44</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -645,7 +645,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
       <div><label>Date</label><input type="date" id="pop-date"></div>
     </div>
     <div class="fg"><label>Ref / Receipt #</label><input type="text" id="pop-ref" placeholder="Optional"></div>
-    <div class="fg"><label>Notes</label><input type="text" id="pop-notes" placeholder="e.g. Deposit, Final payment"></div>
+    <div class="fg"><label>Payment Type / Notes</label><select id="pop-notes-sel" onchange="this.nextElementSibling.value=this.value;this.value=''" style="margin-bottom:4px"><option value="">Select type...</option><option value="Deposit">Deposit</option><option value="Part payment">Part payment</option><option value="Final payment">Final payment</option><option value="Full payment">Full payment</option></select><input type="text" id="pop-notes" placeholder="or type your own description"></div>
     <button class="btn btn-gold" onclick="savePOPayment()" style="width:100%;margin-top:4px">Record Payment</button>
   </div>
 </div>
@@ -2371,6 +2371,7 @@ function updatePOProductFields(){
 }
 
 function savePO(status){
+  try{
   var desc=document.getElementById('po-desc').value.trim();
   if(!desc){alert('Please enter a description.');return;}
   var total=parseFloat(document.getElementById('po-total').value)||0;
@@ -2382,7 +2383,7 @@ function savePO(status){
   var agName='';
   if(agid){
     var allGroups=getAssemblyGroups();
-    if(window._newAssemblyGroups)Object.assign(allGroups,window._newAssemblyGroups);
+    if(window._newAssemblyGroups&&typeof window._newAssemblyGroups==='object')Object.assign(allGroups,window._newAssemblyGroups);
     agName=allGroups[agid]||'';
   }
   var po={
@@ -2412,8 +2413,8 @@ function savePO(status){
       po.payments=existing.payments||[];
       po.created=existing.created;
       po.createdBy=existing.createdBy;
-      var idx=D.purchaseOrders.indexOf(existing);
-      D.purchaseOrders[idx]=po;
+      var poIdx=D.purchaseOrders.indexOf(existing);
+      D.purchaseOrders[poIdx]=po;
       audit('PO_EDIT','Edited PO: '+desc+' '+thb(total));
     }
   } else {
@@ -2421,6 +2422,7 @@ function savePO(status){
     audit('PO_CREATE','Created PO ('+status+'): '+desc+' '+thb(total));
   }
   save();closeM('mo-po');renderPOs();
+  }catch(e){alert('Error saving PO: '+e.message);console.error(e);}
 }
 
 function openEditPO(id){
@@ -2648,7 +2650,7 @@ function populateAssemblyGroups(selectId){
   var sel=document.getElementById('po-assembly-group');
   if(!sel)return;
   var groups=getAssemblyGroups();
-  if(window._newAssemblyGroups)Object.assign(groups,window._newAssemblyGroups);
+  if(window._newAssemblyGroups&&typeof window._newAssemblyGroups==='object')Object.assign(groups,window._newAssemblyGroups);
   var cur=selectId||sel.value;
   sel.innerHTML='<option value="">&#8212; Standalone PO &#8212;</option>'
     +Object.keys(groups).map(function(id){
