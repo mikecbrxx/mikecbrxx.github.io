@@ -175,7 +175,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.48</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.50</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -339,6 +339,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
       <button class="rb" onclick="showReport('membership')"><span class="rbi">&#128101;</span><div><div class="fml">Membership Report</div><div class="fms">Paid / unpaid / prospects / fees</div></div></button>
       <button class="rb" onclick="showReport('merchandise')"><span class="rbi">&#128717;&#65039;</span><div><div class="fml">Merchandise Sales</div><div class="fms">By product, member vs visitor, margins</div></div></button>
       <button class="rb" onclick="showReport('stock')"><span class="rbi">&#128230;</span><div><div class="fml">Stock Report</div><div class="fms">Current levels, low stock and out of stock</div></div></button>
+      <button class="rb" onclick="showReport('stockvalue')"><span class="rbi">&#128181;</span><div><div class="fml">Stock Value Report</div><div class="fms">Capital tied up in unsold stock at cost</div></div></button>
       <button class="rb" onclick="showReport('tabs')"><span class="rbi">&#128203;</span><div><div class="fml">Tab Debts Report</div><div class="fms">Outstanding and settled member tabs</div></div></button>
       <button class="rb" onclick="showReport('donations')"><span class="rbi">&#129309;</span><div><div class="fml">Donation Report</div><div class="fms">Charity in &amp; out by source/recipient</div></div></button>
       <button class="rb" onclick="showReport('suppliers')"><span class="rbi">&#127978;&#65039;</span><div><div class="fml">Purchase Ledger</div><div class="fms">By supplier and category</div></div></button>
@@ -2034,6 +2035,22 @@ function renderMeeting(){
     +br('Paid',paid,'var(--grnl)')+br('Unpaid',unpaidM,'var(--warn)')+br('Prospects',prospects,'var(--muted)')+'</div>'
     +'<div class="balbar"><h3>&#128230; Merchandise Stock</h3>'
     +stockRows.map(function(r){return br(r.name,r.total===0?'Out of Stock':r.total,(r.total===0?'var(--rl)':r.total<=(D.lowStockThreshold||5)?'var(--warn)':'var(--grnl)'));}).join('')
+    +'</div>';
+  // Stock value section
+  var svTotal=0;var svRows=[];
+  D.products.filter(function(p){return!p.archived;}).forEach(function(p){
+    p.variants.forEach(function(v){
+      var prodCost=parseFloat(v.production||0);if(!prodCost)return;
+      var cols=prodColours(p);var szs=p.hasSizes?(p.sizes||SIZES):[null];
+      szs.forEach(function(sz){cols.forEach(function(c){
+        var qty=getStock(p.id,v.id,sz||null,c.name||'');
+        if(qty>0){var val=qty*prodCost;svTotal+=val;svRows.push({name:p.name+' '+v.name+(sz?' '+sz:'')+(c.name?' '+c.name:''),qty:qty,val:val});}
+      });});
+    });
+  });
+  h+='<div class="balbar"><h3>&#128181; STOCK VALUE AT COST</h3>'
+    +(svRows.length?svRows.map(function(r){return'<div class="brow"><span class="blbl">'+r.name+'</span><span style="font-size:11px;color:var(--muted)">'+r.qty+' &times; </span><span style="font-weight:600">'+thb(r.val)+'</span></div>';}).join(''):'<div style="font-size:12px;color:var(--dim);padding:4px 0">No stock with production costs set</div>')
+    +'<div class="brow" style="font-weight:700"><span class="blbl">Total Stock Value at Cost</span><span style="font-weight:700;color:var(--rl)">'+thb(svTotal)+'</span></div>'
     +'</div>';
   el.innerHTML=h;
 }
