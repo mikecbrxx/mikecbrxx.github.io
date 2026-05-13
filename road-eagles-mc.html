@@ -175,7 +175,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.45</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.46</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -2480,7 +2480,7 @@ function openPOPayment(id){
   document.getElementById('pop-notes').value='';
   var bal=poBalance(po);
   var balEl=document.getElementById('pop-balance');
-  if(balEl)balEl.textContent=thb(bal);
+  if(balEl)balEl.innerHTML=thb(bal);
   openM('mo-po-payment');
 }
 
