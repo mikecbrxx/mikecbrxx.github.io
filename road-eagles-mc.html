@@ -175,7 +175,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.44</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.45</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -615,7 +615,10 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
     <div class="fg"><label>Linked Product (for BOM / stock update)</label><select id="po-product"><option value="">&#8212; None (expense only) &#8212;</option></select></div>
     <div class="fg irow" id="po-bom-row" style="display:none">
       <div><label>Qty to add to stock on receipt</label><input type="number" id="po-qty" min="1" value="1"></div>
-      <div><label>Size (if applicable)</label><select id="po-size"><option value="">None</option></select></div>
+      <div><label>Variant / Style</label><select id="po-variant"><option value="0">Standard</option></select></div>
+    </div>
+    <div class="fg" id="po-size-row" style="display:none">
+      <label>Size (if applicable)</label><select id="po-size"><option value="">None</option></select>
     </div>
     <div class="fg" id="po-colour-row" style="display:none">
       <label>Colour (if applicable)</label><select id="po-colour"><option value="">None</option></select>
@@ -2274,8 +2277,9 @@ function updatePOBalance(){
 }
 
 function renderPOs(){
+  if(!D.purchaseOrders)D.purchaseOrders=[];
   var el=document.getElementById('po-list');if(!el)return;
-  var pos=D.purchaseOrders||[];
+  var pos=D.purchaseOrders;
   if(_poFilter!=='all')pos=pos.filter(function(p){return p.status===_poFilter;});
   pos=[...pos].sort(function(a,b){return(b.date||'').localeCompare(a.date||'');});
   if(!pos.length){
@@ -2346,18 +2350,28 @@ function updatePOProductFields(){
   var pid=document.getElementById('po-product').value;
   var bomRow=document.getElementById('po-bom-row');
   var colRow=document.getElementById('po-colour-row');
+  var szRow=document.getElementById('po-size-row');
   if(!pid){
     if(bomRow)bomRow.style.display='none';
     if(colRow)colRow.style.display='none';
+    if(szRow)szRow.style.display='none';
     return;
   }
   var p=D.products.find(function(x){return x.id===pid;});
   if(!p){if(bomRow)bomRow.style.display='none';return;}
   if(bomRow)bomRow.style.display='';
+  // Variants
+  var varSel=document.getElementById('po-variant');
+  if(varSel&&p.variants&&p.variants.length){
+    varSel.innerHTML=p.variants.map(function(v,i){return'<option value="'+i+'">'+v.name+'</option>';}).join('');
+  }
   // Sizes
-  var szSel=document.getElementById('po-size');
-  if(szSel){
-    szSel.innerHTML='<option value="">None</option>'+(p.sizes||[]).map(function(s){return'<option value="'+s+'">'+s+'</option>';}).join('');
+  if(p.sizes&&p.sizes.length){
+    if(szRow)szRow.style.display='';
+    var szSel=document.getElementById('po-size');
+    if(szSel)szSel.innerHTML='<option value="">None</option>'+p.sizes.map(function(s){return'<option value="'+s+'">'+s+'</option>';}).join('');
+  } else {
+    if(szRow)szRow.style.display='none';
   }
   // Colours
   var cols=p.colours||[];
@@ -2372,6 +2386,7 @@ function updatePOProductFields(){
 
 function savePO(status){
   try{
+  if(!D.purchaseOrders)D.purchaseOrders=[];
   var desc=document.getElementById('po-desc').value.trim();
   if(!desc){alert('Please enter a description.');return;}
   var total=parseFloat(document.getElementById('po-total').value)||0;
@@ -2397,6 +2412,7 @@ function savePO(status){
     notes:document.getElementById('po-notes').value.trim(),
     productId:pid||null,
     qty:pid?parseInt(document.getElementById('po-qty').value)||1:0,
+    variantIdx:pid?parseInt(document.getElementById('po-variant').value)||0:0,
     size:pid?document.getElementById('po-size').value:'',
     colour:pid&&document.getElementById('po-colour-row').style.display!=='none'?document.getElementById('po-colour').value:'',
     assemblyGroup:agid||null,
@@ -2543,7 +2559,7 @@ function confirmPOReceive(){
   if(qty<=0){alert('Please enter quantity received.');return;}
   var p=D.products.find(function(x){return x.id===po.productId;});
   if(!p){alert('Product not found.');return;}
-  var v=p.variants&&p.variants[0];
+  var vi=po.variantIdx||0;var v=p.variants&&(p.variants[vi]||p.variants[0]);
   if(!v){alert('Product has no variants.');return;}
   var col=po.colour||stockCol(p,'');
   adjStock(p.id,v.id,po.size||null,col,qty,'ordered');
@@ -2668,6 +2684,7 @@ function getBOMGroupStatus(groupId){
   var prodPO=pos.find(function(po){return po.productId;});
   return{pos:pos,allReceived:allReceived,totalCost:totalCost,totalPaid:totalPaid,
     productId:prodPO?prodPO.productId:null,qty:prodPO?prodPO.qty:1,
+    variantIdx:prodPO?prodPO.variantIdx||0:0,
     size:prodPO?prodPO.size:'',colour:prodPO?prodPO.colour:'',
     assembled:pos.some(function(po){return po.assembled;})};
 }
@@ -2711,7 +2728,7 @@ function confirmAssemble(){
   if(!status.productId){alert('No finished product linked to this assembly group.');return;}
   var p=D.products.find(function(x){return x.id===status.productId;});
   if(!p){alert('Product not found.');return;}
-  var v=p.variants&&p.variants[0];if(!v){alert('Product has no variants.');return;}
+  var vi=status.variantIdx||0;var v=p.variants&&(p.variants[vi]||p.variants[0]);if(!v){alert('Product has no variants.');return;}
   var col=status.colour||stockCol(p,'');
   adjStock(p.id,v.id,status.size||null,col,qty,'ordered');
   (D.purchaseOrders||[]).forEach(function(po){
