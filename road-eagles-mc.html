@@ -175,7 +175,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.47</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.48</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -1173,8 +1173,12 @@ function renderDash(){
   const tabOwed=openTabs.reduce((a,t)=>a+parseFloat(t.amount||0),0);
   const unpaidIn=unpaidTx.filter(t=>t.direction==='in').reduce((a,t)=>a+parseFloat(t.amount||0),0);
   const unpaidOut=unpaidTx.filter(t=>t.direction==='out').reduce((a,t)=>a+parseFloat(t.amount||0),0);
+  // Add PO outstanding balances to tab debt
+  const poOutstanding=(D.purchaseOrders||[]).filter(function(po){
+    return po.status!=='received'&&po.status!=='draft'&&poBalance(po)>0;
+  }).reduce(function(a,po){return a+poBalance(po);},0);
   document.getElementById('db-tabs').textContent=totalTabItems;
-  document.getElementById('db-tabamt').innerHTML=thb(tabOwed+unpaidIn);
+  document.getElementById('db-tabamt').innerHTML=thb(tabOwed+unpaidIn+poOutstanding);
   const rec=[...D.transactions].reverse().slice(0,8);
   document.getElementById('db-tx').innerHTML=rec.length?rec.map(txCard).join(''):'<div class="empty"><div class="ei">&#128203;</div>No transactions yet</div>';
   var dbt=document.getElementById('db-tx');if(dbt&&!dbt._txd){dbt._txd=true;dbt.addEventListener('click',function(e){var t=e.target;while(t&&t!==dbt){if(t.dataset&&t.dataset.txid){openTxEdit(t.dataset.txid);return;}t=t.parentElement;}});}
@@ -1795,7 +1799,7 @@ function delSup(sid){var idx=D.suppliers.findIndex(function(x){return x.id===sid
 function showReport(type){
   const T={monthly:'&#128197; Monthly Statement',meeting:'&#128101; Club Meeting Report',annual:'&#128198; Annual Summary',membership:'&#128101; Membership Report',merchandise:'&#128717;&#65039; Merchandise Sales',stock:'&#128230; Stock Report',tabs:'&#128203; Tab Debts Report',donations:'&#129309; Donation Report',suppliers:'&#127978;&#65039; Purchase Ledger',cogs:'&#128208; Cost of Goods',analysis:'&#128202; Analysis Report',audit:'&#128269; Audit Trail'};
   document.getElementById('rpt-t').innerHTML=T[type]||'Report';
-  const fn={monthly:rMonth,meeting:rMeeting,annual:rAnnual,membership:rMem,merchandise:rMerch,stock:rStock,tabs:rTabs,donations:rDon,suppliers:rSup,cogs:rCOGS,analysis:rAnalysis,audit:rAudit};
+  const fn={monthly:rMonth,meeting:rMeeting,annual:rAnnual,membership:rMem,merchandise:rMerch,stock:rStock,tabs:rTabs,donations:rDon,suppliers:rSup,cogs:rCOGS,analysis:rAnalysis,audit:rAudit,stockvalue:rStockValue};
   document.getElementById('rpt-b').innerHTML=(fn[type]||rMonth)();
   var pdfBtn=document.getElementById('rpt-pdf-btn');
   if(pdfBtn)pdfBtn.style.display='';
@@ -2740,6 +2744,100 @@ function confirmAssemble(){
   audit('BOM_ASSEMBLE','Assembled '+qty+' x '+p.name+' | Group: '+groupName+' | Batch: '+thb(batchCost)+' | Per unit: '+thb(costPerUnit));
   save();closeM('mo-assemble');renderAll();
   alert('Assembly complete!\n'+qty+' x '+p.name+' added to stock.\nBatch cost: '+thb(batchCost)+'\nCost per unit: '+thb(costPerUnit));
+}
+
+function rStockValue(){
+  if(!CU)return'';
+  var rows=[];
+  var grandTotal=0;
+  var grandUnits=0;
+  D.products.filter(function(p){return!p.archived;}).forEach(function(p){
+    var prodTotal=0;var prodUnits=0;
+    p.variants.forEach(function(v){
+      var prodCost=parseFloat(v.production||0);
+      if(prodCost<=0)return; // skip if no production cost set
+      var cols=prodColours(p);
+      var szs=p.hasSizes?(p.sizes||SIZES):[''];
+      szs.forEach(function(sz){
+        cols.forEach(function(c){
+          var qty=getStock(p.id,v.id,sz||null,c.name||'');
+          if(qty<=0)return;
+          var val=qty*prodCost;
+          prodTotal+=val;prodUnits+=qty;
+          rows.push({
+            product:p.name,
+            variant:v.name,
+            size:sz,
+            colour:c.name,
+            qty:qty,
+            cost:prodCost,
+            value:val
+          });
+        });
+      });
+    });
+    grandTotal+=prodTotal;grandUnits+=prodUnits;
+  });
+
+  if(!rows.length)return'<div class="empty"><div class="ei">&#128085;&#65039;</div>No stock with production costs set</div>';
+
+  var html='<div style="display:flex;gap:16px;margin-bottom:14px">'
+    +'<div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Total Units</div>'
+    +'<div style="font-size:22px;font-weight:700;color:var(--gold)">'+grandUnits+'</div></div>'
+    +'<div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Total Stock Value</div>'
+    +'<div style="font-size:22px;font-weight:700;color:var(--rl)">'+thb(grandTotal)+'</div></div>'
+    +'</div>'
+    +'<div style="font-size:10px;color:var(--dim);margin-bottom:10px">Stock on hand valued at production cost. Excludes products with no production cost set.</div>';
+
+  // Group by product
+  var byProduct={};
+  rows.forEach(function(r){
+    if(!byProduct[r.product])byProduct[r.product]={rows:[],total:0,units:0};
+    byProduct[r.product].rows.push(r);
+    byProduct[r.product].total+=r.value;
+    byProduct[r.product].units+=r.qty;
+  });
+
+  Object.keys(byProduct).forEach(function(pName){
+    var pg=byProduct[pName];
+    html+='<div class="balbar">'
+      +'<h3>&#128085;&#65039; '+pName+' &mdash; '+pg.units+' units &mdash; '+thb(pg.total)+'</h3>';
+    pg.rows.forEach(function(r){
+      html+='<div class="brow"><span class="blbl">'+r.variant
+        +(r.size?' &bull; '+r.size:'')
+        +(r.colour?' &bull; '+r.colour:'')
+        +'</span>'
+        +'<span style="font-size:11px;color:var(--muted)">'+r.qty+' &times; '+thb(r.cost)+'</span>'
+        +'<span style="font-weight:600">'+thb(r.value)+'</span></div>';
+    });
+    html+='</div>';
+  });
+
+  // Stock value section
+  html+='<div class="balbar"><h3>&#128181; STOCK VALUE AT COST</h3>';
+  var svTotal=0;var svRows=[];
+  D.products.filter(function(p){return!p.archived;}).forEach(function(p){
+    p.variants.forEach(function(v){
+      var prodCost=parseFloat(v.production||0);if(!prodCost)return;
+      var cols=prodColours(p);var szs=p.hasSizes?(p.sizes||SIZES):[null];
+      szs.forEach(function(sz){cols.forEach(function(c){
+        var qty=getStock(p.id,v.id,sz||null,c.name||'');
+        if(qty>0){
+          var val=qty*prodCost;svTotal+=val;
+          svRows.push('<div class="brow"><span class="blbl">'+p.name+' '+v.name+(sz?' '+sz:'')+(c.name?' '+c.name:'')+'</span>'
+            +'<span style="font-size:11px;color:var(--muted)">'+qty+' &times; '+thb(prodCost)+'</span>'
+            +'<span style="font-weight:600">'+thb(val)+'</span></div>');
+        }
+      });});
+    });
+  });
+  if(svRows.length){html+=svRows.join('');}
+  else{html+='<div style="font-size:12px;color:var(--dim);padding:4px 0">No stock with production costs set</div>';}
+  html+='<div class="brow" style="font-weight:700"><span class="blbl">Total Stock Value at Cost</span>'
+    +'<span style="font-weight:700;color:var(--rl)">'+thb(svTotal)+'</span></div>';
+  html+='</div>';
+
+  return html;
 }
 
 loadSettings();
