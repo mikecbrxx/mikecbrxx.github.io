@@ -175,7 +175,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.55</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.58</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -370,7 +370,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div id="prod-list-s"></div>
 </div>
 <div class="scr" id="scr-more">
-      <button class="rb" onclick="goTo('stockmgr')" style="margin-bottom:6px"><span class="rbi">&#128085;&#65039;</span><div><div class="fml">Stock Levels</div><div class="fms">View and edit actual stock on hand</div></div></button>
+      <button class="rb" onclick="goTo('stockmgr')" style="margin-bottom:6px"><span class="rbi">&#128202;</span><div><div class="fml">Stock Levels</div><div class="fms">View and edit actual stock on hand</div></div></button>
       <button class="rb" onclick="goTo('config')" style="margin-bottom:6px"><span class="rbi">&#9881;&#65039;</span><div><div class="fml">Categories &amp; Config</div><div class="fms">Manage categories, sizes, colours, event types</div></div></button>
       <button class="rb" onclick="goTo('suppliers')"   style="margin-bottom:6px"><span class="rbi">&#128230;</span><div><div class="fml">Suppliers</div><div class="fms">View, add and edit suppliers</div></div></button>
       <button class="rb" onclick="goTo('products')" style="margin-bottom:6px"><span class="rbi">&#128085;&#65039;</span><div><div class="fml">Products</div><div class="fms">Manage products and variants</div></div></button>
@@ -948,7 +948,11 @@ function syncToSupabase(onDone){
   var key=D.supabaseKey&&D.supabaseKey.trim();
   if(!url||!key){if(onDone)onDone(false);return;}
   var base=url.charAt(url.length-1)==='/'?url.slice(0,-1):url;
-  var payload=JSON.stringify({id:'main',data:D,updated_at:new Date().toISOString()});
+  // Strip credentials from payload before sending to Supabase
+  var syncData=Object.assign({},D);
+  delete syncData.supabaseUrl;
+  delete syncData.supabaseKey;
+  var payload=JSON.stringify({id:'main',data:syncData,updated_at:new Date().toISOString()});
   var sb=document.getElementById('syncing-bar');
   if(sb)sb.style.display='';
   _syncPending=true;
@@ -962,7 +966,14 @@ function syncToSupabase(onDone){
     _syncPending=false;
     if(!r.ok){
       setDot('offline');
-      r.text().then(function(t){console.warn('Sync error '+r.status+' '+t);});
+      r.text().then(function(t){
+        console.warn('Sync error '+r.status+': '+t);
+        // Show error to admin
+        if(CU&&CU.role==='admin'&&t){
+          var msg=t.length>200?t.slice(0,200)+'...':t;
+          console.error('Supabase sync failed: '+r.status+' '+msg);
+        }
+      });
       if(onDone)onDone(false);
     } else {
       setDot('online');
@@ -2213,6 +2224,7 @@ function exportBackup(){
   D.lastBackupDate=now.toISOString();save();
   var lbl=document.getElementById('last-backup-lbl');if(lbl)lbl.textContent=now.toLocaleString('en-GB');
   audit('BACKUP_EXPORT','Backup exported: '+filename);
+  alert('Backup complete! File saved: '+filename);
 }
 function restoreBackup(){
   var fi=document.getElementById('restore-file');if(!fi||!fi.files||!fi.files.length){alert('Please select a backup JSON file first.');return;}
@@ -2960,9 +2972,9 @@ function renderStockMgr(){
             +'data-pid="'+p.id+'" data-vid="'+v.id+'" '
             +'data-sz="'+(sz||'__none__')+'" data-col="'+(c.name||'')+'" '
             +'onclick="openStockEdit(this)">'
-            +'<div style="display:flex;justify-content:space-between;align-items:center">'
-            +'<span style="font-size:12px">'+rowLabel+'</span>'
-            +'<span style="font-size:18px;font-weight:700;color:'+(qty<=0?'var(--rl)':qty<=(D.lowStockThreshold||5)?'var(--warn)':'var(--grnl)')+'">'+qty+'</span>'
+            +'<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">'
+            +'<span style="font-size:12px;flex:1;color:var(--fg)">'+rowLabel+'</span>'
+            +'<span style="font-size:18px;font-weight:700;min-width:40px;text-align:right;color:'+(qty<=0?'var(--rl)':qty<=(D.lowStockThreshold||5)?'var(--warn)':'var(--grnl)')+'">'+qty+'</span>'
             +'</div></div>';
         });
       });
