@@ -175,7 +175,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.60</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.61</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -1425,6 +1425,9 @@ function renderStock(){
 function setTabLTab(b,v){document.querySelectorAll('#tab-ledger-tabs .tab').forEach(t=>t.classList.remove('on'));b.classList.add('on');TLF=v;renderTabLedger();}
 
 function markTxPaid(id){
+  // Check if this is a PO item
+  var po=(D.purchaseOrders||[]).find(function(p){return p.id===id;});
+  if(po){openPOPayment(id);return;}
   const tx=D.transactions.find(t=>t.id===id);
   if(!tx)return;
   if(!confirm('Mark this as paid/received? It will move to the main ledger.'))return;
@@ -1452,7 +1455,18 @@ function renderTabLedger(){
     responsibleMemberName:t.memberName,
     responsibleMemberId:t.memberId
   }));
-  let all=[...items,...tabs];
+  // Collect PO outstanding balances as tab entries
+  const poItems=(D.purchaseOrders||[]).filter(function(po){
+    return po.status!=='received'&&po.status!=='draft'&&poBalance(po)>0.01;
+  }).map(function(po){
+    return{id:po.id,isPO:true,direction:'out',account:po.account||'club',
+      category:'purchase',amount:poBalance(po),
+      description:'PO Balance: '+po.desc+(po.supplier?' – '+po.supplier:''),
+      date:po.date,enteredBy:po.createdBy,paid:false,
+      responsibleMemberName:po.orderedBy||po.createdBy||'',
+      poStatus:po.status,poTotal:po.total,poPaid:poPaid(po)};
+  });
+  let all=[...items,...poItems,...tabs];
   if(TLF==='in')all=all.filter(t=>t.direction==='in');
   else if(TLF==='out')all=all.filter(t=>t.direction==='out');
   else if(TLF==='merch')all=all.filter(t=>t.category==='merchandise');
@@ -2449,6 +2463,9 @@ function openNewPO(){
     return(a.name||'').localeCompare(b.name||'');
   }).map(function(s){return'<option value="'+(s.name||s)+'">';}).join('');
   document.getElementById('po-sup').value='';
+  var obSel=document.getElementById('po-ordered-by');if(obSel){obSel.innerHTML='<option value="">Select officer...</option>'+Object.entries(D.users).map(function(e){return'<option value="'+e[1].name+'">'+e[1].name+'</option>';}).join('');obSel.value=CU?CU.name:'';}
+  var obSel=document.getElementById('po-ordered-by');
+  if(obSel){obSel.innerHTML='<option value="">Select officer...</option>'+Object.entries(D.users).map(function(e){return'<option value="'+e[1].name+'">'+e[1].name+'</option>';}).join('');obSel.value=CU?CU.name:'';}
   // Populate product select
   var pSel=document.getElementById('po-product');
   pSel.innerHTML='<option value="">&#8212; None (expense only) &#8212;</option>'
@@ -2562,6 +2579,8 @@ function openEditPO(id){
   document.getElementById('po-id').value=po.id;
   document.getElementById('po-desc').value=po.desc||'';
   document.getElementById('po-sup').value=po.supplier||'';
+  var obSelE=document.getElementById('po-ordered-by');
+  if(obSelE){obSelE.innerHTML='<option value="">Select officer...</option>'+Object.entries(D.users).map(function(e){return'<option value="'+e[1].name+'">'+e[1].name+'</option>';}).join('');obSelE.value=po.orderedBy||'';}
   document.getElementById('po-date').value=po.date||nd();
   document.getElementById('po-total').value=po.total||0;
   document.getElementById('po-account').value=po.account||'club';
