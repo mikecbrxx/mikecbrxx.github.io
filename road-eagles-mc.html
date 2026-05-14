@@ -136,7 +136,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .sw::before{content:'🔍';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none}
 .sect-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;margin-top:4px}
 .vi{background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:10px 12px;margin-bottom:8px}
-.back-btn{display:none;position:fixed;left:16px;bottom:74px;z-index:300;width:52px;height:52px;border-radius:50%;background:#27ae60;color:#fff;border:none;font-size:32px;line-height:1;cursor:pointer;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.4);padding:0;text-align:center}
+.back-btn{display:none;position:fixed;left:16px;bottom:74px;z-index:300;width:36px;height:36px;border-radius:50%;background:#27ae60;color:#fff;border:none;font-size:20px;line-height:1;cursor:pointer;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.4);padding:0;text-align:center}
 .back-btn.visible{display:flex}
 .tab-card{background:var(--sf2);border:1px solid var(--bd);border-radius:12px;padding:13px;margin-bottom:8px}
 .tab-card.owed{border-left:3px solid var(--warn)}
@@ -175,7 +175,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.61</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.62</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -2992,7 +2992,7 @@ function renderStockMgr(){
             +'data-sz="'+(sz||'__none__')+'" data-col="'+(c.name||'')+'" '
             +'onclick="openStockEdit(this)">'
             +'<span style="flex:1;font-size:12px;color:var(--fg);padding-right:8px">'+rowLabel+'</span>'
-            +'<span style="font-size:20px;font-weight:700;width:56px;min-width:56px;max-width:56px;text-align:right;display:block;color:'+(qty<=0?'var(--rl)':qty<=(D.lowStockThreshold||5)?'var(--warn)':'var(--grnl)')+'">'+qty+'</span>'
+            +'<span style="font-size:13px;font-weight:600;width:44px;min-width:44px;max-width:44px;text-align:right;display:block;color:'+(qty<=0?'var(--rl)':qty<=(D.lowStockThreshold||5)?'var(--warn)':'var(--grnl)')+'">'+qty+'</span>'
             +'</div>';
         });
       });
