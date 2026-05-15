@@ -175,7 +175,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.67</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.68</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -451,7 +451,10 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
         <h4>&#128190; Backup &amp; Restore</h4>
         <div class="fg">
           <label>Auto-backup reminder (days, 0 to disable)</label>
-          <input type="number" id="set-backup-days" min="0" max="365" value="7" style="width:80px">
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="number" id="set-backup-days" min="0" max="365" value="7" style="width:80px">
+            <button class="btn btn-gold" onclick="saveBackupDays()" style="padding:6px 14px;font-size:12px">Save &amp; Sync</button>
+          </div>
         </div>
         <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Last backup: <span id="last-backup-lbl">Never</span></div>
         <button class="btn btn-gold" onclick="exportBackup()" style="width:100%;margin-bottom:8px">&#128229; Export Backup Now</button>
@@ -2235,11 +2238,17 @@ function viewSupplier(sid){var s=D.suppliers.find(function(x){return x.id===sid;
 function saveSupplier(){var name=document.getElementById('sup-name').value.trim();if(!name){alert('Supplier name is required.');return;}var sid=document.getElementById('sup-id').value;var data={name:name,contact:document.getElementById('sup-contact').value.trim(),phone:document.getElementById('sup-phone').value.trim(),email:document.getElementById('sup-email').value.trim(),website:document.getElementById('sup-website').value.trim(),address:document.getElementById('sup-address').value.trim()};if(sid){var s=D.suppliers.find(function(x){return x.id===sid;});if(s){var before={name:s.name};Object.assign(s,data);audit('SETTINGS','Supplier edited: '+name,before,{name:name});}}else{if(D.suppliers.find(function(x){return x.name.toLowerCase()===name.toLowerCase();})){alert('Supplier already exists.');return;}data.id=uid();D.suppliers.push(data);audit('SETTINGS','Supplier added: '+name);}save();closeM('mo-supplier');renderSettings();}
 
 function saveBackupSettings(){var days=parseInt(document.getElementById('set-backup-days').value)||7;D.backupReminderDays=days;
-  // Force immediate sync to Supabase so all devices pick up the change
   localStorage.setItem('remct4',JSON.stringify(D));
-  syncToSupabase(function(ok){
-    alert(ok?'Backup reminder set to every '+days+' days. Saved to cloud.':'Backup reminder saved locally but cloud sync failed - check connection.');
-  });}
+  var url=D.supabaseUrl&&D.supabaseUrl.trim();
+  var key=D.supabaseKey&&D.supabaseKey.trim();
+  if(url&&key&&navigator.onLine){
+    syncToSupabase(function(ok){
+      if(ok){alert('Backup reminder set to '+days+' days and saved to cloud ✓');}
+      else{alert('Saved locally but cloud sync failed. Check connection and try again.');}
+    });
+  } else {
+    alert('Saved locally. Connect to internet and tap sync to push to cloud.');
+  }}
 function exportBackup(){
   var now=new Date();
   var pad=function(n,w){return String(n).padStart(w,'0');};
