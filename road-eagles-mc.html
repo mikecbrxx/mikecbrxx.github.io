@@ -175,7 +175,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.73</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.74</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -2063,24 +2063,18 @@ function renderAnalysis(){
   var unpaidTx=filterTx(D.transactions.filter(function(t){return t.paid===false;}));
   var allTx=filterTx(D.transactions);
 
-  // For committed view: ALL outstanding items regardless of date filter
-  // (tabs, fees, PO balances are not date-stamped to current period)
-  var committedTx;
-  if(_anView==='committed'){
-    // All unpaid transactions (no date filter)
-    var allUnpaid=D.transactions.filter(function(t){return t.paid===false;});
-    // Add merch tabs as pseudo-transactions
-    var tabTx=(D.tabs||[]).filter(function(t){return !t.settled;}).map(function(t){
-      return{direction:'in',category:'merchandise',amount:parseFloat(t.amount||0)};
-    });
-    // Add PO balances as pseudo-transactions
-    var poTx=(D.purchaseOrders||[]).filter(function(po){
-      return po.status!=='received'&&po.status!=='draft'&&poBalance(po)>0;
-    }).map(function(po){
-      return{direction:'out',category:'purchase',amount:poBalance(po)};
-    });
-    committedTx=[...allUnpaid,...tabTx,...poTx];
-  }
+  // Build committedTx always - needed for both committed and combined views
+  // ALL outstanding items regardless of date filter
+  var allUnpaid=D.transactions.filter(function(t){return t.paid===false;});
+  var tabTx=(D.tabs||[]).filter(function(t){return !t.settled;}).map(function(t){
+    return{direction:'in',category:'merchandise',amount:parseFloat(t.amount||0)};
+  });
+  var poTx=(D.purchaseOrders||[]).filter(function(po){
+    return po.status!=='received'&&po.status!=='draft'&&poBalance(po)>0;
+  }).map(function(po){
+    return{direction:'out',category:'purchase',amount:poBalance(po)};
+  });
+  var committedTx=[...allUnpaid,...tabTx,...poTx];
 
   // Combined = paid transactions in period + ALL committed outstanding (no date filter)
   var combinedTx=_anView==='combined'?[...paidTx,...committedTx]:null;
