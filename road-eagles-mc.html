@@ -175,7 +175,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.64</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.65</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -1029,7 +1029,11 @@ function loadFromSupabase(cb){
     if(rows&&rows.length>0&&rows[0].data&&Object.keys(rows[0].data).length>0){
       // Always use remote data
       var remoteData=rows[0].data;
+      // Preserve local lastBackupDate if it's more recent than remote
+      var localBackupDate=D.lastBackupDate||'';
+      var remoteBackupDate=remoteData.lastBackupDate||'';
       D=remoteData;
+      if(localBackupDate>remoteBackupDate)D.lastBackupDate=localBackupDate;
       D.supabaseUrl=url;
       D.supabaseKey=key;
       if(!D.colours)D.colours=[...DEF_COLS];
@@ -1093,6 +1097,10 @@ function tryLogin(){
         document.getElementById('lerr').textContent='';
         if(rows&&rows.length>0&&rows[0].data&&Object.keys(rows[0].data).length>0){
           var remoteData=rows[0].data;
+          // Preserve local lastBackupDate if more recent
+          var localBD=D.lastBackupDate||'';
+          var remoteBD=remoteData.lastBackupDate||'';
+          if(localBD>remoteBD)remoteData.lastBackupDate=localBD;
           // Preserve credentials and migrate
           remoteData.supabaseUrl=url;
           remoteData.supabaseKey=key;
@@ -1743,6 +1751,8 @@ function deleteUser(){const old=document.getElementById('usr-old').value;if(!old
 
 // Settings
 function loadSettings(){document.getElementById('set-cb').value=D.openingClub||0;document.getElementById('set-hb').value=D.openingCharity||0;document.getElementById('set-fee').value=D.memberFee||2000;
+  var brd=document.getElementById('set-backup-days');if(brd)brd.value=D.backupReminderDays!==undefined?D.backupReminderDays:7;
+  var lbl=document.getElementById('last-backup-lbl');if(lbl)lbl.textContent=D.lastBackupDate?new Date(D.lastBackupDate).toLocaleString('en-GB'):'Never';
   var ci=document.getElementById('set-cats-i');if(ci)ci.value=(D.incomeCategories||CATS_I).join(', ');
   var et=document.getElementById('set-ev-types');if(et)et.value=(D.eventTypes||['party','ride','fundraiser','other']).join(', ');
   var sz=document.getElementById('set-sizes');if(sz)sz.value=(D.sizes||SIZES).join(', ');
