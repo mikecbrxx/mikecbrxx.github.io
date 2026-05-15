@@ -175,7 +175,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.69</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.71</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -2119,7 +2119,11 @@ function renderMeeting(){
   var pIn=periodTx.filter(function(t){return t.direction==='in';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
   var pOut=periodTx.filter(function(t){return t.direction==='out';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
   var unpaidFees=D.members.filter(function(m){return m.status==='unpaid';});
-  var feesTotal=unpaidFees.reduce(function(a,m){return a+calcFee(m.joinDate);},0);
+  // Use actual unpaid fee transactions as source of truth (matches tab ledger)
+  var feeTabTx=D.transactions.filter(function(t){return t.paid===false&&t.category==='membership_fee'&&t.direction==='in';});
+  var feesTotal=feeTabTx.length>0
+    ?feeTabTx.reduce(function(a,t){return a+parseFloat(t.amount||0);},0)
+    :unpaidFees.reduce(function(a,m){return a+calcFee(m.joinDate);},0);
   var openTabs=(D.tabs||[]).filter(function(t){return !t.settled;});
   var unpaidTx=D.transactions.filter(function(t){return t.paid===false;});
   var tabTotal=openTabs.reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
@@ -2141,8 +2145,32 @@ function renderMeeting(){
     +br('Club Account',thb(bal.club))+br('Charity Account',thb(bal.charity),'var(--grnl)')+br('Combined',thb(bal.club+bal.charity))+'</div>'
     +'<div class="balbar"><h3>&#128201; '+label+' Income &amp; Expenditure</h3>'
     +br('Income',thb(pIn),'var(--grnl)')+br('Expenditure',thb(pOut),'var(--rl)')+br('Net',thb(pIn-pOut),(pIn-pOut>=0?'var(--grnl)':'var(--rl)'))+'</div>'
-    +'<div class="balbar"><h3>&#128203; Outstanding Items</h3>'
-    +br('Unpaid Fees ('+unpaidFees.length+' members)',thb(feesTotal),'var(--warn)')+br('Merch Tabs',thb(tabTotal),'var(--warn)')+br('Other Unpaid ('+unpaidTx.length+')',thb(unpaidTxTotal),'var(--warn)')+'</div>'
+    +(function(){
+      // Money DUE TO the club (income not yet received)
+      // Exclude membership_fee - already counted separately via feesTotal
+      // Exclude merchandise tabs - counted separately via openTabs
+      var dueIn=unpaidTx.filter(function(t){return t.direction==='in'&&t.category!=='membership_fee'&&t.category!=='merchandise';});
+      var dueInTotal=dueIn.reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+      var tabDueTotal=openTabs.reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+      var totalDueIn=feesTotal+dueInTotal+tabDueTotal;
+      // Money the club is COMMITTED TO SPEND (expenses not yet paid)
+      var dueOut=unpaidTx.filter(function(t){return t.direction==='out';});
+      var dueOutTotal=dueOut.reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+      var poOutstanding=(D.purchaseOrders||[]).filter(function(po){return po.status!=='received'&&po.status!=='draft'&&poBalance(po)>0;}).reduce(function(a,po){return a+poBalance(po);},0);
+      var totalDueOut=dueOutTotal+poOutstanding;
+      return '<div class="balbar"><h3>&#128203; Committed &amp; Outstanding</h3>'
+        +'<div style="font-size:11px;font-weight:700;color:var(--grnl);text-transform:uppercase;letter-spacing:1px;padding:4px 0 2px">Due to the Club</div>'
+        +br('Unpaid Member Fees ('+unpaidFees.length+')',thb(feesTotal),'var(--grnl)')
+        +br('Merch Tabs',thb(tabDueTotal),'var(--grnl)')
+        +(dueInTotal>0?br('Other Income Due',thb(dueInTotal),'var(--grnl)'):'')
+        +br('Total Due In',thb(totalDueIn),'var(--grnl)')
+        +'<div style="font-size:11px;font-weight:700;color:var(--rl);text-transform:uppercase;letter-spacing:1px;padding:6px 0 2px">Committed to Spend</div>'
+        +(dueOutTotal>0?br('Unpaid Expenses ('+dueOut.length+')',thb(dueOutTotal),'var(--rl)'):'')
+        +(poOutstanding>0?br('PO Balances Outstanding',thb(poOutstanding),'var(--rl)'):'')
+        +(totalDueOut===0?'<div style="font-size:12px;color:var(--dim);padding:4px 0">None</div>':'')
+        +br('Total Committed',thb(totalDueOut),'var(--rl)')
+        +'</div>';
+    })()
     +'<div class="balbar"><h3>&#128101; Membership</h3>'
     +br('Paid',paid,'var(--grnl)')+br('Unpaid',unpaidM,'var(--warn)')+br('Prospects',prospects,'var(--muted)')+'</div>'
     +'<div class="balbar"><h3>&#128230; Merchandise Stock</h3>'
