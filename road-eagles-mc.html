@@ -175,7 +175,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.62</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.63</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -968,10 +968,9 @@ function syncToSupabase(onDone){
       setDot('offline');
       r.text().then(function(t){
         console.warn('Sync error '+r.status+': '+t);
-        // Show error to admin
-        if(CU&&CU.role==='admin'&&t){
-          var msg=t.length>200?t.slice(0,200)+'...':t;
-          console.error('Supabase sync failed: '+r.status+' '+msg);
+        if(CU&&CU.role==='admin'){
+          var msg=t.length>300?t.slice(0,300)+'...':t;
+          alert('Supabase sync failed!\nStatus: '+r.status+'\n'+msg);
         }
       });
       if(onDone)onDone(false);
@@ -1030,7 +1029,7 @@ function loadFromSupabase(cb){
   }).then(function(r){return r.json();})
   .then(function(rows){
     if(rows&&rows.length>0&&rows[0].data&&Object.keys(rows[0].data).length>0){
-      // Always use remote data — no timestamp comparison
+      // Always use remote data
       var remoteData=rows[0].data;
       D=remoteData;
       D.supabaseUrl=url;
