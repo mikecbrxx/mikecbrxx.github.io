@@ -175,7 +175,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.65</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.67</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -1029,7 +1029,7 @@ function loadFromSupabase(cb){
     if(rows&&rows.length>0&&rows[0].data&&Object.keys(rows[0].data).length>0){
       // Always use remote data
       var remoteData=rows[0].data;
-      // Preserve local lastBackupDate if it's more recent than remote
+      // Preserve local lastBackupDate if more recent than remote
       var localBackupDate=D.lastBackupDate||'';
       var remoteBackupDate=remoteData.lastBackupDate||'';
       D=remoteData;
@@ -2234,7 +2234,12 @@ function openEditSupplier(sid){var s=D.suppliers.find(function(x){return x.id===
 function viewSupplier(sid){var s=D.suppliers.find(function(x){return x.id===sid;});if(!s)return;document.getElementById('sup-view-title').textContent=s.name;var body='';if(s.contact)body+='<div class="brow"><span class="blbl">Contact</span><span>'+s.contact+'</span></div>';if(s.phone)body+='<div class="brow"><span class="blbl">Phone</span><a href="tel:'+s.phone+'" style="color:var(--gold)">'+s.phone+'</a></div>';if(s.email)body+='<div class="brow"><span class="blbl">Email</span><a href="mailto:'+s.email+'" style="color:var(--gold)">'+s.email+'</a></div>';if(s.website)body+='<div class="brow"><span class="blbl">Website</span><a href="'+s.website+'" target="_blank" style="color:var(--gold)">'+s.website+'</a></div>';if(s.address)body+='<div class="brow"><span class="blbl">Address</span><span style="font-size:11px">'+s.address+'</span></div>';if(!body)body='<div style="color:var(--muted);font-size:12px;text-align:center;padding:12px">No additional details recorded.</div>';document.getElementById('sup-view-body').innerHTML=body;var eb=document.getElementById('sup-edit-btn');if(eb){var isOfficer=CU&&(CU.role==='admin'||CU.role==='officer'||CU.role==='president'||CU.role==='vice_president'||CU.role==='treasurer');eb.style.display=isOfficer?'':'none';eb.onclick=function(){closeM('mo-supplier-view');openEditSupplier(sid);};}openM('mo-supplier-view');}
 function saveSupplier(){var name=document.getElementById('sup-name').value.trim();if(!name){alert('Supplier name is required.');return;}var sid=document.getElementById('sup-id').value;var data={name:name,contact:document.getElementById('sup-contact').value.trim(),phone:document.getElementById('sup-phone').value.trim(),email:document.getElementById('sup-email').value.trim(),website:document.getElementById('sup-website').value.trim(),address:document.getElementById('sup-address').value.trim()};if(sid){var s=D.suppliers.find(function(x){return x.id===sid;});if(s){var before={name:s.name};Object.assign(s,data);audit('SETTINGS','Supplier edited: '+name,before,{name:name});}}else{if(D.suppliers.find(function(x){return x.name.toLowerCase()===name.toLowerCase();})){alert('Supplier already exists.');return;}data.id=uid();D.suppliers.push(data);audit('SETTINGS','Supplier added: '+name);}save();closeM('mo-supplier');renderSettings();}
 
-function saveBackupSettings(){var days=parseInt(document.getElementById('set-backup-days').value)||7;D.backupReminderDays=days;save();alert('Backup reminder set to every '+days+' days.');}
+function saveBackupSettings(){var days=parseInt(document.getElementById('set-backup-days').value)||7;D.backupReminderDays=days;
+  // Force immediate sync to Supabase so all devices pick up the change
+  localStorage.setItem('remct4',JSON.stringify(D));
+  syncToSupabase(function(ok){
+    alert(ok?'Backup reminder set to every '+days+' days. Saved to cloud.':'Backup reminder saved locally but cloud sync failed - check connection.');
+  });}
 function exportBackup(){
   var now=new Date();
   var pad=function(n,w){return String(n).padStart(w,'0');};
