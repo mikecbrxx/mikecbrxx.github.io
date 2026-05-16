@@ -175,7 +175,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.85</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.86</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -705,24 +705,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   </div>
 </div>
 
-<div class="mo" id="mo-cfgedit">
-  <div class="mob">
-    <div class="mh"><div class="mt" id="mo-cfg-t">Edit Item</div><button class="mc2" onclick="closeM('mo-cfgedit')">&#10005;</button></div>
-    <input type="hidden" id="cfg-edit-type">
-    <input type="hidden" id="cfg-edit-idx">
-    <div class="fg" id="cfg-edit-id-row"><label>ID (system key, no spaces)</label><input type="text" id="cfg-edit-id" placeholder="e.g. shirt"></div>
-    <div class="fg"><label id="cfg-edit-label-lbl">Label</label><input type="text" id="cfg-edit-label" placeholder="e.g. Shirt"></div>
-    <div class="fg" id="cfg-edit-hex-row" style="display:none">
-      <label>Colour</label>
-      <div style="display:flex;gap:8px;align-items:center">
-        <input type="color" id="cfg-edit-hex" value="#888888" style="width:50px;height:36px;padding:2px;border-radius:8px;cursor:pointer">
-        <span id="cfg-edit-hex-preview" style="width:36px;height:36px;border-radius:50%;background:#888;border:2px solid var(--bd);display:inline-block"></span>
-        <input type="text" id="cfg-edit-hex-text" placeholder="#888888" style="flex:1">
-      </div>
-    </div>
-    <button class="btn btn-gold" onclick="saveCfgEdit()" style="width:100%;margin-top:8px">Save</button>
-  </div>
-</div>
+
 
 <div class="mo" id="mo-stockedit">
   <div class="mob">
