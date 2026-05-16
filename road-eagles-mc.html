@@ -176,7 +176,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.88</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.89</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -1926,8 +1926,65 @@ function showReport(type){
 function br(l,v,c){return`<div class="brow"><span class="blbl">${l}</span><span style="font-size:15px;font-weight:700;color:${c||'var(--gl)'};">${v}</span></div>`;}
 function sumio(txs){const i=txs.filter(t=>t.direction==='in').reduce((a,t)=>a+parseFloat(t.amount||0),0),o=txs.filter(t=>t.direction==='out').reduce((a,t)=>a+parseFloat(t.amount||0),0);return{i,o,n:i-o};}
 function catBd(txs){const c={};txs.forEach(t=>{const a=(t.direction==='in'?1:-1)*(parseFloat(t.amount)||0);c[t.category]=(c[t.category]||0)+a;});return Object.entries(c).map(([k,v])=>br(CM[k]||k,thb(Math.abs(v)),v>=0?'var(--grnl)':'var(--rl)')).join('');}
-function rMonth(){const n=new Date(),l=n.toLocaleString('en-GB',{month:'long',year:'numeric'}),mt=mthTx(),c=sumio(mt.filter(t=>t.account==='club')),h=sumio(mt.filter(t=>t.account==='charity'));return`<div style="font-size:12px;color:var(--muted);margin-bottom:12px">${l}</div><div class="balbar"><h3>&#128693;&#65039; Club Account</h3>${br('Income',thb(c.i),'var(--grnl)')}${br('Expenses',thb(c.o),'var(--rl)')}${br('Net',thb(c.n))}</div><div class="balbar"><h3>&#10084;&#65039; Charity Account</h3>${br('Donations In',thb(h.i),'var(--grnl)')}${br('Out',thb(h.o),'var(--rl)')}${br('Net',thb(h.n))}</div>`;}
-function rAnnual(){const b=calcBal(),c=D.transactions.filter(t=>t.account==='club'),h=D.transactions.filter(t=>t.account==='charity');return`<div class="balbar"><h3>&#128693;&#65039; Club Account</h3>${catBd(c)}${br('Balance',thb(b.club))}</div><div class="balbar"><h3>&#10084;&#65039; Charity Account</h3>${catBd(h)}${br('Balance',thb(b.charity))}</div>`;}
+function rMonth(){
+  var n=new Date(),l=n.toLocaleString('en-GB',{month:'long',year:'numeric'}),mt=mthTx();
+  var c=sumio(mt.filter(function(t){return t.account==='club';}));
+  var h=sumio(mt.filter(function(t){return t.account==='charity';}));
+  // Committed items (all outstanding, not date filtered)
+  var allUnpaid=D.transactions.filter(function(t){return t.paid===false;});
+  var tabTotal=(D.tabs||[]).filter(function(t){return !t.settled;}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  var poTotal=(D.purchaseOrders||[]).filter(function(po){return po.status!=='received'&&po.status!=='draft'&&poBalance(po)>0;}).reduce(function(a,po){return a+poBalance(po);},0);
+  var unpaidIn=allUnpaid.filter(function(t){return t.direction==='in'&&t.category!=='membership_fee'&&t.category!=='merchandise';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  var feeTabTx=allUnpaid.filter(function(t){return t.category==='membership_fee'&&t.direction==='in';});
+  var feesOwed=feeTabTx.reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  var unpaidOut=allUnpaid.filter(function(t){return t.direction==='out';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  var totalDueIn=feesOwed+tabTotal+unpaidIn;
+  var totalDueOut=unpaidOut+poTotal;
+  var committedNote='<div style="font-size:10px;color:var(--dim);margin:4px 0 8px;font-style:italic">&#9432; Committed items are not included in the paid totals above.</div>';
+  return '<div style="font-size:12px;color:var(--muted);margin-bottom:12px">'+l+'</div>'
+    +'<div class="balbar"><h3>&#128693;&#65039; Club Account</h3>'+br('Income',thb(c.i),'var(--grnl)')+br('Expenses',thb(c.o),'var(--rl)')+br('Net',thb(c.n))+'</div>'
+    +'<div class="balbar"><h3>&#10084;&#65039; Charity Account</h3>'+br('Donations In',thb(h.i),'var(--grnl)')+br('Out',thb(h.o),'var(--rl)')+br('Net',thb(h.n))+'</div>'
+    +'<div class="balbar"><h3>&#128203; Committed &amp; Outstanding</h3>'+committedNote
+    +'<div style="font-size:11px;font-weight:700;color:var(--grnl);padding:2px 0">Due to the Club</div>'
+    +br('Unpaid Fees',thb(feesOwed),'var(--grnl)')
+    +br('Merch Tabs',thb(tabTotal),'var(--grnl)')
+    +(unpaidIn>0?br('Other Income Due',thb(unpaidIn),'var(--grnl)'):'')
+    +br('Total Due In',thb(totalDueIn),'var(--grnl)')
+    +'<div style="font-size:11px;font-weight:700;color:var(--rl);padding:6px 0 2px">Committed to Spend</div>'
+    +(unpaidOut>0?br('Unpaid Expenses',thb(unpaidOut),'var(--rl)'):'')
+    +(poTotal>0?br('PO Balances',thb(poTotal),'var(--rl)'):'')
+    +(totalDueOut===0?'<div style="font-size:12px;color:var(--dim);padding:4px 0">None</div>':'')
+    +br('Total Committed',thb(totalDueOut),'var(--rl)')
+    +'</div>';
+}
+function rAnnual(){
+  var b=calcBal();
+  var c=D.transactions.filter(function(t){return t.account==='club'&&t.paid!==false;});
+  var h=D.transactions.filter(function(t){return t.account==='charity'&&t.paid!==false;});
+  var allUnpaid=D.transactions.filter(function(t){return t.paid===false;});
+  var tabTotal=(D.tabs||[]).filter(function(t){return !t.settled;}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  var poTotal=(D.purchaseOrders||[]).filter(function(po){return po.status!=='received'&&po.status!=='draft'&&poBalance(po)>0;}).reduce(function(a,po){return a+poBalance(po);},0);
+  var feesOwed=allUnpaid.filter(function(t){return t.category==='membership_fee'&&t.direction==='in';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  var unpaidIn=allUnpaid.filter(function(t){return t.direction==='in'&&t.category!=='membership_fee'&&t.category!=='merchandise';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  var unpaidOut=allUnpaid.filter(function(t){return t.direction==='out';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  var totalDueIn=feesOwed+tabTotal+unpaidIn;
+  var totalDueOut=unpaidOut+poTotal;
+  var committedNote='<div style="font-size:10px;color:var(--dim);margin:4px 0 8px;font-style:italic">&#9432; Committed items are not included in the paid balances above.</div>';
+  return '<div class="balbar"><h3>&#128693;&#65039; Club Account</h3>'+catBd(c)+br('Balance',thb(b.club))+'</div>'
+    +'<div class="balbar"><h3>&#10084;&#65039; Charity Account</h3>'+catBd(h)+br('Balance',thb(b.charity))+'</div>'
+    +'<div class="balbar"><h3>&#128203; Committed &amp; Outstanding</h3>'+committedNote
+    +'<div style="font-size:11px;font-weight:700;color:var(--grnl);padding:2px 0">Due to the Club</div>'
+    +br('Unpaid Fees',thb(feesOwed),'var(--grnl)')
+    +br('Merch Tabs',thb(tabTotal),'var(--grnl)')
+    +(unpaidIn>0?br('Other Income Due',thb(unpaidIn),'var(--grnl)'):'')
+    +br('Total Due In',thb(totalDueIn),'var(--grnl)')
+    +'<div style="font-size:11px;font-weight:700;color:var(--rl);padding:6px 0 2px">Committed to Spend</div>'
+    +(unpaidOut>0?br('Unpaid Expenses',thb(unpaidOut),'var(--rl)'):'')
+    +(poTotal>0?br('PO Balances',thb(poTotal),'var(--rl)'):'')
+    +(totalDueOut===0?'<div style="font-size:12px;color:var(--dim);padding:4px 0">None</div>':'')
+    +br('Total Committed',thb(totalDueOut),'var(--rl)')
+    +'</div>';
+}
 function rMem(){const paid=D.members.filter(m=>m.status==='paid'),un=D.members.filter(m=>m.status==='unpaid'),pr=D.members.filter(m=>m.status==='prospect'),ia=D.members.filter(m=>m.status==='inactive');const fe=un.reduce((a,m)=>a+calcFee(m.joinDate),0);const RL={};(D.memberRoles||[{id:'president',name:'President'},{id:'vice_president',name:'Vice President'},{id:'treasurer',name:'Treasurer'},{id:'member',name:'Member'},{id:'prospect',name:'Prospect'}]).forEach(function(r){RL[r.id]=r.name;});function mr(m){return`<div class="brow"><span class="blbl">${m.name}${m.email?` <span style="font-size:9px;color:var(--dim)">&#9993; ${m.email}</span>`:''}</span><span style="font-size:11px;color:var(--muted)">${RL[m.role]||m.role} &middot; ${thb(calcFee(m.joinDate))}</span></div>`;}const paidTotal=paid.reduce((a,m)=>a+calcFee(m.joinDate),0);return`<div class="balbar"><h3>&#9989; Paid (${paid.length}) &#8212; ${thb(paidTotal)}</h3>${paid.map(mr).join('')||'<div style="color:var(--dim);font-size:12px;padding:6px 0">None</div>'}</div><div class="balbar"><h3>&#8987; Unpaid (${un.length}) &#8212; ${thb(fe)} outstanding</h3>${un.map(mr).join('')||'<div style="color:var(--dim);font-size:12px;padding:6px 0">None</div>'}</div><div class="balbar"><h3>&#128064; Prospects (${pr.length})</h3>${pr.map(m=>`<div class="brow"><span class="blbl">${m.name}</span><span style="font-size:11px;color:var(--muted)">${RL[m.role]||m.role}</span></div>`).join('')||'<div style="color:var(--dim);font-size:12px;padding:6px 0">None</div>'}</div><div class="balbar"><h3>&#128683; Inactive (${ia.length})</h3>${ia.map(m=>`<div class="brow"><span class="blbl" style="color:var(--muted)">${m.name}</span><span style="font-size:11px;color:var(--dim)">${RL[m.role]||m.role}</span></div>`).join('')||'<div style="color:var(--dim);font-size:12px;padding:6px 0">None</div>'}</div>`;}
 function rMerch(){const s=D.transactions.filter(t=>t.category==='merchandise');const tot=s.reduce((a,t)=>a+parseFloat(t.amount||0),0);const ms=s.filter(t=>t.customerType==='member').reduce((a,t)=>a+parseFloat(t.amount||0),0);const vs=s.filter(t=>t.customerType==='visitor').reduce((a,t)=>a+parseFloat(t.amount||0),0);const bp={};s.forEach(t=>{const k=t.description||'?';bp[k]=(bp[k]||0)+parseFloat(t.amount||0);});const bc={};s.forEach(t=>{if(t.colour){bc[t.colour]=(bc[t.colour]||0)+parseFloat(t.amount||0);}});return`<div class="balbar"><h3>&#128085;&#65039; Merchandise Sales</h3>${br('Total',thb(tot))}${br('Member Sales',thb(ms),'var(--gold)')}${br('Visitor Sales',thb(vs),'var(--blul)')}${br('Transactions',s.length,'var(--muted)')}</div><div class="balbar"><h3>By Item</h3>${Object.entries(bp).sort((a,b)=>b[1]-a[1]).slice(0,12).map(([d,v])=>br(d.length>32?d.slice(0,32)+'&#8230;':d,thb(v),'var(--gl)')).join('')||'<div style="color:var(--dim);font-size:12px">No sales yet</div>'}</div>${Object.keys(bc).length?`<div class="balbar"><h3>By Colour</h3>${Object.entries(bc).sort((a,b)=>b[1]-a[1]).map(([c,v])=>br(c,thb(v),'var(--muted)')).join('')}</div>`:''}`;}
 function rStock(){
@@ -1947,14 +2004,33 @@ function rStock(){
   const ok=rows.filter(r=>r.st==='ok');
   function rr(r){return '<div class="brow"><span class="blbl" style="font-size:11px">'+r.name+'</span><span style="font-weight:700;color:'+(r.st==='ok'?'var(--grnl)':r.st==='low'?'var(--warn)':'var(--rl)')+'">'+r.qty+'</span></div>';}
   var html='';
-  if(out.length)html+='<div class="balbar"><h3>&#128308; Out of Stock ('+out.length+')</h3>'+out.map(rr).join('')+'</div>';
+  html+='<div class="balbar"><h3>&#128994; In Stock ('+ok.length+')</h3>'+(ok.length?ok.map(rr).join(''):'<div style="color:var(--dim);font-size:12px;padding:6px 0">None in stock</div>')+'</div>';
   html+='<div class="balbar"><h3>&#9888;&#65039; Low Stock &le;'+t+' ('+low.length+')</h3>'+(low.length?low.map(rr).join(''):'<div style="color:var(--dim);font-size:12px;padding:6px 0">None &#8212; all good!</div>')+'</div>';
-  html+='<div class="balbar"><h3>&#128994; In Stock ('+ok.length+')</h3>'+ok.map(rr).join('')+'</div>';
+  if(out.length)html+='<div class="balbar"><h3>&#128308; Out of Stock ('+out.length+')</h3>'+out.map(rr).join('')+'</div>';
   return html;
 }
 
 function rDon(){const di=D.transactions.filter(t=>['donation_in','collection_box'].includes(t.category)),dout=D.transactions.filter(t=>['donation_out','charity_cash','charity_goods','club_donation_out'].includes(t.category));const it=di.reduce((a,t)=>a+parseFloat(t.amount||0),0),ot=dout.reduce((a,t)=>a+parseFloat(t.amount||0),0);return`<div class="balbar"><h3>&#10084;&#65039; Donations</h3>${br('Received',thb(it),'var(--grnl)')}${br('Given Out',thb(ot),'var(--rl)')}${br('Net',thb(it-ot))}</div><div class="balbar"><h3>Payments Out</h3>${dout.length?dout.map(t=>`<div class="brow"><span class="blbl" style="font-size:11px">${t.description||CM[t.category]}</span><span style="color:var(--rl)">${thb(t.amount)}</span></div>`).join(''):'<div style="color:var(--dim);font-size:12px;padding:6px 0">None yet</div>'}</div>`;}
-function rSup(){const p=D.transactions.filter(t=>t.direction==='out'),tot=p.reduce((a,t)=>a+parseFloat(t.amount||0),0),bs={};p.forEach(t=>{const s=t.supplier||'Unspecified';bs[s]=(bs[s]||0)+parseFloat(t.amount||0);});return`<div class="balbar"><h3>&#127978;&#65039; Purchase Ledger</h3>${br('Total Spent',thb(tot),'var(--rl)')}${Object.entries(bs).sort((a,b)=>b[1]-a[1]).map(([s,v])=>br(s,thb(v),'var(--muted)')).join('')}</div>`;}
+function rSup(){
+  var p=D.transactions.filter(function(t){return t.direction==='out'&&t.paid!==false;});
+  var tot=p.reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  var bs={};
+  p.forEach(function(t){var s=t.supplier||'Unspecified';bs[s]=(bs[s]||0)+parseFloat(t.amount||0);});
+  // PO outstanding balances (committed but unpaid)
+  var poItems=(D.purchaseOrders||[]).filter(function(po){return po.status!=='received'&&po.status!=='draft'&&poBalance(po)>0.01;});
+  var poTotal=poItems.reduce(function(a,po){return a+poBalance(po);},0);
+  var poBySupplier={};
+  poItems.forEach(function(po){var s=po.supplier||'Unspecified';poBySupplier[s]=(poBySupplier[s]||0)+poBalance(po);});
+  var committedNote='<div style="font-size:10px;color:var(--dim);margin:4px 0 8px;font-style:italic">&#9432; Committed PO balances are not included in the paid totals above.</div>';
+  return '<div class="balbar"><h3>&#127978;&#65039; Purchase Ledger &mdash; Paid</h3>'
+    +br('Total Paid',thb(tot),'var(--rl)')
+    +Object.entries(bs).sort(function(a,b){return b[1]-a[1];}).map(function(e){return br(e[0],thb(e[1]),'var(--muted)');}).join('')
+    +'</div>'
+    +(poItems.length?'<div class="balbar"><h3>&#128203; Committed PO Balances</h3>'+committedNote
+    +br('Total Outstanding',thb(poTotal),'var(--rl)')
+    +Object.entries(poBySupplier).sort(function(a,b){return b[1]-a[1];}).map(function(e){return br(e[0],thb(e[1]),'var(--muted)');}).join('')
+    +'</div>':'');
+}
 function rCOGS(){var rows=D.products.map(function(p){var vRows=p.variants.map(function(v){var memM=v.memberPrice-v.production;var visRow=!p.memberOnly?' &bull; Visitor '+thb(v.visitorPrice)+' (margin '+thb(v.visitorPrice-v.production)+')':'';return '<div class="brow" style="padding:3px 0"><span class="blbl" style="font-size:11px">'+v.name+'</span><span style="font-size:10px;color:var(--muted)">Cost '+thb(v.production)+' &#8594; Member '+thb(v.memberPrice)+' (margin '+thb(memM)+')'+visRow+'</span></div>';}).join('');return '<div style="padding:8px 0;border-bottom:1px solid rgba(201,162,39,.1)"><div style="font-size:12px;font-weight:600;margin-bottom:4px">'+p.name+(p.archived?' <span style="font-size:9px;color:var(--muted)">(archived)</span>':'')+'</div>'+vRows+'</div>';}).join('');return '<div class="balbar"><h3>&#128208; Cost of Goods</h3>'+rows+'</div>';}
 function rAudit(){
   if(!CU||CU.role!=='admin')return'<div class="empty">Admin only</div>';
@@ -1982,10 +2058,12 @@ function rAudit(){
 
 // Tab Debt Report
 function rTabs(){
-  if(!D.tabs||!D.tabs.length)return'<div class="empty"><div class="ei">&#128203;</div>No tab records yet</div>';
-  const open=D.tabs.filter(t=>!t.settled);
-  const done=D.tabs.filter(t=>t.settled);
-  const totalOwed=open.reduce((a,t)=>a+parseFloat(t.amount||0),0);
+  const open=(D.tabs||[]).filter(function(t){return !t.settled;});
+  const done=(D.tabs||[]).filter(function(t){return t.settled;});
+  const totalOwed=open.reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  // PO outstanding balances
+  var poItems=(D.purchaseOrders||[]).filter(function(po){return po.status!=='received'&&po.status!=='draft'&&poBalance(po)>0.01;});
+  var poTotal=poItems.reduce(function(a,po){return a+poBalance(po);},0);
   // group open by member
   const byMem={};
   open.forEach(t=>{if(!byMem[t.memberId])byMem[t.memberId]={name:t.memberName,items:[],total:0};byMem[t.memberId].items.push(t);byMem[t.memberId].total+=parseFloat(t.amount||0);});
@@ -2003,7 +2081,15 @@ function rTabs(){
       </div>
     </div>
   </div>`;}
-  return`<div class="balbar"><h3>&#128203; Outstanding Tab Debts</h3>${br('Open Tabs',open.length,'var(--warn)')}${br('Total Owed',thb(totalOwed),'var(--warn)')}</div>
+  var poHtml='';
+  if(poItems.length){
+    poHtml='<div class="balbar"><h3>&#128230; Outstanding PO Balances</h3>';
+    poItems.forEach(function(po){
+      poHtml+='<div class="brow"><span class="blbl" style="font-size:11px">'+po.desc+(po.supplier?' &bull; '+po.supplier:'')+'</span><span style="font-weight:700;color:var(--rl)">'+thb(poBalance(po))+'</span></div>';
+    });
+    poHtml+=br('Total PO Outstanding',thb(poTotal),'var(--rl)')+'</div>';
+  }
+  return`<div class="balbar"><h3>&#128203; Outstanding Tab Debts</h3>${br('Open Tabs',open.length,'var(--warn)')}${br('Total Owed',thb(totalOwed),'var(--warn)')}${poTotal>0?br('PO Balances Outstanding',thb(poTotal),'var(--rl)'):''}</div>`+poHtml+`
   ${Object.values(byMem).sort((a,b)=>b.total-a.total).map(g=>`<div style="margin-bottom:14px"><div style="font-size:13px;font-weight:600;margin-bottom:6px">&#128100; ${g.name} &mdash; <span style="color:var(--warn)">${thb(g.total)} owed</span></div>${g.items.map(t=>tabRow(t,true)).join('')}</div>`).join('')||'<div style="color:var(--grnl);font-size:13px;padding:10px 0">&#10003; No outstanding tab debts!</div>'}
   ${done.length?`<div class="divider"></div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Settled (${done.length})</div>${done.slice(0,20).map(t=>tabRow(t,false)).join('')}`:''}`;}
 
@@ -2180,6 +2266,7 @@ function renderMeeting(){
       var poOutstanding=(D.purchaseOrders||[]).filter(function(po){return po.status!=='received'&&po.status!=='draft'&&poBalance(po)>0;}).reduce(function(a,po){return a+poBalance(po);},0);
       var totalDueOut=dueOutTotal+poOutstanding;
       return '<div class="balbar"><h3>&#128203; Committed &amp; Outstanding</h3>'
+        +'<div style="font-size:10px;color:var(--dim);margin-bottom:8px;font-style:italic">&#9432; These items are not included in the account balances or period totals above &mdash; they represent money yet to be received or paid.</div>'
         +'<div style="font-size:11px;font-weight:700;color:var(--grnl);text-transform:uppercase;letter-spacing:1px;padding:4px 0 2px">Due to the Club</div>'
         +br('Unpaid Member Fees ('+unpaidFees.length+')',thb(feesTotal),'var(--grnl)')
         +br('Merch Tabs',thb(tabDueTotal),'var(--grnl)')
@@ -3010,30 +3097,6 @@ function rStockValue(){
     });
     html+='</div>';
   });
-
-  // Stock value section
-  html+='<div class="balbar"><h3>&#128181; STOCK VALUE AT COST</h3>';
-  var svTotal=0;var svRows=[];
-  D.products.filter(function(p){return!p.archived;}).forEach(function(p){
-    p.variants.forEach(function(v){
-      var prodCost=parseFloat(v.production||0);if(!prodCost)return;
-      var cols=prodColours(p);var szs=p.hasSizes?(p.sizes||SIZES):[null];
-      szs.forEach(function(sz){cols.forEach(function(c){
-        var qty=getStock(p.id,v.id,sz||null,c.name||'');
-        if(qty>0){
-          var val=qty*prodCost;svTotal+=val;
-          svRows.push('<div class="brow"><span class="blbl">'+p.name+' '+v.name+(sz?' '+sz:'')+(c.name?' '+c.name:'')+'</span>'
-            +'<span style="font-size:11px;color:var(--muted)">'+qty+' &times; '+thb(prodCost)+'</span>'
-            +'<span style="font-weight:600">'+thb(val)+'</span></div>');
-        }
-      });});
-    });
-  });
-  if(svRows.length){html+=svRows.join('');}
-  else{html+='<div style="font-size:12px;color:var(--dim);padding:4px 0">No stock with production costs set</div>';}
-  html+='<div class="brow" style="font-weight:700"><span class="blbl">Total Stock Value at Cost</span>'
-    +'<span style="font-weight:700;color:var(--rl)">'+thb(svTotal)+'</span></div>';
-  html+='</div>';
 
   return html;
 }
