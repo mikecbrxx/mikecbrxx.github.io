@@ -175,7 +175,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.80</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.83</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -1678,7 +1678,10 @@ function updOrdTotal(){document.getElementById('ord-total').innerHTML=thb((parse
 function saveOrder(){const p=D.products.find(x=>x.id===document.getElementById('ord-prod').value);if(!p){alert('Select a product');return;}const vi=parseInt(document.getElementById('ord-var').value)||0;const v=p.variants[vi];const qty=parseInt(document.getElementById('ord-qty').value)||0;if(qty<=0){alert('Quantity must be at least 1');return;}const cost=parseFloat(document.getElementById('ord-cost').value)||0;const sz=p.hasSizes?document.getElementById('ord-size').value:null;const rawOrdCol=document.getElementById('ord-colour').value;const col=stockCol(p,rawOrdCol);const sup=document.getElementById('ord-sup').value.trim();if(sup&&!D.suppliers.find(function(x){return(x.name||x)===sup;}))D.suppliers.push({id:uid(),name:sup,phone:'',email:'',website:'',contact:'',address:''});adjStock(p.id,v.id,sz,col,qty,'ordered');D.transactions.push({id:uid(),account:'club',direction:'out',category:'stock_order',amount:cost*qty,description:'Stock order: '+p.name+' – '+v.name+(sz?' ('+sz+')':'')+(col?', '+col:'')+' ×'+qty,supplier:sup,ref:document.getElementById('ord-ref').value.trim(),date:document.getElementById('ord-date').value,created:ni(),notes:document.getElementById('ord-notes').value.trim(),enteredBy:CU.name,productId:p.id,variantId:v.id,qty,unitCost:cost,colour:col,size:sz});save();closeM('mo-order');renderAll();}
 
 // Member Modal
-function openMemberModal(){closeM('mo-fab');document.getElementById('mo-mem-t').textContent='Add Member / Prospect';document.getElementById('mem-id').value='';['mem-name','mem-phone','mem-email','mem-notes'].forEach(id=>document.getElementById(id).value='');document.getElementById('mem-role').value='prospect';document.getElementById('mem-status').value='prospect';document.getElementById('mem-join').value=nd();document.getElementById('mem-del').style.display='none';openM('mo-member');}
+function openMemberModal(){closeM('mo-fab');
+  var roleEl=document.getElementById('mem-role');
+  if(roleEl)roleEl.innerHTML=getMemberRoleOptions('prospect');
+  document.getElementById('mo-mem-t').textContent='Add Member / Prospect';document.getElementById('mem-id').value='';['mem-name','mem-phone','mem-email','mem-notes'].forEach(id=>document.getElementById(id).value='');document.getElementById('mem-role').value='prospect';document.getElementById('mem-status').value='prospect';document.getElementById('mem-join').value=nd();document.getElementById('mem-del').style.display='none';openM('mo-member');}
 function saveMember(){const name=document.getElementById('mem-name').value.trim();if(!name){alert('Name required');return;}const id=document.getElementById('mem-id').value;const data={name,role:document.getElementById('mem-role').value,status:document.getElementById('mem-status').value,joinDate:document.getElementById('mem-join').value,phone:document.getElementById('mem-phone').value,email:document.getElementById('mem-email').value.trim(),notes:document.getElementById('mem-notes').value};if(id){const m=D.members.find(x=>x.id===id);if(!m)return;Object.assign(m,data);}else D.members.push({id:uid(),...data,addedBy:CU.name,created:ni()});save();closeM('mo-member');renderMembers();}
 
 // Event Modal
@@ -3168,7 +3171,7 @@ function renderConfig(){
         +'style="display:flex;align-items:center;gap:8px;background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:10px 12px;margin-bottom:6px">'
         +'<span style="color:var(--dim);font-size:20px;cursor:grab;touch-action:none">&#9776;</span>'
         +(hex?'<span style="width:18px;height:18px;border-radius:50%;background:'+hex+';border:1px solid var(--bd);flex-shrink:0"></span>':'')
-        +(id?'<span style="font-size:10px;color:var(--dim);background:var(--sf);padding:1px 6px;border-radius:4px;flex-shrink:0">'+id+'</span>':'')
+        +(id&&!cfg.hasAccess?'<span style="font-size:10px;color:var(--dim);background:var(--sf);padding:1px 6px;border-radius:4px;flex-shrink:0">'+id+'</span>':'')
         +(cfg.hasAccess?'<span style="font-size:10px;padding:1px 6px;border-radius:8px;flex-shrink:0;margin-right:4px;background:'+(typeof item==='object'&&item.appAccess?'var(--grn)':'var(--bd)')+';color:'+(typeof item==='object'&&item.appAccess?'#fff':'var(--muted)')+'">'+( typeof item==='object'&&item.appAccess?'App':'Title')+'</span>':'')
         +'<span style="flex:1;font-size:13px">'+label+'</span>'
         +'<button data-idx="'+i+'" onclick="cfgEditItem(parseInt(this.dataset.idx))" style="background:none;border:1px solid var(--bd);color:var(--muted);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:11px;flex-shrink:0">Edit</button>'
@@ -3244,16 +3247,21 @@ function cfgAddItem(){
 function cfgEditItem(idx){
   var cfg=getCfgData(_cfgTab);
  
-  var lbl2=document.getElementById('cfg-edit-label-lbl');if(lbl2)lbl2.textContent=cfg.hasAccess?'Role Name':'Label'; var item=cfg.list[idx];
+  var lbl2=document.getElementById('cfg-edit-label-lbl');if(lbl2)lbl2.textContent=cfg.hasAccess?'Role Name':'Label';
+  var item=cfg.list[idx];
   if(item===undefined)return;
   document.getElementById('mo-cfg-t').textContent='Edit '+cfg.label;
   document.getElementById('cfg-edit-type').value=_cfgTab;
   document.getElementById('cfg-edit-idx').value=idx;
   document.getElementById('cfg-edit-id-row').style.display=cfg.hasId?'':'none';
   document.getElementById('cfg-edit-hex-row').style.display=cfg.hasColour?'':'none';
+  document.getElementById('cfg-edit-access-row').style.display=cfg.hasAccess?'':'none';
+  if(cfg.hasAccess&&typeof item==='object'){document.getElementById('cfg-edit-access').value=item.appAccess?'1':'0';}
   if(typeof item==='object'){
     document.getElementById('cfg-edit-id').value=item.id||'';
     document.getElementById('cfg-edit-label').value=item.label||item.name||'';
+    if(cfg.hasAccess&&item.appAccess!==undefined)document.getElementById('cfg-edit-access').value=item.appAccess?'1':'0';
+    if(cfg.hasAccess)document.getElementById('cfg-edit-access').value=item.appAccess?'1':'0';
     if(cfg.hasColour){
       var hex=item.hex||'#888888';
       document.getElementById('cfg-edit-hex').value=hex;
@@ -3380,5 +3388,4 @@ window.addEventListener('load',function(){
 <div id="print-overlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#fff;z-index:9999;overflow-y:auto;padding:20px;color:#111;font-family:Arial,sans-serif"><div id="print-content"></div><div style="margin-top:20px;display:flex;gap:10px"><button onclick="window.print()" style="background:#c9a227;border:none;padding:10px 24px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;flex:1">Print / Save as PDF</button><button onclick="document.getElementById('print-overlay').style.display='none'" style="background:#444;color:#fff;border:none;padding:10px 24px;border-radius:8px;cursor:pointer;font-size:14px;flex:1">Close</button></div></div>
 <div id="back-toast" style="display:none;position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(30,30,30,.95);color:#f0f0f0;padding:10px 20px;border-radius:24px;font-size:13px;z-index:999;align-items:center;gap:8px;border:1px solid var(--bd);white-space:nowrap">&#9888;&#65039; Press back again to exit</div>
 </body>
-</ht
-  var roleEl=document.getElementById('mem-role');if(roleEl)roleEl.innerHTML=getMemberRoleOptions('member');ml>
+</html>
