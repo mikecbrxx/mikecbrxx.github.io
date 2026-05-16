@@ -175,7 +175,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.74</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.75</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -1749,7 +1749,7 @@ function changePin(){const o=document.getElementById('cp-old').value.trim(),n=do
 // User Modal (Admin)
 function openAddUserModal(){document.getElementById('mo-usr-t').textContent='Add User';['usr-name','usr-pin','usr-old'].forEach(id=>document.getElementById(id).value='');document.getElementById('usr-role').value='officer';document.getElementById('usr-del-btn').style.display='none';openM('mo-user');}
 function editUser(pin){const u=D.users[pin];document.getElementById('mo-usr-t').textContent='Edit User';document.getElementById('usr-name').value=u.name;document.getElementById('usr-pin').value=pin;document.getElementById('usr-role').value=u.role;document.getElementById('usr-old').value=pin;document.getElementById('usr-del-btn').style.display=pin===CU.pin?'none':'';openM('mo-user');}
-function saveUser(){const name=document.getElementById('usr-name').value.trim();const pin=String(document.getElementById('usr-pin').value).trim();if(!name||!pin){alert('Name and PIN required');return;}if(pin.length!==6){alert('PIN must be exactly 4 digits');return;}const old=document.getElementById('usr-old').value;if(old&&old!==pin&&D.users[old])delete D.users[old];D.users[pin]={name,role:document.getElementById('usr-role').value};save();closeM('mo-user');renderSettings();}
+function saveUser(){const name=document.getElementById('usr-name').value.trim();const pin=String(document.getElementById('usr-pin').value).trim();if(!name||!pin){alert('Name and PIN required');return;}if(pin.length!==4){alert('PIN must be exactly 4 digits');return;}const old=document.getElementById('usr-old').value;if(old&&old!==pin&&D.users[old])delete D.users[old];D.users[pin]={name,role:document.getElementById('usr-role').value};save();closeM('mo-user');renderSettings();}
 function deleteUser(){const old=document.getElementById('usr-old').value;if(!old||old===CU.pin){alert('Cannot remove yourself');return;}if(!confirm('Remove this user?'))return;delete D.users[old];save();closeM('mo-user');renderSettings();}
 
 // Settings
