@@ -175,7 +175,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.83</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.84</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -1385,9 +1385,14 @@ function markPaid(id){
   }
   save();renderAll();
 }
+function getMemberRoleOptions(selectedId){
+  return(D.memberRoles||[]).map(function(r){
+    return'<option value="'+r.id+'"'+(r.id===selectedId?' selected':'')+'>'+r.name+'</option>';
+  }).join('');
+}
 function editMem(id){
   var roleEl2=document.getElementById('mem-role');
-  if(roleEl2)roleEl2.innerHTML=getMemberRoleOptions('');const m=D.members.find(x=>x.id===id);if(!m)return;document.getElementById('mo-mem-t').textContent='Edit Member';document.getElementById('mem-id').value=id;document.getElementById('mem-name').value=m.name;document.getElementById('mem-role').value=m.role;document.getElementById('mem-status').value=m.status;document.getElementById('mem-join').value=m.joinDate||'';document.getElementById('mem-phone').value=m.phone||'';document.getElementById('mem-email').value=m.email||'';document.getElementById('mem-notes').value=m.notes||'';document.getElementById('mem-del').style.display='';openM('mo-member');}
+  const m=D.members.find(x=>x.id===id);if(!m)return;if(roleEl2)roleEl2.innerHTML=getMemberRoleOptions(m.role);document.getElementById('mo-mem-t').textContent='Edit Member';document.getElementById('mem-id').value=id;document.getElementById('mem-name').value=m.name;document.getElementById('mem-role').value=m.role;document.getElementById('mem-status').value=m.status;document.getElementById('mem-join').value=m.joinDate||'';document.getElementById('mem-phone').value=m.phone||'';document.getElementById('mem-email').value=m.email||'';document.getElementById('mem-notes').value=m.notes||'';document.getElementById('mem-del').style.display='';openM('mo-member');}
 function deleteMember(){const id=document.getElementById('mem-id').value;if(!id||!CU||CU.role!=='admin')return;if(!confirm('Delete member?'))return;D.members=D.members.filter(m=>m.id!==id);save();closeM('mo-member');renderMembers();}
 
 // Merch Catalogue
@@ -3172,8 +3177,8 @@ function renderConfig(){
         +'<span style="color:var(--dim);font-size:20px;cursor:grab;touch-action:none">&#9776;</span>'
         +(hex?'<span style="width:18px;height:18px;border-radius:50%;background:'+hex+';border:1px solid var(--bd);flex-shrink:0"></span>':'')
         +(id&&!cfg.hasAccess?'<span style="font-size:10px;color:var(--dim);background:var(--sf);padding:1px 6px;border-radius:4px;flex-shrink:0">'+id+'</span>':'')
-        +(cfg.hasAccess?'<span style="font-size:10px;padding:1px 6px;border-radius:8px;flex-shrink:0;margin-right:4px;background:'+(typeof item==='object'&&item.appAccess?'var(--grn)':'var(--bd)')+';color:'+(typeof item==='object'&&item.appAccess?'#fff':'var(--muted)')+'">'+( typeof item==='object'&&item.appAccess?'App':'Title')+'</span>':'')
-        +'<span style="flex:1;font-size:13px">'+label+'</span>'
+        +(cfg.hasAccess?'<span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:8px;flex-shrink:0;background:'+(typeof item==='object'&&item.appAccess?'var(--grn)':'var(--sf)')+';color:'+(typeof item==='object'&&item.appAccess?'#fff':'var(--muted)')+';border:1px solid '+(typeof item==='object'&&item.appAccess?'var(--grn)':'var(--bd)')+'">'+( typeof item==='object'&&item.appAccess?'App Access':'Title Only')+'</span>':'')
+        +'<span style="flex:1;font-size:13px;margin-left:4px">'+label+'</span>'
         +'<button data-idx="'+i+'" onclick="cfgEditItem(parseInt(this.dataset.idx))" style="background:none;border:1px solid var(--bd);color:var(--muted);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:11px;flex-shrink:0">Edit</button>'
         +'<button data-idx="'+i+'" onclick="cfgDeleteItem(parseInt(this.dataset.idx))" style="background:none;border:none;color:var(--rl);font-size:16px;cursor:pointer;padding:0 4px;flex-shrink:0">&#10005;</button>'
         +'</div>';
