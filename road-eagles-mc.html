@@ -96,8 +96,9 @@ body{background:var(--bg);color:var(--txt);font-family:'Segoe UI',system-ui,sans
 .conn-dot.offline{background:#c0392b;box-shadow:0 0 6px rgba(192,57,43,.6)}
 .conn-dot.syncing{background:#e67e22;box-shadow:0 0 6px rgba(230,126,34,.6)}
 .syncing-bar{position:fixed;top:0;left:0;right:0;z-index:999;background:#e67e22;color:#fff;text-align:center;padding:8px 14px;font-size:12px;font-weight:600;display:none}
-.mo{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:200;display:none;align-items:flex-end}.mo.on{display:flex}
-.modal{background:var(--sf);border-radius:20px 20px 0 0;padding:18px;width:100%;max-height:92vh;overflow-y:auto}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:200;display:none;align-items:flex-start;padding-top:env(safe-area-inset-top,0)}.mo.on{display:flex}
+.mob{background:var(--sf);border-radius:0 0 20px 20px;padding:18px;width:100%;max-height:88vh;overflow-y:auto}
+.modal{background:var(--sf);border-radius:0 0 20px 20px;padding:18px;width:100%;max-height:88vh;overflow-y:auto}
 .mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .mt{font-size:16px;font-weight:600;color:var(--gold)}.mc2{background:var(--sf3);border:none;color:var(--muted);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px}
 .fg{margin-bottom:12px}
@@ -175,7 +176,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.86</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.88</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -707,29 +708,13 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 
 
 
-<div class="mo" id="mo-stockedit">
-  <div class="mob">
-    <div class="mh"><div class="mt">&#9999;&#65039; Edit Stock Level</div><button class="mc2" onclick="closeM('mo-stockedit')">&#10005;</button></div>
-    <input type="hidden" id="se-pid"><input type="hidden" id="se-vid">
-    <input type="hidden" id="se-sz"><input type="hidden" id="se-col">
-    <div id="se-label" style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--gold)"></div>
-    <div style="display:flex;gap:16px;margin-bottom:12px">
-      <div><div style="font-size:10px;color:var(--muted)">CURRENT STOCK</div><div style="font-size:24px;font-weight:700" id="se-current">0</div></div>
-    </div>
-    <div class="fg"><label>Set Actual Stock Level (units on hand)</label>
-      <input type="number" id="se-qty" min="0" style="font-size:20px;padding:10px;text-align:center">
-    </div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">This directly sets what you physically have. All previous tracked movements are overridden.</div>
-    <button class="btn btn-gold" onclick="saveStockEdit()" style="width:100%">&#10003; Set Stock Level</button>
-  </div>
-</div>
 <div class="mo" id="mo-cfgedit">
   <div class="mob">
     <div class="mh"><div class="mt" id="mo-cfg-t">Edit Item</div><button class="mc2" onclick="closeM('mo-cfgedit')">&#10005;</button></div>
     <input type="hidden" id="cfg-edit-type">
     <input type="hidden" id="cfg-edit-idx">
     <div class="fg" id="cfg-edit-id-row"><label>ID (system key, no spaces)</label><input type="text" id="cfg-edit-id" placeholder="e.g. shirt"></div>
-    <div class="fg"><label id="cfg-edit-label-lbl">Label</label><input type="text" id="cfg-edit-label" placeholder="e.g. Shirt"></div>
+    <div class="fg"><label id="cfg-edit-label-lbl">Label</label><input type="text" id="cfg-edit-label" placeholder="e.g. Shirt" style="width:100%"></div>
     <div class="fg" id="cfg-edit-hex-row" style="display:none">
       <label>Colour</label>
       <div style="display:flex;gap:8px;align-items:center">
@@ -740,7 +725,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
     </div>
     <div class="fg" id="cfg-edit-access-row" style="display:none">
       <label>App Access (can log in to the app)</label>
-      <select id="cfg-edit-access">
+      <select id="cfg-edit-access" style="width:100%">
         <option value="1">Yes &#8212; Officer level access</option>
         <option value="0">No &#8212; Title only, no app login</option>
       </select>
@@ -1022,7 +1007,7 @@ window.addEventListener('offline',function(){showOffline();});
 function loadFromSupabase(cb){
   var url=D.supabaseUrl&&D.supabaseUrl.trim();
   var key=D.supabaseKey&&D.supabaseKey.trim();
-  if(!url||!key){if(cb)cb(false);return;}
+  if(!url||!key){if(cb)cb('nocreds');return;}
   var base=url.charAt(url.length-1)==='/'?url.slice(0,-1):url;
   fetch(base+'/rest/v1/club_data?id=eq.main&select=data,updated_at',{
     method:'GET',
@@ -1030,9 +1015,8 @@ function loadFromSupabase(cb){
   }).then(function(r){return r.json();})
   .then(function(rows){
     if(rows&&rows.length>0&&rows[0].data&&Object.keys(rows[0].data).length>0){
-      // Always use remote data
+      // Remote has data - load it
       var remoteData=rows[0].data;
-      // Preserve local lastBackupDate if more recent than remote
       var localBackupDate=D.lastBackupDate||'';
       var remoteBackupDate=remoteData.lastBackupDate||'';
       D=remoteData;
@@ -1054,15 +1038,19 @@ function loadFromSupabase(cb){
         p.variants.forEach(function(v){if(!v.id)v.id='v'+Math.random().toString(36).slice(2,8);});
       });
       localStorage.setItem('remct4',JSON.stringify(D));
-      setDot('online');
-      hideOffline();
-      if(cb)cb(true);
+      setDot('online');hideOffline();
+      if(cb)cb('loaded');
     } else {
-      // Remote is empty — push local data up
+      // Remote is genuinely empty - safe to push local data up
       syncToSupabase();
-      if(cb)cb(false);
+      if(cb)cb('empty');
     }
-  }).catch(function(e){console.warn('Supabase load failed: '+e.message);setDot('offline');if(cb)cb(false);});
+  }).catch(function(e){
+    // Network or parse error - do NOT push local data, just report failure
+    console.warn('Supabase load failed: '+e.message);
+    setDot('offline');
+    if(cb)cb('error');
+  });
 }
 
 // Stock helpers
@@ -1901,17 +1889,22 @@ function manualSync(){
   var sb=document.getElementById('sync-btn');
   if(sb){sb.textContent='...';sb.disabled=true;}
   setDot('syncing');
-  loadFromSupabase(function(reloaded){
+  loadFromSupabase(function(result){
     if(sb){sb.textContent='↻';sb.disabled=false;}
-    if(reloaded){
+    if(result==='loaded'){
+      // Remote data loaded successfully
       loadSettings();renderAll();
       setDot('online');hideOffline();
-    } else {
-      // Nothing newer on remote - push our data up
+    } else if(result==='empty'){
+      // Remote is empty - safe to push local data up
       syncToSupabase(function(ok){
         setDot(ok?'online':'offline');
         if(!ok)showOffline();
       });
+    } else {
+      // 'error' or 'nocreds' - do NOT push, just show status
+      setDot('offline');
+      showOffline();
     }
   });
 }
@@ -2540,7 +2533,6 @@ function openNewPO(){
     return(a.name||'').localeCompare(b.name||'');
   }).map(function(s){return'<option value="'+(s.name||s)+'">';}).join('');
   document.getElementById('po-sup').value='';
-  var obSel=document.getElementById('po-ordered-by');if(obSel){obSel.innerHTML='<option value="">Select officer...</option>'+Object.entries(D.users).map(function(e){return'<option value="'+e[1].name+'">'+e[1].name+'</option>';}).join('');obSel.value=CU?CU.name:'';}
   var obSel=document.getElementById('po-ordered-by');
   if(obSel){obSel.innerHTML='<option value="">Select officer...</option>'+Object.entries(D.users).map(function(e){return'<option value="'+e[1].name+'">'+e[1].name+'</option>';}).join('');obSel.value=CU?CU.name:'';}
   // Populate product select
@@ -3221,7 +3213,7 @@ function cfgAddItem(){
   document.getElementById('cfg-edit-idx').value='-1';
   document.getElementById('cfg-edit-id').value='';
   document.getElementById('cfg-edit-label').value='';
-  document.getElementById('cfg-edit-id-row').style.display=cfg.hasId?'':'none';
+  document.getElementById('cfg-edit-id-row').style.display=(cfg.hasId&&!cfg.hasAccess)?'':'none';
   document.getElementById('cfg-edit-hex-row').style.display=cfg.hasColour?'':'none';
   document.getElementById('cfg-edit-access-row').style.display=cfg.hasAccess?'':'none';
   var lbl3=document.getElementById('cfg-edit-label-lbl');if(lbl3)lbl3.textContent=cfg.hasAccess?'Role Name':'Label';
@@ -3241,7 +3233,7 @@ function cfgEditItem(idx){
   document.getElementById('mo-cfg-t').textContent='Edit '+cfg.label;
   document.getElementById('cfg-edit-type').value=_cfgTab;
   document.getElementById('cfg-edit-idx').value=idx;
-  document.getElementById('cfg-edit-id-row').style.display=cfg.hasId?'':'none';
+  document.getElementById('cfg-edit-id-row').style.display=(cfg.hasId&&!cfg.hasAccess)?'':'none';
   document.getElementById('cfg-edit-hex-row').style.display=cfg.hasColour?'':'none';
   document.getElementById('cfg-edit-access-row').style.display=cfg.hasAccess?'':'none';
   if(cfg.hasAccess&&typeof item==='object'){document.getElementById('cfg-edit-access').value=item.appAccess?'1':'0';}
@@ -3271,11 +3263,14 @@ function saveCfgEdit(){
   if(!label){alert('Please enter a label.');return;}
   var newItem;
   if(cfg.hasId){
-    var id=document.getElementById('cfg-edit-id').value.trim().toLowerCase().replace(/[^a-z0-9_]/g,'_');
-    if(!id){alert('Please enter an ID.');return;}
+    var id;
     if(cfg.hasAccess){
+      // Auto-generate ID from name for roles
+      id=label.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'');
       newItem={id:id,name:label,appAccess:document.getElementById('cfg-edit-access').value==='1'};
     } else {
+      id=document.getElementById('cfg-edit-id').value.trim().toLowerCase().replace(/[^a-z0-9_]/g,'_');
+      if(!id){alert('Please enter an ID.');return;}
       newItem={id:id,label:label};
     }
   } else if(cfg.hasColour){
