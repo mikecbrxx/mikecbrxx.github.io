@@ -175,7 +175,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.77</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.80</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -1053,6 +1053,7 @@ function loadFromSupabase(cb){
       var localBackupDate=D.lastBackupDate||'';
       var remoteBackupDate=remoteData.lastBackupDate||'';
       D=remoteData;
+      if(!D.memberRoles)D.memberRoles=[{id:'president',name:'President',appAccess:true},{id:'vice_president',name:'Vice President',appAccess:true},{id:'treasurer',name:'Treasurer',appAccess:true},{id:'sergeant',name:'Sgt at Arms',appAccess:true},{id:'road_captain',name:'Road Captain',appAccess:true},{id:'member',name:'Member',appAccess:false},{id:'prospect',name:'Prospect',appAccess:false}];
       if(localBackupDate>remoteBackupDate)D.lastBackupDate=localBackupDate;
       D.supabaseUrl=url;
       D.supabaseKey=key;
@@ -1138,6 +1139,7 @@ function tryLogin(){
             p.variants.forEach(function(v){if(!v.id)v.id='v'+Math.random().toString(36).slice(2,8);});
           });
           D=remoteData;
+          if(!D.memberRoles)D.memberRoles=[{id:'president',name:'President',appAccess:true},{id:'vice_president',name:'Vice President',appAccess:true},{id:'treasurer',name:'Treasurer',appAccess:true},{id:'sergeant',name:'Sgt at Arms',appAccess:true},{id:'road_captain',name:'Road Captain',appAccess:true},{id:'member',name:'Member',appAccess:false},{id:'prospect',name:'Prospect',appAccess:false}];
           localStorage.setItem('remct4',JSON.stringify(D));
           setDot('online');hideOffline();
         } else {
@@ -3231,18 +3233,18 @@ function cfgAddItem(){
   document.getElementById('cfg-edit-id-row').style.display=cfg.hasId?'':'none';
   document.getElementById('cfg-edit-hex-row').style.display=cfg.hasColour?'':'none';
   document.getElementById('cfg-edit-access-row').style.display=cfg.hasAccess?'':'none';
-  if(cfg.hasAccess&&typeof item==='object')document.getElementById('cfg-edit-access').value=item.appAccess?'1':'0';
-  document.getElementById('cfg-edit-access-row').style.display=cfg.hasAccess?'':'none';
+  var lbl3=document.getElementById('cfg-edit-label-lbl');if(lbl3)lbl3.textContent=cfg.hasAccess?'Role Name':'Label';
   document.getElementById('cfg-edit-hex').value='#888888';
   document.getElementById('cfg-edit-hex-preview').style.background='#888888';
   document.getElementById('cfg-edit-hex-text').value='#888888';
-  document.getElementById('cfg-edit-access').value='0';
+  document.getElementById('cfg-edit-access').value='1';
   openM('mo-cfgedit');
 }
 
 function cfgEditItem(idx){
   var cfg=getCfgData(_cfgTab);
-  var item=cfg.list[idx];
+ 
+  var lbl2=document.getElementById('cfg-edit-label-lbl');if(lbl2)lbl2.textContent=cfg.hasAccess?'Role Name':'Label'; var item=cfg.list[idx];
   if(item===undefined)return;
   document.getElementById('mo-cfg-t').textContent='Edit '+cfg.label;
   document.getElementById('cfg-edit-type').value=_cfgTab;
