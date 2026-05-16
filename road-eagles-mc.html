@@ -175,7 +175,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.84</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.85</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -3173,12 +3173,12 @@ function renderConfig(){
       var id=typeof item==='object'?(item.id||''):'';
       var hex=typeof item==='object'?(item.hex||''):'';
       return '<div class="cfg-item" data-idx="'+i+'" draggable="true" '
-        +'style="display:flex;align-items:center;gap:8px;background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:10px 12px;margin-bottom:6px">'
-        +'<span style="color:var(--dim);font-size:20px;cursor:grab;touch-action:none">&#9776;</span>'
-        +(hex?'<span style="width:18px;height:18px;border-radius:50%;background:'+hex+';border:1px solid var(--bd);flex-shrink:0"></span>':'')
-        +(id&&!cfg.hasAccess?'<span style="font-size:10px;color:var(--dim);background:var(--sf);padding:1px 6px;border-radius:4px;flex-shrink:0">'+id+'</span>':'')
-        +(cfg.hasAccess?'<span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:8px;flex-shrink:0;background:'+(typeof item==='object'&&item.appAccess?'var(--grn)':'var(--sf)')+';color:'+(typeof item==='object'&&item.appAccess?'#fff':'var(--muted)')+';border:1px solid '+(typeof item==='object'&&item.appAccess?'var(--grn)':'var(--bd)')+'">'+( typeof item==='object'&&item.appAccess?'App Access':'Title Only')+'</span>':'')
-        +'<span style="flex:1;font-size:13px;margin-left:4px">'+label+'</span>'
+        +'style="display:flex;align-items:center;gap:6px;background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:8px 10px;margin-bottom:6px">'
+        +'<span style="color:var(--dim);font-size:16px;cursor:grab;touch-action:none;flex-shrink:0">&#9776;</span>'
+        +(hex?'<span style="width:14px;height:14px;border-radius:50%;background:'+hex+';border:1px solid var(--bd);flex-shrink:0"></span>':'')
+        +(id&&!cfg.hasAccess?'<span style="font-size:9px;color:var(--dim);background:var(--sf);padding:1px 5px;border-radius:4px;flex-shrink:0">'+id+'</span>':'')
+        +'<span style="flex:1;font-size:13px">'+label+'</span>'
+        +(cfg.hasAccess?'<span style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:6px;flex-shrink:0;background:'+(typeof item==='object'&&item.appAccess?'var(--grn)':'transparent')+';color:'+(typeof item==='object'&&item.appAccess?'#fff':'var(--muted)')+';border:1px solid '+(typeof item==='object'&&item.appAccess?'var(--grn)':'var(--bd)')+'">'+( typeof item==='object'&&item.appAccess?'APP':'TITLE')+'</span>':'')
         +'<button data-idx="'+i+'" onclick="cfgEditItem(parseInt(this.dataset.idx))" style="background:none;border:1px solid var(--bd);color:var(--muted);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:11px;flex-shrink:0">Edit</button>'
         +'<button data-idx="'+i+'" onclick="cfgDeleteItem(parseInt(this.dataset.idx))" style="background:none;border:none;color:var(--rl);font-size:16px;cursor:pointer;padding:0 4px;flex-shrink:0">&#10005;</button>'
         +'</div>';
