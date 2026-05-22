@@ -42,10 +42,10 @@ body{background:var(--bg);color:var(--txt);font-family:'Segoe UI',system-ui,sans
 .balbar h3{font-size:10px;color:var(--gd);text-transform:uppercase;letter-spacing:2px;margin-bottom:10px}
 .brow{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(201,162,39,.1)}.brow:last-child{border:none}
 .blbl{font-size:12px;color:var(--muted)}.bamt{font-size:17px;font-weight:700;color:var(--gl)}
-.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
-.scard{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:13px}
-.slbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px}
-.sval{font-size:19px;font-weight:700}.sval.g{color:var(--grnl)}.sval.r{color:var(--rl)}.sval.gold{color:var(--gold)}.sval.b{color:var(--blul)}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.scard{background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:9px 12px}
+.slbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px}
+.sval{font-size:15px;font-weight:700}.sval.g{color:var(--grnl)}.sval.r{color:var(--rl)}.sval.gold{color:var(--gold)}.sval.b{color:var(--blul)}
 .txi{background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:11px;margin-bottom:7px;display:flex;align-items:center;gap:10px}
 .txic{font-size:20px;width:34px;text-align:center;flex-shrink:0}
 .txin{flex:1;min-width:0}.txd{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -190,7 +190,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.93</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.95</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -223,12 +223,16 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
         <div class="scard"><div class="slbl">Prospects</div><div class="sval b" id="db-pros">0</div></div>
       </div>
       <div class="sgrid">
-        <div class="scard"><div class="slbl">Month Income</div><div class="sval g" id="db-in">&#3647;0</div></div>
-        <div class="scard"><div class="slbl">Month Expense</div><div class="sval r" id="db-out">&#3647;0</div></div>
+        <div class="scard"><div class="slbl">Club Month In</div><div class="sval g" id="db-in">&#3647;0</div></div>
+        <div class="scard"><div class="slbl">Club Month Out</div><div class="sval r" id="db-out">&#3647;0</div></div>
       </div>
       <div class="sgrid">
         <div class="scard"><div class="slbl">Fees Outstanding</div><div class="sval r" id="db-fees-due">&#3647;0</div></div>
         <div class="scard"><div class="slbl">Merch Sales</div><div class="sval g" id="db-merch">&#3647;0</div></div>
+      </div>
+      <div class="sgrid">
+        <div class="scard"><div class="slbl">&#10084;&#65039; Charity In</div><div class="sval g" id="db-char-in">&#3647;0</div></div>
+        <div class="scard"><div class="slbl">&#10084;&#65039; Charity Out</div><div class="sval r" id="db-char-out">&#3647;0</div></div>
       </div>
       <div class="sgrid">
         <div class="scard"><div class="slbl">&#9888;&#65039; Low Stock</div><div class="sval r" id="db-low">0</div></div>
@@ -1337,8 +1341,8 @@ function renderDash(){
   document.getElementById('db-mem').textContent=D.members.filter(m=>m.status!=='prospect').length;
   document.getElementById('db-pros').textContent=D.members.filter(m=>m.status==='prospect').length;
   const mt=mthTx();
-  document.getElementById('db-in').innerHTML=thb(mt.filter(t=>t.direction==='in').reduce((a,t)=>a+parseFloat(t.amount||0),0));
-  document.getElementById('db-out').innerHTML=thb(mt.filter(t=>t.direction==='out').reduce((a,t)=>a+parseFloat(t.amount||0),0));
+  document.getElementById('db-in').innerHTML=thb(mt.filter(t=>t.direction==='in'&&t.account==='club').reduce((a,t)=>a+parseFloat(t.amount||0),0));
+  document.getElementById('db-out').innerHTML=thb(mt.filter(t=>t.direction==='out'&&t.account==='club').reduce((a,t)=>a+parseFloat(t.amount||0),0));
   // Fees collected = transaction total + fees for 'paid' members with no transaction
   var feesTxTotal=D.transactions.filter(t=>t.category==='membership_fee').reduce((a,t)=>a+parseFloat(t.amount||0),0);
   var paidMemberIds=D.transactions.filter(t=>t.category==='membership_fee').map(t=>t.description||'');
@@ -1349,7 +1353,9 @@ function renderDash(){
     return !hasTx;
   }).reduce((a,m)=>a+calcFee(m.joinDate),0);
   document.getElementById('db-fees-due').innerHTML=thb(D.members.filter(m=>m.status==='unpaid').reduce((a,m)=>a+calcFee(m.joinDate),0));
-  document.getElementById('db-merch').innerHTML=thb(D.transactions.filter(t=>t.category==='merchandise').reduce((a,t)=>a+parseFloat(t.amount||0),0));
+  document.getElementById('db-merch').innerHTML=thb(mt.filter(t=>t.category==='merchandise'&&t.account==='club').reduce((a,t)=>a+parseFloat(t.amount||0),0));
+  document.getElementById('db-char-in').innerHTML=thb(mt.filter(t=>t.account==='charity'&&t.direction==='in').reduce((a,t)=>a+parseFloat(t.amount||0),0));
+  document.getElementById('db-char-out').innerHTML=thb(mt.filter(t=>t.account==='charity'&&t.direction==='out').reduce((a,t)=>a+parseFloat(t.amount||0),0));
   let low=0,out=0;
   D.products.filter(p=>!p.archived).forEach(p=>p.variants.forEach(v=>{
     const szs=p.hasSizes?SIZES:[null];
@@ -2091,7 +2097,7 @@ function rAnnual(){
     +'</div>';
 }
 function rMem(){const paid=D.members.filter(m=>m.status==='paid'),un=D.members.filter(m=>m.status==='unpaid'),pr=D.members.filter(m=>m.status==='prospect'),ia=D.members.filter(m=>m.status==='inactive');const fe=un.reduce((a,m)=>a+calcFee(m.joinDate),0);const RL={};(D.memberRoles||[{id:'president',name:'President'},{id:'vice_president',name:'Vice President'},{id:'treasurer',name:'Treasurer'},{id:'member',name:'Member'},{id:'prospect',name:'Prospect'}]).forEach(function(r){RL[r.id]=r.name;});function mr(m){return`<div class="brow"><span class="blbl">${m.name}${m.email?` <span style="font-size:9px;color:var(--dim)">&#9993; ${m.email}</span>`:''}</span><span style="font-size:11px;color:var(--muted)">${RL[m.role]||m.role} &middot; ${thb(calcFee(m.joinDate))}</span></div>`;}const paidTotal=paid.reduce((a,m)=>a+calcFee(m.joinDate),0);return`<div class="balbar"><h3>&#9989; Paid (${paid.length}) &#8212; ${thb(paidTotal)}</h3>${paid.map(mr).join('')||'<div style="color:var(--dim);font-size:12px;padding:6px 0">None</div>'}</div><div class="balbar"><h3>&#8987; Unpaid (${un.length}) &#8212; ${thb(fe)} outstanding</h3>${un.map(mr).join('')||'<div style="color:var(--dim);font-size:12px;padding:6px 0">None</div>'}</div><div class="balbar"><h3>&#128064; Prospects (${pr.length})</h3>${pr.map(m=>`<div class="brow"><span class="blbl">${m.name}</span><span style="font-size:11px;color:var(--muted)">${RL[m.role]||m.role}</span></div>`).join('')||'<div style="color:var(--dim);font-size:12px;padding:6px 0">None</div>'}</div><div class="balbar"><h3>&#128683; Inactive (${ia.length})</h3>${ia.map(m=>`<div class="brow"><span class="blbl" style="color:var(--muted)">${m.name}</span><span style="font-size:11px;color:var(--dim)">${RL[m.role]||m.role}</span></div>`).join('')||'<div style="color:var(--dim);font-size:12px;padding:6px 0">None</div>'}</div>`;}
-function rMerch(){const s=D.transactions.filter(t=>t.category==='merchandise');const tot=s.reduce((a,t)=>a+parseFloat(t.amount||0),0);const ms=s.filter(t=>t.customerType==='member').reduce((a,t)=>a+parseFloat(t.amount||0),0);const vs=s.filter(t=>t.customerType==='visitor').reduce((a,t)=>a+parseFloat(t.amount||0),0);const bp={};s.forEach(t=>{const k=t.description||'?';bp[k]=(bp[k]||0)+parseFloat(t.amount||0);});const bc={};s.forEach(t=>{if(t.colour){bc[t.colour]=(bc[t.colour]||0)+parseFloat(t.amount||0);}});return`<div class="balbar"><h3>&#128085;&#65039; Merchandise Sales</h3>${br('Total',thb(tot))}${br('Member Sales',thb(ms),'var(--gold)')}${br('Visitor Sales',thb(vs),'var(--blul)')}${br('Transactions',s.length,'var(--muted)')}</div><div class="balbar"><h3>By Item</h3>${Object.entries(bp).sort((a,b)=>b[1]-a[1]).slice(0,12).map(([d,v])=>br(d.length>32?d.slice(0,32)+'&#8230;':d,thb(v),'var(--gl)')).join('')||'<div style="color:var(--dim);font-size:12px">No sales yet</div>'}</div>${Object.keys(bc).length?`<div class="balbar"><h3>By Colour</h3>${Object.entries(bc).sort((a,b)=>b[1]-a[1]).map(([c,v])=>br(c,thb(v),'var(--muted)')).join('')}</div>`:''}`;}
+function rMerch(){const s=D.transactions.filter(t=>t.category==='merchandise'&&t.account==='club');const tot=s.reduce((a,t)=>a+parseFloat(t.amount||0),0);const ms=s.filter(t=>t.customerType==='member').reduce((a,t)=>a+parseFloat(t.amount||0),0);const vs=s.filter(t=>t.customerType==='visitor').reduce((a,t)=>a+parseFloat(t.amount||0),0);const bp={};s.forEach(t=>{const k=t.description||'?';bp[k]=(bp[k]||0)+parseFloat(t.amount||0);});const bc={};s.forEach(t=>{if(t.colour){bc[t.colour]=(bc[t.colour]||0)+parseFloat(t.amount||0);}});return`<div class="balbar"><h3>&#128085;&#65039; Merchandise Sales</h3>${br('Total',thb(tot))}${br('Member Sales',thb(ms),'var(--gold)')}${br('Visitor Sales',thb(vs),'var(--blul)')}${br('Transactions',s.length,'var(--muted)')}</div><div class="balbar"><h3>By Item</h3>${Object.entries(bp).sort((a,b)=>b[1]-a[1]).slice(0,12).map(([d,v])=>br(d.length>32?d.slice(0,32)+'&#8230;':d,thb(v),'var(--gl)')).join('')||'<div style="color:var(--dim);font-size:12px">No sales yet</div>'}</div>${Object.keys(bc).length?`<div class="balbar"><h3>By Colour</h3>${Object.entries(bc).sort((a,b)=>b[1]-a[1]).map(([c,v])=>br(c,thb(v),'var(--muted)')).join('')}</div>`:''}`;}
 function rStock(){
   const t=D.lowStockThreshold||5;
   const rows=[];
