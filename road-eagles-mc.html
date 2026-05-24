@@ -190,7 +190,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.99</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.00</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -656,9 +656,10 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
     <div class="fg">
       <label>Assembly Group <span style="font-size:10px;color:var(--muted)">(optional — link multiple POs to one finished product)</span></label>
       <div style="display:flex;gap:8px">
-        <select id="po-assembly-group" style="flex:1"><option value="">&#8212; Standalone PO (not part of assembly) &#8212;</option></select>
+        <select id="po-assembly-group" style="flex:1" onchange="updateAGLabel()"><option value="">&#8212; Standalone PO (not part of assembly) &#8212;</option></select>
         <button type="button" onclick="createNewAssemblyGroup()" class="btn btn-out" style="font-size:11px;padding:4px 10px;white-space:nowrap">+ New Group</button>
       </div>
+      <div id="po-ag-label" style="display:none;font-size:12px;color:var(--gold);margin-top:4px;padding:2px 0">&#127381; <span id="po-ag-label-text"></span></div>
     </div>
     <div class="fg"><label>Ref / PO Number</label><input type="text" id="po-ref" placeholder="Optional"></div>
     <div class="fg"><label>Notes</label><textarea id="po-notes" style="height:50px"></textarea></div>
@@ -2747,11 +2748,24 @@ function openNewPO(){
   updatePOProductFields();
   populateAssemblyGroups('');
   populateAssemblyGroups('');
+  updateAGLabel();
   var placeBtn=document.getElementById('po-place-btn');
   if(placeBtn)placeBtn.textContent='Place Order';
   openM('mo-po');
 }
 
+function updateAGLabel(){
+  var sel=document.getElementById('po-assembly-group');
+  var lbl=document.getElementById('po-ag-label');
+  var txt=document.getElementById('po-ag-label-text');
+  if(!sel||!lbl||!txt)return;
+  if(sel.value&&sel.options[sel.selectedIndex]){
+    txt.textContent=sel.options[sel.selectedIndex].text;
+    lbl.style.display='';
+  } else {
+    lbl.style.display='none';
+  }
+}
 function updatePOProductFields(){
   var pid=document.getElementById('po-product').value;
   var bomRow=document.getElementById('po-bom-row');
@@ -2885,6 +2899,7 @@ function openEditPO(id){
     }
   }
   populateAssemblyGroups(po.assemblyGroup||'');
+  updateAGLabel();
   var placeBtn2=document.getElementById('po-place-btn');
   if(placeBtn2)placeBtn2.textContent='Save Changes';
   openM('mo-po');
