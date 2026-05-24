@@ -190,7 +190,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.95</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v2.96</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -356,6 +356,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
     <button class="tab" data-cat="sizes" onclick="setCfgTab(this,'sizes')">Sizes</button>
     <button class="tab" data-cat="colours" onclick="setCfgTab(this,'colours')">Colours</button>
     <button class="tab" data-cat="roles" onclick="setCfgTab(this,'roles')">Roles</button>
+    <button class="tab" data-cat="assembly" onclick="setCfgTab(this,'assembly')">Assembly</button>
   </div>
   <div id="cfg-list"></div>
   <button class="btn btn-gold" id="cfg-add-btn" onclick="cfgAddItem()" style="width:100%;margin-top:10px">+ Add Item</button>
@@ -863,6 +864,7 @@ let D=null;
 for(const k of['remct4','remct3','remct2']){const r=localStorage.getItem(k);if(r){D=JSON.parse(r);break;}}
 if(!D)D=def();
 if(!D.colours)D.colours=[...DEF_COLS];if(!D.tabs)D.tabs=[];if(!D.auditLog)D.auditLog=[];if(!D.sizes)D.sizes=['S','M','L','XL','2XL','3XL','4XL','5XL','6XL'];SIZES=D.sizes;if(!D.productCategories)D.productCategories=[{id:'shirt',label:'Shirt'},{id:'trucker',label:'Trucker Hat'},{id:'stretch',label:'Stretch Hat'},{id:'keyring',label:'Keyring'},{id:'other',label:'Other'}];if(!D.purchaseOrders)D.purchaseOrders=[];if(!D.eventTypes)D.eventTypes=['party','ride','fundraiser','meeting','other'];
+if(!D.assemblyGroups)D.assemblyGroups=[];
 if(!D.memberRoles)D.memberRoles=[
   {id:'president',name:'President',appAccess:true},
   {id:'vice_president',name:'Vice President',appAccess:true},
@@ -918,6 +920,7 @@ function _migrateD(data,url,key){
   if(!data.suppliers)data.suppliers=[];
   if(data.lowStockThreshold===undefined)data.lowStockThreshold=5;
   if(!data.auditLog)data.auditLog=[];
+  if(!data.assemblyGroups)data.assemblyGroups=[];
   if(!data.memberRoles)data.memberRoles=[{id:'president',name:'President',appAccess:true},{id:'vice_president',name:'Vice President',appAccess:true},{id:'treasurer',name:'Treasurer',appAccess:true},{id:'sergeant',name:'Sgt at Arms',appAccess:true},{id:'road_captain',name:'Road Captain',appAccess:true},{id:'member',name:'Member',appAccess:false},{id:'prospect',name:'Prospect',appAccess:false}];
   if(!data.incomeCategories)data.incomeCategories=['merchandise','membership_fee','donation_in','collection_box','event_income','ride_income','other'];
   if(!data.expenseCategories)data.expenseCategories=['purchase','petty_cash','donation_out','event_expense','venue','music','marketing','charity_cash','charity_goods','club_donation_out','other'];
@@ -1182,7 +1185,8 @@ function loadFromSupabase(cb){
       var localBackupDate=D.lastBackupDate||'';
       var remoteBackupDate=remoteData.lastBackupDate||'';
       D=remoteData;
-      if(!D.memberRoles)D.memberRoles=[{id:'president',name:'President',appAccess:true},{id:'vice_president',name:'Vice President',appAccess:true},{id:'treasurer',name:'Treasurer',appAccess:true},{id:'sergeant',name:'Sgt at Arms',appAccess:true},{id:'road_captain',name:'Road Captain',appAccess:true},{id:'member',name:'Member',appAccess:false},{id:'prospect',name:'Prospect',appAccess:false}];
+      if(!D.assemblyGroups)D.assemblyGroups=[];
+if(!D.memberRoles)D.memberRoles=[{id:'president',name:'President',appAccess:true},{id:'vice_president',name:'Vice President',appAccess:true},{id:'treasurer',name:'Treasurer',appAccess:true},{id:'sergeant',name:'Sgt at Arms',appAccess:true},{id:'road_captain',name:'Road Captain',appAccess:true},{id:'member',name:'Member',appAccess:false},{id:'prospect',name:'Prospect',appAccess:false}];
       if(localBackupDate>remoteBackupDate)D.lastBackupDate=localBackupDate;
       D.supabaseUrl=url;
       D.supabaseKey=key;
@@ -2741,6 +2745,8 @@ function openNewPO(){
     }).join('');
   pSel.onchange=updatePOProductFields;
   updatePOProductFields();
+  populateAssemblyGroups('');
+  populateAssemblyGroups('');
   openM('mo-po');
 }
 
@@ -3045,8 +3051,11 @@ function deletePO(id){
 
 function getAssemblyGroups(){
   var groups={};
+  // Read from D.assemblyGroups (primary store)
+  (D.assemblyGroups||[]).forEach(function(ag){groups[ag.id]=ag.name;});
+  // Legacy fallback: also scan POs for groups not yet in D.assemblyGroups
   (D.purchaseOrders||[]).forEach(function(po){
-    if(po.assemblyGroup&&po.assemblyGroupName){
+    if(po.assemblyGroup&&po.assemblyGroupName&&!groups[po.assemblyGroup]){
       groups[po.assemblyGroup]=po.assemblyGroupName;
     }
   });
@@ -3305,6 +3314,7 @@ function getCfgData(tab){
     case 'sizes':  return {list:(D.sizes||SIZES),hasId:false,label:'Size'};
     case 'colours':return {list:(D.colours||[]),hasId:false,hasColour:true,label:'Colour'};
     case 'roles': return {list:(D.memberRoles||[]),hasId:true,hasAccess:true,label:'Role'};
+    case 'assembly': return {list:(D.assemblyGroups||[]),hasId:true,label:'Assembly Group'};
     default: return {list:[],hasId:false,label:'Item'};
   }
 }
@@ -3377,6 +3387,7 @@ function setCfgList(tab,newList){
     case 'sizes':  D.sizes=newList;SIZES=newList;break;
     case 'colours':D.colours=newList;break;
     case 'roles':  D.memberRoles=newList;break;
+    case 'assembly': D.assemblyGroups=newList;break;
   }
 }
 
@@ -3445,7 +3456,8 @@ function saveCfgEdit(){
     } else {
       id=document.getElementById('cfg-edit-id').value.trim().toLowerCase().replace(/[^a-z0-9_]/g,'_');
       if(!id){alert('Please enter an ID.');return;}
-      newItem={id:id,label:label};
+      // Assembly groups use {id,name}, product categories use {id,label}
+      newItem=(_cfgTab==='assembly')?{id:id,name:label}:{id:id,label:label};
     }
   } else if(cfg.hasColour){
     var hex=document.getElementById('cfg-edit-hex').value||'#888888';
