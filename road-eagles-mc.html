@@ -190,7 +190,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.01</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.02</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -240,7 +240,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
       </div>
       <div class="sgrid">
         <div class="scard"><div class="slbl">&#128203; Tabs Owed</div><div class="sval r" id="db-tabs">0</div></div>
-        <div class="scard"><div class="slbl">Club Owes</div><div class="sval r" id="db-tabamt">&#3647;0</div></div>
+        <div class="scard"><div class="slbl">Tab Net Position</div><div class="sval r" id="db-tabamt">&#3647;0</div></div>
       </div>
       <div class="sh"><div class="stitle">Recent Entries</div></div>
       <div id="db-tx"><div class="empty"><div class="ei">&#128203;</div>No transactions yet</div></div>
@@ -1379,7 +1379,10 @@ function renderDash(){
     return po.status!=='received'&&po.status!=='draft'&&poBalance(po)>0;
   }).reduce(function(a,po){return a+poBalance(po);},0);
   document.getElementById('db-tabs').textContent=totalTabItems;
-  document.getElementById('db-tabamt').innerHTML=thb(unpaidOut+poOutstanding);
+  var clubOwes=unpaidOut+poOutstanding;
+  var owedToClub=tabOwed+unpaidIn;
+  var tabNet=clubOwes-owedToClub;
+  document.getElementById('db-tabamt').innerHTML=thb(tabNet);
   const rec=[...D.transactions].reverse().slice(0,8);
   document.getElementById('db-tx').innerHTML=rec.length?rec.map(txCard).join(''):'<div class="empty"><div class="ei">&#128203;</div>No transactions yet</div>';
   var dbt=document.getElementById('db-tx');if(dbt&&!dbt._txd){dbt._txd=true;dbt.addEventListener('click',function(e){var t=e.target;while(t&&t!==dbt){if(t.dataset&&t.dataset.txid){openTxEdit(t.dataset.txid);return;}t=t.parentElement;}});}
