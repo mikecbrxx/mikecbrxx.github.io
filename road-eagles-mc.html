@@ -190,7 +190,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.06</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.07</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -1635,7 +1635,7 @@ function renderTabLedger(){
       :t.isPO
       ?`<button onclick="openPODetail(D.purchaseOrders.find(p=>p.id==='${t.id}'))" style="margin-top:8px;background:none;border:1px solid var(--bd);color:var(--muted);border-radius:20px;padding:4px 12px;cursor:pointer;font-size:11px;width:100%">&#128196; View PO</button>`
       :`<div style="display:flex;gap:6px;margin-top:8px">
-          <button onclick="openTxEditModal('${t.id}')" style="flex:1;background:none;border:1px solid var(--bd);color:var(--muted);border-radius:20px;padding:4px 12px;cursor:pointer;font-size:11px">&#9998; Edit</button>
+          <button onclick="openTxEdit('${t.id}')" style="flex:1;background:none;border:1px solid var(--bd);color:var(--muted);border-radius:20px;padding:4px 12px;cursor:pointer;font-size:11px">&#9998; Edit</button>
           <button onclick="markTxPaid('${t.id}')" style="flex:2;background:none;border:1px solid var(--grn);color:var(--grnl);border-radius:20px;padding:4px 12px;cursor:pointer;font-size:11px">&#10003; Mark Paid / Received</button>
         </div>`;
     return`<div class="tab-card ${dir}">
@@ -1656,13 +1656,26 @@ function renderTabLedger(){
 }
 
 function renderEvents(){
-  const el=document.getElementById('event-list');
+  var el=document.getElementById('event-list');
   if(!D.events||!D.events.length){el.innerHTML='<div class="empty"><div class="ei">&#127881;</div>No events yet</div>';return;}
-  el.innerHTML=[...D.events].reverse().map(ev=>{
-    const et=D.transactions.filter(t=>t.eventId===ev.id);
-    const eI=et.filter(t=>t.direction==='in').reduce((a,t)=>a+parseFloat(t.amount||0),0);
-    const eO=et.filter(t=>t.direction==='out').reduce((a,t)=>a+parseFloat(t.amount||0),0);
-    return`<div class="ec"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><div class="en" style="margin:0">${ev.name}</div><div style="display:flex;gap:5px"><button onclick="editEvent('${ev.id}')" style="background:none;border:1px solid var(--bd);color:var(--muted);border-radius:8px;padding:2px 8px;cursor:pointer;font-size:11px">Edit</button>${CU&&CU.role==='admin'?`<button onclick="deleteEvent('${ev.id}')" style="background:none;border:1px solid var(--red);color:var(--rl);border-radius:8px;padding:2px 8px;cursor:pointer;font-size:11px">Delete</button>`:''}</div></div><div class="em"><span>&#128197; ${fd(ev.date)}</span><span>&#128205; ${ev.venue||'TBC'}</span><span>&#127917; ${ev.type}</span></div>${et.length?`<div style="margin-top:8px;font-size:12px">Income: <span style="color:var(--grnl)">${thb(eI)}</span> &middot; Costs: <span style="color:var(--rl)">${thb(eO)}</span> &middot; Net: <span style="color:${eI-eO>=0?'var(--grnl)':'var(--rl)'}">${thb(eI-eO)}</span></div>`:''}</div>`;
+  var isAdmin=CU&&CU.role==='admin';
+  el.innerHTML=[...D.events].reverse().map(function(ev){
+    var et=D.transactions.filter(function(t){return t.eventId===ev.id;});
+    var eI=et.filter(function(t){return t.direction==='in';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+    var eO=et.filter(function(t){return t.direction==='out';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+    var evId=ev.id;
+    var delBtn=isAdmin?('<button data-evid="'+evId+'" onclick="deleteEvent(this.dataset.evid)" style="background:none;border:1px solid var(--red);color:var(--rl);border-radius:8px;padding:2px 8px;cursor:pointer;font-size:11px">Delete</button>'):'';
+    var txSummary=et.length?('<div style="margin-top:8px;font-size:12px">Income: <span style="color:var(--grnl)">'+thb(eI)+'</span> &middot; Costs: <span style="color:var(--rl)">'+thb(eO)+'</span> &middot; Net: <span style="color:'+(eI-eO>=0?'var(--grnl)':'var(--rl)')+'">'+thb(eI-eO)+'</span></div>'):'';
+    return '<div class="ec">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
+      +'<div class="en" style="margin:0">'+ev.name+'</div>'
+      +'<div style="display:flex;gap:5px">'
+      +'<button data-evid="'+evId+'" onclick="editEvent(this.dataset.evid)" style="background:none;border:1px solid var(--bd);color:var(--muted);border-radius:8px;padding:2px 8px;cursor:pointer;font-size:11px">Edit</button>'
+      +delBtn
+      +'</div></div>'
+      +'<div class="em"><span>&#128197; '+fd(ev.date)+'</span><span>&#128205; '+(ev.venue||'TBC')+'</span><span>&#127917; '+ev.type+'</span></div>'
+      +txSummary
+      +'</div>';
   }).join('');
 }
 
