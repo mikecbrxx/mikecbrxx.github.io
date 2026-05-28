@@ -190,7 +190,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.03</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.04</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -810,6 +810,18 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 </div></div></div></div>
 
 <!-- TAB DEBT SETTLE MODAL -->
+<div class="mo" id="mo-edittab"><div class="modal">
+  <div class="mh"><div class="mt">&#9998; Edit Tab Entry</div><button class="mc2" onclick="closeM('mo-edittab')">&#10005;</button></div>
+  <input type="hidden" id="et-id">
+  <div class="fg"><label>Description</label><input type="text" id="et-desc" placeholder="Description"></div>
+  <div class="fg"><label>Amount (&#3647;)</label><input type="number" id="et-amt" min="0"></div>
+  <div class="fg"><label>Date</label><input type="date" id="et-date"></div>
+  <div class="fg"><label>Member</label><select id="et-member"></select></div>
+  <div class="fg"><label>Notes</label><input type="text" id="et-notes" placeholder="Optional"></div>
+  <button class="btn btn-gold" onclick="saveEditTab()">Save Changes</button>
+  <button class="btn btn-out" onclick="closeM('mo-edittab')" style="margin-top:6px">Cancel</button>
+</div></div>
+
 <div class="mo" id="mo-settletab"><div class="modal">
   <div class="mh"><div class="mt">&#128203; Settle Tab</div><button class="mc2" onclick="closeM('mo-settletab')">&#10005;</button></div>
   <input type="hidden" id="st-id">
@@ -1609,8 +1621,16 @@ function renderTabLedger(){
     const dirCol=t.direction==='in'?'var(--grnl)':'var(--rl)';
     const resp=t.responsibleMemberName||t.enteredBy||'?';
     const markBtn=t.isTab
-      ?`<button onclick="openSettleTab('${t.id}')" style="margin-top:8px;background:none;border:1px solid var(--grn);color:var(--grnl);border-radius:20px;padding:4px 12px;cursor:pointer;font-size:11px;width:100%">&#10003; Mark Paid</button>`
-      :`<button onclick="markTxPaid('${t.id}')" style="margin-top:8px;background:none;border:1px solid var(--grn);color:var(--grnl);border-radius:20px;padding:4px 12px;cursor:pointer;font-size:11px;width:100%">&#10003; Mark Paid / Received</button>`;
+      ?`<div style="display:flex;gap:6px;margin-top:8px">
+          <button onclick="openEditTab('${t.id}')" style="flex:1;background:none;border:1px solid var(--bd);color:var(--muted);border-radius:20px;padding:4px 12px;cursor:pointer;font-size:11px">&#9998; Edit</button>
+          <button onclick="openSettleTab('${t.id}')" style="flex:2;background:none;border:1px solid var(--grn);color:var(--grnl);border-radius:20px;padding:4px 12px;cursor:pointer;font-size:11px">&#10003; Mark Paid</button>
+        </div>`
+      :t.isPO
+      ?`<button onclick="openPOView('${t.id}')" style="margin-top:8px;background:none;border:1px solid var(--bd);color:var(--muted);border-radius:20px;padding:4px 12px;cursor:pointer;font-size:11px;width:100%">&#128196; View PO</button>`
+      :`<div style="display:flex;gap:6px;margin-top:8px">
+          <button onclick="openTxEditModal('${t.id}')" style="flex:1;background:none;border:1px solid var(--bd);color:var(--muted);border-radius:20px;padding:4px 12px;cursor:pointer;font-size:11px">&#9998; Edit</button>
+          <button onclick="markTxPaid('${t.id}')" style="flex:2;background:none;border:1px solid var(--grn);color:var(--grnl);border-radius:20px;padding:4px 12px;cursor:pointer;font-size:11px">&#10003; Mark Paid / Received</button>
+        </div>`;
     return`<div class="tab-card ${dir}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
         <div style="flex:1">
@@ -2214,6 +2234,34 @@ function rTabs(){
   ${Object.values(byMem).sort((a,b)=>b.total-a.total).map(g=>`<div style="margin-bottom:14px"><div style="font-size:13px;font-weight:600;margin-bottom:6px">&#128100; ${g.name} &mdash; <span style="color:var(--warn)">${thb(g.total)} owed</span></div>${g.items.map(t=>tabRow(t,true)).join('')}</div>`).join('')||'<div style="color:var(--grnl);font-size:13px;padding:10px 0">&#10003; No outstanding tab debts!</div>'}
   ${done.length?`<div class="divider"></div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Settled (${done.length})</div>${done.slice(0,20).map(t=>tabRow(t,false)).join('')}`:''}`;}
 
+function openEditTab(id){
+  const tab=(D.tabs||[]).find(t=>t.id===id);
+  if(!tab)return;
+  document.getElementById('et-id').value=id;
+  document.getElementById('et-desc').value=tab.description||'';
+  document.getElementById('et-amt').value=tab.amount||0;
+  document.getElementById('et-date').value=tab.date||'';
+  document.getElementById('et-notes').value=tab.notes||'';
+  // Populate member select
+  const memSel=document.getElementById('et-member');
+  memSel.innerHTML=D.members.filter(m=>m.status!=='prospect'&&m.status!=='inactive')
+    .map(m=>`<option value="${m.id}"${m.id===tab.memberId?' selected':''}>${m.name}</option>`).join('');
+  openM('mo-edittab');
+}
+function saveEditTab(){
+  const id=document.getElementById('et-id').value;
+  const tab=(D.tabs||[]).find(t=>t.id===id);
+  if(!tab)return;
+  const memId=document.getElementById('et-member').value;
+  const mem=D.members.find(m=>m.id===memId);
+  tab.description=document.getElementById('et-desc').value.trim();
+  tab.amount=parseFloat(document.getElementById('et-amt').value)||0;
+  tab.date=document.getElementById('et-date').value;
+  tab.notes=document.getElementById('et-notes').value.trim();
+  if(mem){tab.memberId=mem.id;tab.memberName=mem.name;}
+  audit('TAB_EDIT','Edited tab: '+tab.description+' '+thb(tab.amount));
+  save();closeM('mo-edittab');renderTabLedger();
+}
 function openSettleTab(id){
   const tab=(D.tabs||[]).find(t=>t.id===id);if(!tab)return;
   document.getElementById('st-id').value=id;
