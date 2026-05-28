@@ -190,7 +190,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.05</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.06</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -300,10 +300,6 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
         <div class="tabs" id="stock-tabs">
           <button class="tab on" onclick="setSTab(this,'all')">All</button>
           <button class="tab" onclick="setSTab(this,'low')">&#9888;&#65039; Low/Out</button>
-          <button class="tab" onclick="setSTab(this,'shirt')">&#128085;&#65039; Shirts</button>
-          <button class="tab" onclick="setSTab(this,'trucker')">&#129698; Trucker</button>
-          <button class="tab" onclick="setSTab(this,'stretch')">&#129698; Stretch</button>
-          <button class="tab" onclick="setSTab(this,'keyring')">&#128273; Keyrings</button>
         </div>
         <div id="stock-list"></div>
       </div>
@@ -1529,6 +1525,17 @@ function renderMerch(){
 
 // Stock View
 function renderStock(){
+  // Rebuild category tabs dynamically from product categories
+  var stTabsEl=document.getElementById('stock-tabs');
+  if(stTabsEl){
+    var stCats=getProdCats();
+    // Keep All and Low/Out, then add one tab per product category
+    stTabsEl.innerHTML='<button class="tab'+(STF==='all'?' on':'')+'" onclick="setSTab(this,\"all\")">All</button>'
+      +'<button class="tab'+(STF==='low'?' on':'')+'" onclick="setSTab(this,\"low\")">&#9888;&#65039; Low/Out</button>'
+      +stCats.map(function(c){
+        return '<button class="tab'+(STF===c.id?' on':'')+'" data-cat="'+c.id+'" onclick="setSTab(this,this.dataset.cat)">'+c.label+'</button>';
+      }).join('');
+  }
   const t=D.lowStockThreshold||5;
   const rows=[];
   D.products.filter(p=>!p.archived).forEach(p=>p.variants.forEach(v=>{
