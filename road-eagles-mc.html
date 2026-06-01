@@ -190,7 +190,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.08</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.10</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -659,6 +659,17 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
     </div>
     <div class="fg"><label>Ref / PO Number</label><input type="text" id="po-ref" placeholder="Optional"></div>
     <div class="fg"><label>Notes</label><textarea id="po-notes" style="height:50px"></textarea></div>
+    <div class="fg" id="po-status-row" style="display:none">
+      <label>&#9888;&#65039; Override Status (Admin)</label>
+      <select id="po-status-override">
+        <option value="draft">Draft</option>
+        <option value="ordered">Ordered</option>
+        <option value="part_paid">Part Paid</option>
+        <option value="paid">Paid</option>
+        <option value="part_received">Part Received</option>
+        <option value="received">Received</option>
+      </select>
+    </div>
     <div style="display:flex;gap:8px;margin-top:4px">
       <button class="btn btn-out" onclick="savePO('draft')" style="flex:1">Save as Draft</button>
       <button class="btn btn-gold" id="po-place-btn" onclick="savePO('ordered')" style="flex:1">Place Order</button>
@@ -2841,8 +2852,9 @@ function openNewPO(){
   pSel.onchange=updatePOProductFields;
   updatePOProductFields();
   populateAssemblyGroups('');
-  populateAssemblyGroups('');
   updateAGLabel();
+  var stRowN=document.getElementById('po-status-row');
+  if(stRowN)stRowN.style.display='none';
   var placeBtn=document.getElementById('po-place-btn');
   if(placeBtn)placeBtn.textContent='Place Order';
   openM('mo-po');
@@ -2944,9 +2956,20 @@ function savePO(status){
       po.payments=existing.payments||[];
       po.created=existing.created;
       po.createdBy=existing.createdBy;
+      po.receivedQty=existing.receivedQty;
+      po.receivedDate=existing.receivedDate;
+      po.receivedNotes=existing.receivedNotes;
+      po.assembled=existing.assembled;
+      po.assembledDate=existing.assembledDate;
+      po.assembledQty=existing.assembledQty;
+      // Admin status override
+      if(CU&&CU.role==='admin'){
+        var stOvrEl=document.getElementById('po-status-override');
+        if(stOvrEl&&stOvrEl.value)po.status=stOvrEl.value;
+      }
       var poIdx=D.purchaseOrders.indexOf(existing);
       D.purchaseOrders[poIdx]=po;
-      audit('PO_EDIT','Edited PO: '+desc+' '+thb(total));
+      audit('PO_EDIT','Edited PO: '+desc+' '+thb(total)+(po.status!==existing.status?' [status: '+po.status+']':''));
     }
   } else {
     D.purchaseOrders.push(po);
@@ -3010,6 +3033,11 @@ function openEditPO(id){
   }
   populateAssemblyGroups(po.assemblyGroup||'');
   updateAGLabel();
+  // Show status override for admin when editing
+  var stRow2=document.getElementById('po-status-row');
+  if(stRow2)stRow2.style.display=(CU&&CU.role==='admin')?'':'none';
+  var stOvr=document.getElementById('po-status-override');
+  if(stOvr)stOvr.value=po.status||'ordered';
   var placeBtn2=document.getElementById('po-place-btn');
   if(placeBtn2)placeBtn2.textContent='Save Changes';
   openM('mo-po');
@@ -3067,10 +3095,13 @@ function savePOPayment(){
   // Update PO status
   var newPaid=poPaid(po);
   if(newPaid>=po.total-0.01){
-    if(po.status==='received'||po.status==='part_received'){}
-    else po.status='paid';
+    // Fully paid - if already received stock, mark received; else mark paid
+    if(po.status==='part_received')po.status='received';
+    else if(po.status!=='received')po.status='paid';
   } else {
-    if(po.status==='ordered'||po.status==='draft')po.status='part_paid';
+    // Partially paid
+    if(po.status==='part_received'){} // keep as part_received
+    else if(po.status==='ordered'||po.status==='draft')po.status='part_paid';
   }
   audit('PO_PAYMENT','Payment of '+thb(amt)+' against PO: '+po.desc);
   save();closeM('mo-po-payment');renderAll();
@@ -3117,7 +3148,9 @@ function confirmPOReceive(){
   // Use po.colour if explicitly set (even empty string means no colour filter)
   var col=po.colour!==undefined&&po.colour!==null?po.colour:stockCol(p,'');
   adjStock(p.id,v.id,po.size||null,col,qty,'ordered');
-  po.status='received';
+  // Only mark fully received if fully paid - otherwise part_received keeps it visible
+  var remainingBal=poBalance(po);
+  po.status=remainingBal>0.01?'part_received':'received';
   po.receivedQty=qty;
   po.receivedDate=document.getElementById('por-date').value;
   po.receivedNotes=document.getElementById('por-notes').value.trim();
@@ -3133,8 +3166,8 @@ function openPODetail(po){
   var st=PO_STATUS[po.status]||{label:po.status,col:'var(--muted)'};
   var prod=po.productId?D.products.find(function(p){return p.id===po.productId;}):null;
   var canEdit=po.status==='draft'||po.status==='ordered';
-  var canPay=bal>0.01;
-  var canReceive=po.productId&&(po.status==='paid'||po.status==='part_paid'||po.status==='ordered');
+  var canPay=bal>0.01&&po.status!=='received';
+  var canReceive=po.productId&&(po.status==='paid'||po.status==='part_paid'||po.status==='ordered'||po.status==='part_received');
   var canAssemble=po.assemblyGroup&&!po.assembled&&(function(){var s=getBOMGroupStatus(po.assemblyGroup);return s&&s.allReceived&&!s.assembled;})();
 
   var html='<div style="font-size:20px;font-weight:700;margin-bottom:4px">'+po.desc+'</div>'
