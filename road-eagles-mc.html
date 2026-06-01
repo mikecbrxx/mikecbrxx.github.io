@@ -190,7 +190,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.11</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.12</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -1361,6 +1361,31 @@ function fd(s){if(!s)return'';try{return new Date(s).toLocaleDateString('en-GB',
 function fdt(s){if(!s)return'';try{return new Date(s).toLocaleString('en-GB',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch(e){return s;}}
 function uid(){return'x'+Date.now()+Math.random().toString(36).slice(2,6);}
 function calcBal(){let ci=D.openingClub,co=0,hi=D.openingCharity,ho=0;D.transactions.filter(t=>t.paid!==false).forEach(t=>{const a=parseFloat(t.amount)||0;if(t.account==='club'){t.direction==='in'?ci+=a:co+=a;}else{t.direction==='in'?hi+=a:ho+=a;}});return{club:ci-co,charity:hi-ho};}
+function calcBalAtDate(beforeIso){
+  // Returns {club, charity} balance using only transactions strictly before beforeIso
+  var ci=D.openingClub,co=0,hi=D.openingCharity,ho=0;
+  D.transactions.filter(function(t){
+    if(t.paid===false)return false;
+    var d=t.date||t.created||'';
+    return d<beforeIso;
+  }).forEach(function(t){
+    var a=parseFloat(t.amount)||0;
+    if(t.account==='club'){t.direction==='in'?ci+=a:co+=a;}
+    else{t.direction==='in'?hi+=a:ho+=a;}
+  });
+  return{club:ci-co,charity:hi-ho};
+}
+function catBdDir(txs,direction,color){
+  // Category breakdown for one direction (in or out)
+  var c={};
+  txs.filter(function(t){return t.direction===direction;}).forEach(function(t){
+    var a=parseFloat(t.amount)||0;
+    c[t.category]=(c[t.category]||0)+a;
+  });
+  return Object.entries(c).sort(function(a,b){return b[1]-a[1];}).map(function(e){
+    return br('&nbsp;&nbsp;'+(CM[e[0]]||e[0]),thb(e[1]),color);
+  }).join('');
+}
 function mthTx(){const n=new Date(),m=n.getMonth(),y=n.getFullYear();return D.transactions.filter(t=>{if(t.paid===false)return false;const d=new Date(t.date||t.created);return d.getMonth()===m&&d.getFullYear()===y;});}
 function calcFee(j){const f=D.memberFee||2000;if(!j)return f;const d=new Date(j);const curYear=new Date().getFullYear();if(d.getFullYear()<curYear)return f;const mo=d.getMonth()+1;if(mo<=3)return f;if(mo<=6)return Math.round(f*.75);if(mo<=9)return Math.round(f*.5);return Math.round(f*.25);}
 const CM={merchandise:'&#128085;&#65039; Merchandise',membership_fee:'&#129338;&#65039; Membership Fee',donation_in:'&#129309; Donation In',donation_out:'&#128157; Donation Out',collection_box:'&#128230; Collection Box',event_income:'&#127881; Event Income',event_expense:'&#127914; Event Expense',venue:'&#127999;&#65039; Venue',music:'&#127925; Music',marketing:'&#128196; Marketing',purchase:'&#128722; Purchase',petty_cash:'&#128181; Petty Cash',charity_cash:'&#10084;&#65039; Charity Cash',charity_goods:'&#128230; Charity Goods',club_donation_out:'&#129309; Club Donation Out',ride_income:'&#128693;&#65039; Ride Income',stock_order:'&#128230; Stock Order',other:'&#9961; Other'};
@@ -2120,23 +2145,66 @@ function br(l,v,c){return`<div class="brow"><span class="blbl">${l}</span><span 
 function sumio(txs){const i=txs.filter(t=>t.direction==='in').reduce((a,t)=>a+parseFloat(t.amount||0),0),o=txs.filter(t=>t.direction==='out').reduce((a,t)=>a+parseFloat(t.amount||0),0);return{i,o,n:i-o};}
 function catBd(txs){const c={};txs.forEach(t=>{const a=(t.direction==='in'?1:-1)*(parseFloat(t.amount)||0);c[t.category]=(c[t.category]||0)+a;});return Object.entries(c).map(([k,v])=>br(CM[k]||k,thb(Math.abs(v)),v>=0?'var(--grnl)':'var(--rl)')).join('');}
 function rMonth(){
-  var n=new Date(),l=n.toLocaleString('en-GB',{month:'long',year:'numeric'}),mt=mthTx();
-  var c=sumio(mt.filter(function(t){return t.account==='club';}));
-  var h=sumio(mt.filter(function(t){return t.account==='charity';}));
-  // Committed items (all outstanding, not date filtered)
+  var now=new Date();
+  var mth=now.getMonth(),yr=now.getFullYear();
+  var monthName=now.toLocaleString('en-GB',{month:'long',year:'numeric'});
+  // Date boundaries for this month
+  var monthStart=yr+'-'+String(mth+1).padStart(2,'0')+'-01';
+  var nextMonth=new Date(yr,mth+1,1);
+  var monthEnd=nextMonth.getFullYear()+'-'+String(nextMonth.getMonth()+1).padStart(2,'0')+'-01';
+  // Opening balance = balance at start of month
+  var ob=calcBalAtDate(monthStart);
+  // Closing balance = current balance
+  var cb=calcBal();
+  // This month's paid transactions
+  var mt=mthTx();
+  var mc=mt.filter(function(t){return t.account==='club';});
+  var mh=mt.filter(function(t){return t.account==='charity';});
+  var c=sumio(mc);
+  var h=sumio(mh);
+  // Committed items
   var allUnpaid=D.transactions.filter(function(t){return t.paid===false;});
   var tabTotal=(D.tabs||[]).filter(function(t){return !t.settled;}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
   var poTotal=(D.purchaseOrders||[]).filter(function(po){return po.status!=='received'&&po.status!=='draft'&&poBalance(po)>0;}).reduce(function(a,po){return a+poBalance(po);},0);
   var unpaidIn=allUnpaid.filter(function(t){return t.direction==='in'&&t.category!=='membership_fee'&&t.category!=='merchandise';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
-  var feeTabTx=allUnpaid.filter(function(t){return t.category==='membership_fee'&&t.direction==='in';});
-  var feesOwed=feeTabTx.reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
+  var feesOwed=allUnpaid.filter(function(t){return t.category==='membership_fee'&&t.direction==='in';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
   var unpaidOut=allUnpaid.filter(function(t){return t.direction==='out';}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
   var totalDueIn=feesOwed+tabTotal+unpaidIn;
   var totalDueOut=unpaidOut+poTotal;
   var committedNote='<div style="font-size:10px;color:var(--dim);margin:4px 0 8px;font-style:italic">&#9432; Committed items are not included in the paid totals above.</div>';
-  return '<div style="font-size:12px;color:var(--muted);margin-bottom:12px">'+l+'</div>'
-    +'<div class="balbar"><h3>&#128693;&#65039; Club Account</h3>'+br('Income',thb(c.i),'var(--grnl)')+br('Expenses',thb(c.o),'var(--rl)')+br('Net',thb(c.n))+'</div>'
-    +'<div class="balbar"><h3>&#10084;&#65039; Charity Account</h3>'+br('Donations In',thb(h.i),'var(--grnl)')+br('Out',thb(h.o),'var(--rl)')+br('Net',thb(h.n))+'</div>'
+  var divider='<div style="border-top:1px solid var(--bd);margin:6px 0"></div>';
+  return '<div style="font-size:12px;color:var(--muted);margin-bottom:12px">'+monthName+'</div>'
+    // ── Club Account ──
+    +'<div class="balbar"><h3>&#128693;&#65039; Club Account</h3>'
+    +br('Opening Balance',thb(ob.club),'var(--gold)')
+    +divider
+    +'<div style="font-size:11px;font-weight:700;color:var(--grnl);padding:2px 0">Income</div>'
+    +catBdDir(mc,'in','var(--grnl)')
+    +br('Total Income',thb(c.i),'var(--grnl)')
+    +divider
+    +'<div style="font-size:11px;font-weight:700;color:var(--rl);padding:2px 0">Expenses</div>'
+    +catBdDir(mc,'out','var(--rl)')
+    +br('Total Expenses',thb(c.o),'var(--rl)')
+    +divider
+    +br('Net This Month',thb(c.n),c.n>=0?'var(--grnl)':'var(--rl)')
+    +br('Closing Balance',thb(cb.club),'var(--gold)')
+    +'</div>'
+    // ── Charity Account ──
+    +'<div class="balbar"><h3>&#10084;&#65039; Charity Account</h3>'
+    +br('Opening Balance',thb(ob.charity),'var(--gold)')
+    +divider
+    +'<div style="font-size:11px;font-weight:700;color:var(--grnl);padding:2px 0">Income</div>'
+    +catBdDir(mh,'in','var(--grnl)')
+    +br('Total Donations In',thb(h.i),'var(--grnl)')
+    +divider
+    +'<div style="font-size:11px;font-weight:700;color:var(--rl);padding:2px 0">Expenditure</div>'
+    +catBdDir(mh,'out','var(--rl)')
+    +br('Total Out',thb(h.o),'var(--rl)')
+    +divider
+    +br('Net This Month',thb(h.n),h.n>=0?'var(--grnl)':'var(--rl)')
+    +br('Closing Balance',thb(cb.charity),'var(--gold)')
+    +'</div>'
+    // ── Committed ──
     +'<div class="balbar"><h3>&#128203; Committed &amp; Outstanding</h3>'+committedNote
     +'<div style="font-size:11px;font-weight:700;color:var(--grnl);padding:2px 0">Due to the Club</div>'
     +br('Unpaid Fees',thb(feesOwed),'var(--grnl)')
@@ -2151,9 +2219,19 @@ function rMonth(){
     +'</div>';
 }
 function rAnnual(){
-  var b=calcBal();
+  var yr=new Date().getFullYear();
+  var yearStart=yr+'-01-01';
+  // Opening balance = balance at start of this year
+  var ob=calcBalAtDate(yearStart);
+  // Closing balance = current total balance
+  var cb=calcBal();
   var c=D.transactions.filter(function(t){return t.account==='club'&&t.paid!==false;});
   var h=D.transactions.filter(function(t){return t.account==='charity'&&t.paid!==false;});
+  // Year transactions only for category breakdown
+  var cy=c.filter(function(t){var d=t.date||t.created||'';return d>=yearStart;});
+  var hy=h.filter(function(t){var d=t.date||t.created||'';return d>=yearStart;});
+  var cyIn=sumio(cy).i,cyOut=sumio(cy).o;
+  var hyIn=sumio(hy).i,hyOut=sumio(hy).o;
   var allUnpaid=D.transactions.filter(function(t){return t.paid===false;});
   var tabTotal=(D.tabs||[]).filter(function(t){return !t.settled;}).reduce(function(a,t){return a+parseFloat(t.amount||0);},0);
   var poTotal=(D.purchaseOrders||[]).filter(function(po){return po.status!=='received'&&po.status!=='draft'&&poBalance(po)>0;}).reduce(function(a,po){return a+poBalance(po);},0);
@@ -2163,8 +2241,39 @@ function rAnnual(){
   var totalDueIn=feesOwed+tabTotal+unpaidIn;
   var totalDueOut=unpaidOut+poTotal;
   var committedNote='<div style="font-size:10px;color:var(--dim);margin:4px 0 8px;font-style:italic">&#9432; Committed items are not included in the paid balances above.</div>';
-  return '<div class="balbar"><h3>&#128693;&#65039; Club Account</h3>'+catBd(c)+br('Balance',thb(b.club))+'</div>'
-    +'<div class="balbar"><h3>&#10084;&#65039; Charity Account</h3>'+catBd(h)+br('Balance',thb(b.charity))+'</div>'
+  var divider='<div style="border-top:1px solid var(--bd);margin:6px 0"></div>';
+  return '<div style="font-size:12px;color:var(--muted);margin-bottom:12px">Year '+yr+'</div>'
+    // ── Club Account ──
+    +'<div class="balbar"><h3>&#128693;&#65039; Club Account</h3>'
+    +br('Opening Balance (1 Jan '+yr+')',thb(ob.club),'var(--gold)')
+    +divider
+    +'<div style="font-size:11px;font-weight:700;color:var(--grnl);padding:2px 0">Income This Year</div>'
+    +catBdDir(cy,'in','var(--grnl)')
+    +br('Total Income',thb(cyIn),'var(--grnl)')
+    +divider
+    +'<div style="font-size:11px;font-weight:700;color:var(--rl);padding:2px 0">Expenses This Year</div>'
+    +catBdDir(cy,'out','var(--rl)')
+    +br('Total Expenses',thb(cyOut),'var(--rl)')
+    +divider
+    +br('Net This Year',thb(cyIn-cyOut),(cyIn-cyOut)>=0?'var(--grnl)':'var(--rl)')
+    +br('Closing Balance',thb(cb.club),'var(--gold)')
+    +'</div>'
+    // ── Charity Account ──
+    +'<div class="balbar"><h3>&#10084;&#65039; Charity Account</h3>'
+    +br('Opening Balance (1 Jan '+yr+')',thb(ob.charity),'var(--gold)')
+    +divider
+    +'<div style="font-size:11px;font-weight:700;color:var(--grnl);padding:2px 0">Income This Year</div>'
+    +catBdDir(hy,'in','var(--grnl)')
+    +br('Total Donations In',thb(hyIn),'var(--grnl)')
+    +divider
+    +'<div style="font-size:11px;font-weight:700;color:var(--rl);padding:2px 0">Expenditure This Year</div>'
+    +catBdDir(hy,'out','var(--rl)')
+    +br('Total Out',thb(hyOut),'var(--rl)')
+    +divider
+    +br('Net This Year',thb(hyIn-hyOut),(hyIn-hyOut)>=0?'var(--grnl)':'var(--rl)')
+    +br('Closing Balance',thb(cb.charity),'var(--gold)')
+    +'</div>'
+    // ── Committed ──
     +'<div class="balbar"><h3>&#128203; Committed &amp; Outstanding</h3>'+committedNote
     +'<div style="font-size:11px;font-weight:700;color:var(--grnl);padding:2px 0">Due to the Club</div>'
     +br('Unpaid Fees',thb(feesOwed),'var(--grnl)')
