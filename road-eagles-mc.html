@@ -190,7 +190,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.07</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.08</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -919,6 +919,21 @@ D.products.forEach(p=>{
 // Prevents stale local data from being used or pushed to Supabase.
 var _appReady=false;
 
+
+// Migrate PO variantIdx to variantId
+function _migratePOVariants(){
+  var changed=false;
+  (D.purchaseOrders||[]).forEach(function(po){
+    if(po.productId&&!po.variantId&&po.variantIdx!==undefined){
+      var prod=D.products.find(function(p){return p.id===po.productId;});
+      if(prod&&prod.variants&&prod.variants[po.variantIdx]){
+        po.variantId=prod.variants[po.variantIdx].id;
+        changed=true;
+      }
+    }
+  });
+  return changed;
+}
 function _migrateD(data,url,key){
   data.supabaseUrl=url;
   data.supabaseKey=key;
@@ -944,6 +959,10 @@ function _migrateD(data,url,key){
     if(!p.sizes){p.sizes=p.hasSizes?(data.sizes||SIZES):[];}
     p.variants.forEach(function(v){if(!v.id)v.id='v'+Math.random().toString(36).slice(2,8);});
   });
+  // Migrate PO variantIdx→variantId
+  (data.purchaseOrders||[]).forEach(function(po){if(po.productId&&!po.variantId&&po.variantIdx!==undefined){var prod=(data.products||[]).find(function(p){return p.id===po.productId;});if(prod&&prod.variants&&prod.variants[po.variantIdx]){po.variantId=prod.variants[po.variantIdx].id;}}});
+  // Migrate PO variantIdx to variantId
+  (data.purchaseOrders||[]).forEach(function(po){if(po.productId&&!po.variantId&&po.variantIdx!==undefined){var prod=(data.products||[]).find(function(p){return p.id===po.productId;});if(prod&&prod.variants&&prod.variants[po.variantIdx]){po.variantId=prod.variants[po.variantIdx].id;}}});
   return data;
 }
 
@@ -1248,6 +1267,8 @@ function tryLogin(){
     loadSettings();
     // D is already populated by startup fetch - go straight to app
     // The startup fetch loaded correct data before PIN was entered
+    if(_migratePOVariants())save();
+    if(typeof _migratePOVariants==='function'&&_migratePOVariants())save();
     refreshCats();loadSettings();renderAll();goTo('dash');
     checkAnnualFeeReset();
     checkBackupReminder();
@@ -2906,6 +2927,7 @@ function savePO(status){
     productId:pid||null,
     qty:pid?parseInt(document.getElementById('po-qty').value)||1:0,
     variantIdx:pid?parseInt(document.getElementById('po-variant').value)||0:0,
+    variantId:pid?(function(){var vSel=document.getElementById('po-variant');var idx=parseInt(vSel?vSel.value:0)||0;var prod=D.products.find(function(x){return x.id===pid;});return prod&&prod.variants&&prod.variants[idx]?prod.variants[idx].id:'';})():'',
     size:pid?document.getElementById('po-size').value:'',
     colour:pid&&document.getElementById('po-colour-row').style.display!=='none'?document.getElementById('po-colour').value:'',
     assemblyGroup:agid||null,
@@ -2962,6 +2984,21 @@ function openEditPO(id){
   if(po.size){var szSel=document.getElementById('po-size');if(szSel)szSel.value=po.size;}
   if(po.colour){var cSel=document.getElementById('po-colour');if(cSel)cSel.value=po.colour;}
   if(po.qty){document.getElementById('po-qty').value=po.qty;}
+  // Restore saved variant selection
+  if(po.productId){
+    var varSel=document.getElementById('po-variant');
+    if(varSel&&po.variantId){
+      // Prefer variantId match
+      var prod2=D.products.find(function(x){return x.id===po.productId;});
+      if(prod2&&prod2.variants){
+        var vi2=prod2.variants.findIndex(function(v){return v.id===po.variantId;});
+        if(vi2>=0)varSel.value=vi2;
+        else if(po.variantIdx!==undefined)varSel.value=po.variantIdx;
+      }
+    } else if(varSel&&po.variantIdx!==undefined){
+      varSel.value=po.variantIdx;
+    }
+  }
   // Ensure this PO's assembly group is in D.assemblyGroups (handles legacy uid-based IDs)
   if(po.assemblyGroup&&po.assemblyGroupName){
     if(!D.assemblyGroups)D.assemblyGroups=[];
@@ -3067,9 +3104,18 @@ function confirmPOReceive(){
   if(qty<=0){alert('Please enter quantity received.');return;}
   var p=D.products.find(function(x){return x.id===po.productId;});
   if(!p){alert('Product not found.');return;}
-  var vi=po.variantIdx||0;var v=p.variants&&(p.variants[vi]||p.variants[0]);
-  if(!v){alert('Product has no variants.');return;}
-  var col=po.colour||stockCol(p,'');
+  // Prefer variantId (string ID), fall back to variantIdx (array index) for legacy POs
+  var v=null;
+  if(po.variantId&&p.variants){
+    v=p.variants.find(function(x){return x.id===po.variantId;});
+  }
+  if(!v&&p.variants){
+    var vi=po.variantIdx||0;
+    v=p.variants[vi]||p.variants[0];
+  }
+  if(!v){alert('Product variant not found.');return;}
+  // Use po.colour if explicitly set (even empty string means no colour filter)
+  var col=po.colour!==undefined&&po.colour!==null?po.colour:stockCol(p,'');
   adjStock(p.id,v.id,po.size||null,col,qty,'ordered');
   po.status='received';
   po.receivedQty=qty;
