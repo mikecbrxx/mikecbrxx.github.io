@@ -190,7 +190,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.15</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.16</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -470,16 +470,14 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
         <h4>&#128190; Backup &amp; Restore</h4>
         <div class="fg">
           <label>Backup filename prefix</label>
-          <div style="display:flex;gap:8px;align-items:center">
-            <input type="text" id="set-backup-name" placeholder="RE-Backup" style="flex:1">
-            <button class="btn btn-gold" onclick="saveBackupSettings()" style="padding:6px 14px;font-size:12px">Save &amp; Sync</button>
-          </div>
-          <div style="font-size:10px;color:var(--dim);margin-top:3px">Default: RE-Backup. File saved as: &lt;prefix&gt;-YYYYMMDD-HH:MM:SS.json</div>
+          <input type="text" id="set-backup-name" placeholder="RE-Backup" style="width:100%;margin-bottom:6px">
+          <div style="font-size:10px;color:var(--dim);margin-bottom:8px">File saved as: &lt;prefix&gt;-YYYYMMDD-HH:MM:SS.json</div>
         </div>
         <div class="fg">
           <label>Auto-backup reminder (days, 0 to disable)</label>
           <div style="display:flex;gap:8px;align-items:center">
             <input type="number" id="set-backup-days" min="0" max="365" value="7" style="width:80px">
+            <button class="btn btn-gold" onclick="saveBackupSettings()" style="padding:6px 14px;font-size:12px">Save &amp; Sync</button>
           </div>
         </div>
         <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Last backup: <span id="last-backup-lbl">Never</span></div>
