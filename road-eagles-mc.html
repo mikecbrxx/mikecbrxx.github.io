@@ -190,7 +190,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.14</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.15</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -469,10 +469,17 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
       <div class="sn" id="backup-settings" style="display:none">
         <h4>&#128190; Backup &amp; Restore</h4>
         <div class="fg">
+          <label>Backup filename prefix</label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="text" id="set-backup-name" placeholder="RE-Backup" style="flex:1">
+            <button class="btn btn-gold" onclick="saveBackupSettings()" style="padding:6px 14px;font-size:12px">Save &amp; Sync</button>
+          </div>
+          <div style="font-size:10px;color:var(--dim);margin-top:3px">Default: RE-Backup. File saved as: &lt;prefix&gt;-YYYYMMDD-HH:MM:SS.json</div>
+        </div>
+        <div class="fg">
           <label>Auto-backup reminder (days, 0 to disable)</label>
           <div style="display:flex;gap:8px;align-items:center">
             <input type="number" id="set-backup-days" min="0" max="365" value="7" style="width:80px">
-            <button class="btn btn-gold" onclick="saveBackupSettings()" style="padding:6px 14px;font-size:12px">Save &amp; Sync</button>
           </div>
         </div>
         <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Last backup: <span id="last-backup-lbl">Never</span></div>
@@ -1984,6 +1991,9 @@ function deleteUser(){const old=document.getElementById('usr-old').value;if(!old
 function loadSettings(){document.getElementById('set-cb').value=D.openingClub||0;document.getElementById('set-hb').value=D.openingCharity||0;document.getElementById('set-fee').value=D.memberFee||2000;
   var brd=document.getElementById('set-backup-days');if(brd)brd.value=D.backupReminderDays!==undefined?D.backupReminderDays:7;
   var lbl=document.getElementById('last-backup-lbl');if(lbl)lbl.textContent=D.lastBackupDate?new Date(D.lastBackupDate).toLocaleString('en-GB'):'Never';
+  var bnEl=document.getElementById('set-backup-name');if(bnEl)bnEl.value=D.backupFilename||'RE-Backup';
+  var bnEl=document.getElementById('set-backup-name');if(bnEl)bnEl.value=D.backupFilename||'RE-Backup';
+  var bnEl=document.getElementById('set-backup-name');if(bnEl)bnEl.value=D.backupFilename||'RE-Backup';
   var ci=document.getElementById('set-cats-i');if(ci)ci.value=(D.incomeCategories||CATS_I).join(', ');
   var et=document.getElementById('set-ev-types');if(et)et.value=(D.eventTypes||['party','ride','fundraiser','other']).join(', ');
   var sz=document.getElementById('set-sizes');if(sz)sz.value=(D.sizes||SIZES).join(', ');
@@ -2818,7 +2828,10 @@ function openEditSupplier(sid){var s=D.suppliers.find(function(x){return x.id===
 function viewSupplier(sid){var s=D.suppliers.find(function(x){return x.id===sid;});if(!s)return;document.getElementById('sup-view-title').textContent=s.name;var body='';if(s.contact)body+='<div class="brow"><span class="blbl">Contact</span><span>'+s.contact+'</span></div>';if(s.phone)body+='<div class="brow"><span class="blbl">Phone</span><a href="tel:'+s.phone+'" style="color:var(--gold)">'+s.phone+'</a></div>';if(s.email)body+='<div class="brow"><span class="blbl">Email</span><a href="mailto:'+s.email+'" style="color:var(--gold)">'+s.email+'</a></div>';if(s.website)body+='<div class="brow"><span class="blbl">Website</span><a href="'+s.website+'" target="_blank" style="color:var(--gold)">'+s.website+'</a></div>';if(s.address)body+='<div class="brow"><span class="blbl">Address</span><span style="font-size:11px">'+s.address+'</span></div>';if(!body)body='<div style="color:var(--muted);font-size:12px;text-align:center;padding:12px">No additional details recorded.</div>';document.getElementById('sup-view-body').innerHTML=body;var eb=document.getElementById('sup-edit-btn');if(eb){var isOfficer=CU&&(CU.role==='admin'||CU.role==='officer'||CU.role==='president'||CU.role==='vice_president'||CU.role==='treasurer');eb.style.display=isOfficer?'':'none';eb.onclick=function(){closeM('mo-supplier-view');openEditSupplier(sid);};}openM('mo-supplier-view');}
 function saveSupplier(){var name=document.getElementById('sup-name').value.trim();if(!name){alert('Supplier name is required.');return;}var sid=document.getElementById('sup-id').value;var data={name:name,contact:document.getElementById('sup-contact').value.trim(),phone:document.getElementById('sup-phone').value.trim(),email:document.getElementById('sup-email').value.trim(),website:document.getElementById('sup-website').value.trim(),address:document.getElementById('sup-address').value.trim()};if(sid){var s=D.suppliers.find(function(x){return x.id===sid;});if(s){var before={name:s.name};Object.assign(s,data);audit('SETTINGS','Supplier edited: '+name,before,{name:name});}}else{if(D.suppliers.find(function(x){return x.name.toLowerCase()===name.toLowerCase();})){alert('Supplier already exists.');return;}data.id=uid();D.suppliers.push(data);audit('SETTINGS','Supplier added: '+name);}save();closeM('mo-supplier');renderSettings();}
 
-function saveBackupSettings(){var raw=document.getElementById('set-backup-days').value;var days=raw===''?7:parseInt(raw);D.backupReminderDays=days;
+function saveBackupSettings(){var raw=document.getElementById('set-backup-days').value;var days=raw===''?7:parseInt(raw);
+  var nameEl=document.getElementById('set-backup-name');
+  D.backupFilename=(nameEl&&nameEl.value.trim())?nameEl.value.trim():'RE-Backup';
+  D.backupReminderDays=days;
   localStorage.setItem('remct4',JSON.stringify(D));
   var url=D.supabaseUrl&&D.supabaseUrl.trim();
   var key=D.supabaseKey&&D.supabaseKey.trim();
@@ -2834,7 +2847,8 @@ function exportBackup(){
   var now=new Date();
   var pad=function(n,w){return String(n).padStart(w,'0');};
   var ts=pad(now.getFullYear(),4)+pad(now.getMonth()+1,2)+pad(now.getDate(),2)+'-'+pad(now.getHours(),2)+':'+pad(now.getMinutes(),2)+':'+pad(now.getSeconds(),2);
-  var filename='road-eagles-backup-'+ts+'.json';
+  var prefix=(D.backupFilename&&D.backupFilename.trim())||'RE-Backup';
+  var filename=prefix+'-'+ts+'.json';
   var blob=new Blob([JSON.stringify(D,null,2)],{type:'application/json'});
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(a.href);
   D.lastBackupDate=now.toISOString();save();
@@ -2875,7 +2889,8 @@ function checkBackupReminder(){
 }
 function showBackupReminder(){
   var lbl=document.getElementById('last-backup-lbl');
-  if(confirm('Backup Reminder: Last backup was '+(lbl?lbl.textContent:'unknown')+'.\nExport a backup now?'))exportBackup();
+  var prefix=(D.backupFilename&&D.backupFilename.trim())||'RE-Backup';
+  if(confirm('Backup Reminder: Last backup was '+(lbl?lbl.textContent:'unknown')+'.\nBackup will be saved as: '+prefix+'-[date].json\nExport now?'))exportBackup();
 }
 
 var _txeDir='in',_txeAcc='club';
