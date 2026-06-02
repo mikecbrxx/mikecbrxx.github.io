@@ -190,7 +190,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.13</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.14</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -3371,16 +3371,35 @@ function confirmPOReceive(){
   if(!v){alert('Product variant not found.');return;}
   // Use po.colour if explicitly set (even empty string means no colour filter)
   var col=po.colour!==undefined&&po.colour!==null?po.colour:stockCol(p,'');
-  adjStock(p.id,v.id,po.size||null,col,qty,'ordered');
+  // Only add stock directly if this PO is NOT part of an assembly group
+  // Assembly group stock is added via the Assemble step once all components arrive
+  if(!po.assemblyGroup){
+    adjStock(p.id,v.id,po.size||null,col,qty,'ordered');
+  }
   // Only mark fully received if fully paid - otherwise part_received keeps it visible
   var remainingBal=poBalance(po);
   po.status=remainingBal>0.01?'part_received':'received';
   po.receivedQty=qty;
   po.receivedDate=document.getElementById('por-date').value;
   po.receivedNotes=document.getElementById('por-notes').value.trim();
-  audit('PO_RECEIVE','Received '+qty+' units for PO: '+po.desc);
+  var assemblyNote=po.assemblyGroup?' Stock will be added when all group components are assembled.':'';
+  audit('PO_RECEIVE','Received '+qty+' units for PO: '+po.desc+(po.assemblyGroup?' [Assembly Group]':''));
   save();closeM('mo-po-receive');renderAll();
+  if(po.assemblyGroup){
+    // Check if all group POs are now received - prompt to assemble if ready
+    var grpStatus=getBOMGroupStatus(po.assemblyGroup);
+    if(grpStatus&&grpStatus.allReceived&&!grpStatus.assembled){
+      setTimeout(function(){
+        var msg='All components for "'+(po.assemblyGroupName||'assembly group')+'" received. Assemble now to add '+grpStatus.qty+' items to stock?';
+        if(confirm(msg)){openAssembleModal(po.assemblyGroup);}
+      },300);
+    } else if(grpStatus){
+      var remaining=grpStatus.pos.filter(function(p){return p.status!=='received'&&p.status!=='part_received'&&!p.assembled;});
+      alert('Component received. '+remaining.length+' component(s) still pending before assembly.');
+    }
+  }
 }
+
 
 function openPODetail(po){
   window._currentPO=po;
