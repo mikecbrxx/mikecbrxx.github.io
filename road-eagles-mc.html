@@ -190,7 +190,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.16</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.18</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -216,9 +216,9 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
     <div class="scr on" id="scr-dash">
       <div class="balbar"><h3>&#128202; Account Balances</h3>
         <div class="brow"><span class="blbl">&#128693;&#65039; Club Account</span><span class="bamt" id="db-cb">&#3647;0</span></div>
-        <div style="font-size:10px;color:var(--dim);text-align:right;margin-top:-4px;margin-bottom:4px">Month open: <span id="db-cb-open">&#3647;0</span></div>
+        <div style="font-size:10px;color:var(--blul);text-align:right;margin-top:-4px;margin-bottom:4px">Month open: <span id="db-cb-open">&#3647;0</span></div>
         <div class="brow"><span class="blbl">&#10084;&#65039; Charity Account</span><span class="bamt" id="db-hb">&#3647;0</span></div>
-        <div style="font-size:10px;color:var(--dim);text-align:right;margin-top:-4px">Month open: <span id="db-hb-open">&#3647;0</span></div>
+        <div style="font-size:10px;color:var(--blul);text-align:right;margin-top:-4px">Month open: <span id="db-hb-open">&#3647;0</span></div>
       </div>
       <div class="sgrid">
         <div class="scard"><div class="slbl">Members</div><div class="sval gold" id="db-mem">0</div></div>
@@ -834,6 +834,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="fg"><label>Notes</label><input type="text" id="et-notes" placeholder="Optional"></div>
   <button class="btn btn-gold" onclick="saveEditTab()">Save Changes</button>
   <button class="btn btn-out" onclick="closeM('mo-edittab')" style="margin-top:6px">Cancel</button>
+  <button class="btn" onclick="deleteTab()" style="margin-top:6px;background:var(--rl);border-color:var(--rl);color:#fff">&#10005; Delete Tab Entry</button>
 </div></div>
 
 <div class="mo" id="mo-settletab"><div class="modal">
@@ -2493,6 +2494,21 @@ function saveEditTab(){
   if(mem){tab.memberId=mem.id;tab.memberName=mem.name;}
   audit('TAB_EDIT','Edited tab: '+tab.description+' '+thb(tab.amount));
   save();closeM('mo-edittab');renderTabLedger();
+}
+function deleteTab(){
+  var id=document.getElementById('et-id').value;
+  var tab=(D.tabs||[]).find(function(t){return t.id===id;});
+  if(!tab)return;
+  if(!confirm('Delete this tab entry? This cannot be undone.\nStock will be restored.'))return;
+  // Restore stock — tab deducted stock when sale was made
+  if(tab.productId&&tab.variantId&&tab.qty){
+    adjStock(tab.productId,tab.variantId,tab.size||null,tab.colour||'',-tab.qty,'sold');
+    audit('TAB_DELETE','Deleted tab (stock restored): '+tab.description+' '+thb(tab.amount)+' for '+(tab.memberName||'?'));
+  } else {
+    audit('TAB_DELETE','Deleted tab: '+tab.description+' '+thb(tab.amount)+' for '+(tab.memberName||'?'));
+  }
+  D.tabs=D.tabs.filter(function(t){return t.id!==id;});
+  save();closeM('mo-edittab');renderAll();
 }
 function openSettleTab(id){
   const tab=(D.tabs||[]).find(t=>t.id===id);if(!tab)return;
