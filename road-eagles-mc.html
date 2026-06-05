@@ -190,7 +190,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.18</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.20</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -1395,7 +1395,7 @@ function catBdDir(txs,direction,color){
   }).join('');
 }
 function mthTx(){const n=new Date(),m=n.getMonth(),y=n.getFullYear();return D.transactions.filter(t=>{if(t.paid===false)return false;const d=new Date(t.date||t.created);return d.getMonth()===m&&d.getFullYear()===y;});}
-function calcFee(j){const f=D.memberFee||2000;if(!j)return f;const d=new Date(j);const curYear=new Date().getFullYear();if(d.getFullYear()<curYear)return f;const mo=d.getMonth()+1;if(mo<=3)return f;if(mo<=6)return Math.round(f*.75);if(mo<=9)return Math.round(f*.5);return Math.round(f*.25);}
+function calcFee(j){return D.memberFee||2000;}
 const CM={merchandise:'&#128085;&#65039; Merchandise',membership_fee:'&#129338;&#65039; Membership Fee',donation_in:'&#129309; Donation In',donation_out:'&#128157; Donation Out',collection_box:'&#128230; Collection Box',event_income:'&#127881; Event Income',event_expense:'&#127914; Event Expense',venue:'&#127999;&#65039; Venue',music:'&#127925; Music',marketing:'&#128196; Marketing',purchase:'&#128722; Purchase',petty_cash:'&#128181; Petty Cash',charity_cash:'&#10084;&#65039; Charity Cash',charity_goods:'&#128230; Charity Goods',club_donation_out:'&#129309; Club Donation Out',ride_income:'&#128693;&#65039; Ride Income',stock_order:'&#128230; Stock Order',other:'&#9961; Other'};
 var CATS_I=D.incomeCategories||['merchandise','membership_fee','donation_in','collection_box','event_income','ride_income','other'];
 var CATS_O=D.expenseCategories||['purchase','petty_cash','donation_out','event_expense','venue','music','marketing','charity_cash','charity_goods','club_donation_out','other'];
@@ -1990,8 +1990,6 @@ function deleteUser(){const old=document.getElementById('usr-old').value;if(!old
 function loadSettings(){document.getElementById('set-cb').value=D.openingClub||0;document.getElementById('set-hb').value=D.openingCharity||0;document.getElementById('set-fee').value=D.memberFee||2000;
   var brd=document.getElementById('set-backup-days');if(brd)brd.value=D.backupReminderDays!==undefined?D.backupReminderDays:7;
   var lbl=document.getElementById('last-backup-lbl');if(lbl)lbl.textContent=D.lastBackupDate?new Date(D.lastBackupDate).toLocaleString('en-GB'):'Never';
-  var bnEl=document.getElementById('set-backup-name');if(bnEl)bnEl.value=D.backupFilename||'RE-Backup';
-  var bnEl=document.getElementById('set-backup-name');if(bnEl)bnEl.value=D.backupFilename||'RE-Backup';
   var bnEl=document.getElementById('set-backup-name');if(bnEl)bnEl.value=D.backupFilename||'RE-Backup';
   var ci=document.getElementById('set-cats-i');if(ci)ci.value=(D.incomeCategories||CATS_I).join(', ');
   var et=document.getElementById('set-ev-types');if(et)et.value=(D.eventTypes||['party','ride','fundraiser','other']).join(', ');
@@ -2611,8 +2609,31 @@ function exportReportPDF(){
   var overlay=document.getElementById('print-overlay');
   var pc=document.getElementById('print-content');
   if(!overlay||!pc)return;
+  // Try to get period label from meeting report or month report selectors
+  var periodLabel='';
+  var mtFrom=document.getElementById('mt-from');
+  var mtTo=document.getElementById('mt-to');
+  var mtMode=document.getElementById('mt-mode');
+  var mtMonth=document.getElementById('mt-month');
+  var mtYear=document.getElementById('mt-year');
+  var rmMonth=document.getElementById('rm-month');
+  var rmYear=document.getElementById('rm-year');
+  var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  if(mtMode&&mtMode.style.display!=='none'){
+    var mode=mtMode.value;
+    if(mode==='range'&&mtFrom&&mtTo&&mtFrom.value&&mtTo.value){
+      periodLabel=' — '+mtFrom.value+' to '+mtTo.value;
+    } else if(mode==='month'&&mtMonth&&mtYear){
+      periodLabel=' — '+months[parseInt(mtMonth.value)]+' '+mtYear.value;
+    } else if(mode==='year'){
+      var y2=document.getElementById('mt-year2');
+      if(y2)periodLabel=' — Year '+y2.value;
+    }
+  } else if(rmMonth&&rmYear){
+    periodLabel=' — '+months[parseInt(rmMonth.value)]+' '+rmYear.value;
+  }
   pc.innerHTML='<h1 style="color:#c9a227;font-size:22px;margin-bottom:4px">Road Eagles MC Thailand</h1>'
-    +'<p style="color:#666;font-size:12px;margin-bottom:16px">'+rTitle+' — Printed '+new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})+'</p>'
+    +'<p style="color:#666;font-size:12px;margin-bottom:16px">'+rTitle+periodLabel+' — Printed '+new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})+'</p>'
     +content.innerHTML;
   overlay.style.display='block';
   overlay.scrollTop=0;
