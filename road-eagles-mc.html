@@ -190,7 +190,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.20</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.21</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -2740,6 +2740,75 @@ function renderMeeting(){
     +br('Charity Closing',thb(closingBal.charity),'var(--grnl)')
     +br('Combined Closing',thb(closingBal.club+closingBal.charity))
     +'</div>'
+    +(function(){
+      // ── Activity Summary ──────────────────────────────────────────────
+      var actHtml='<div class="balbar"><h3>&#128202; Period Activity Summary</h3>';
+      // Merchandise sales in period - group by product name
+      var saleTx=periodTx.filter(function(t){return t.category==='merchandise'&&t.account==='club';});
+      if(saleTx.length){
+        actHtml+='<div style="font-size:11px;font-weight:700;color:var(--grnl);padding:2px 0 4px">Merchandise Sold</div>';
+        var saleByProd={};
+        saleTx.forEach(function(t){
+          var name=t.productName||t.description||'Unknown';
+          if(!saleByProd[name])saleByProd[name]={qty:0,total:0};
+          saleByProd[name].qty+=(t.qty||1);
+          saleByProd[name].total+=parseFloat(t.amount||0);
+        });
+        Object.entries(saleByProd).sort(function(a,b){return b[1].total-a[1].total;}).forEach(function(e){
+          actHtml+='<div class="brow"><span class="blbl">'+e[0]+'</span>'
+            +'<span style="font-size:11px;color:var(--muted)">'+e[1].qty+' sold</span>'
+            +'<span style="color:var(--grnl)">'+thb(e[1].total)+'</span></div>';
+        });
+      }
+      // Other income categories in period
+      var otherIn=periodTx.filter(function(t){return t.direction==='in'&&t.category!=='merchandise';});
+      if(otherIn.length){
+        actHtml+='<div style="font-size:11px;font-weight:700;color:var(--grnl);padding:6px 0 4px">Other Income</div>';
+        var incByCat={};
+        otherIn.forEach(function(t){var c=CM[t.category]||t.category;incByCat[c]=(incByCat[c]||0)+parseFloat(t.amount||0);});
+        Object.entries(incByCat).sort(function(a,b){return b[1]-a[1];}).forEach(function(e){
+          actHtml+=br('&nbsp;&nbsp;'+e[0],thb(e[1]),'var(--grnl)');
+        });
+      }
+      // Purchases / POs ordered in period
+      var periodPOs=(D.purchaseOrders||[]).filter(function(po){
+        var d=po.date||po.created||'';
+        if(!d)return false;
+        if(d<periodStart)return false;
+        if(periodEnd&&d>=periodEnd)return false;
+        return po.status!=='draft';
+      });
+      if(periodPOs.length){
+        actHtml+='<div style="font-size:11px;font-weight:700;color:var(--rl);padding:6px 0 4px">Purchases Ordered</div>';
+        var poByDesc={};
+        periodPOs.forEach(function(po){
+          var name=po.desc||'Unknown';
+          if(!poByDesc[name])poByDesc[name]={qty:0,total:0};
+          poByDesc[name].qty+=(po.qty||0);
+          poByDesc[name].total+=parseFloat(po.total||0);
+        });
+        Object.entries(poByDesc).forEach(function(e){
+          actHtml+='<div class="brow"><span class="blbl">'+e[0]+'</span>'
+            +(e[1].qty?'<span style="font-size:11px;color:var(--muted)">qty: '+e[1].qty+'</span>':'')
+            +'<span style="color:var(--rl)">'+thb(e[1].total)+'</span></div>';
+        });
+      }
+      // Expenses by category in period
+      var expOut=periodTx.filter(function(t){return t.direction==='out';});
+      if(expOut.length){
+        actHtml+='<div style="font-size:11px;font-weight:700;color:var(--rl);padding:6px 0 4px">Expenditure</div>';
+        var expByCat={};
+        expOut.forEach(function(t){var c=CM[t.category]||t.category;expByCat[c]=(expByCat[c]||0)+parseFloat(t.amount||0);});
+        Object.entries(expByCat).sort(function(a,b){return b[1]-a[1];}).forEach(function(e){
+          actHtml+=br('&nbsp;&nbsp;'+e[0],thb(e[1]),'var(--rl)');
+        });
+      }
+      if(!saleTx.length&&!otherIn.length&&!periodPOs.length&&!expOut.length){
+        actHtml+='<div style="color:var(--dim);font-size:12px;padding:6px 0">No activity in this period</div>';
+      }
+      actHtml+='</div>';
+      return actHtml;
+    })()
     +'<div class="balbar"><h3>&#128201; '+label+' Income &amp; Expenditure</h3>'
     +br('Income',thb(pIn),'var(--grnl)')+br('Expenditure',thb(pOut),'var(--rl)')+br('Net',thb(pIn-pOut),(pIn-pOut>=0?'var(--grnl)':'var(--rl)'))+'</div>'
     +(function(){
