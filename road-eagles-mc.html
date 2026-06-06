@@ -190,7 +190,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.21</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.22</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -2743,15 +2743,17 @@ function renderMeeting(){
     +(function(){
       // ── Activity Summary ──────────────────────────────────────────────
       var actHtml='<div class="balbar"><h3>&#128202; Period Activity Summary</h3>';
-      // Merchandise sales in period - group by product name
+      // Merchandise sales in period - group by product (not variant/size/colour)
       var saleTx=periodTx.filter(function(t){return t.category==='merchandise'&&t.account==='club';});
       if(saleTx.length){
         actHtml+='<div style="font-size:11px;font-weight:700;color:var(--grnl);padding:2px 0 4px">Merchandise Sold</div>';
         var saleByProd={};
         saleTx.forEach(function(t){
-          var name=t.productName||t.description||'Unknown';
+          // Use productId to look up canonical product name, fall back to description
+          var prod=t.productId?D.products.find(function(p){return p.id===t.productId;}):null;
+          var name=prod?prod.name:(t.description||'Unknown').split(' – ')[0].split(' –')[0].trim();
           if(!saleByProd[name])saleByProd[name]={qty:0,total:0};
-          saleByProd[name].qty+=(t.qty||1);
+          saleByProd[name].qty+=parseInt(t.qty||1);
           saleByProd[name].total+=parseFloat(t.amount||0);
         });
         Object.entries(saleByProd).sort(function(a,b){return b[1].total-a[1].total;}).forEach(function(e){
