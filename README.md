@@ -9,20 +9,20 @@ Single-file HTML application with no server-side dependencies. All data is store
 ## Features
 
 - **Dashboard** — account balances with month opening figures, stock alerts, tab net position
-- **Ledger** — full income/expense tracking across Club and Charity accounts
-- **Members** — member management, fee tracking, annual fee reset (full fee regardless of join date)
-- **Merchandise** — catalogue with member/visitor pricing, stock tracking, merch sales
-- **Tab Ledger** — open merch tabs (with edit/delete), unpaid transactions, PO outstanding balances
-- **Purchase Orders** — full PO lifecycle with payments, stock receipt, assembly groups (BOM), status override for admin
+- **Ledger** — full income/expense tracking across Club and Charity accounts, paid/unpaid toggle
+- **Members** — member management, role assignment, annual fee tracking and reset (full fee regardless of join date)
+- **Merchandise** — catalogue with member/visitor pricing, stock levels, colour/size variants
+- **Tab Ledger** — open merch tabs (edit/delete with stock restore), unpaid transactions, PO outstanding balances
+- **Purchase Orders** — full lifecycle with multi-line-item support, production cost estimates, payments, assembly groups (BOM), status override for admin
 - **Events** — event management with income/expense tracking
 - **Suppliers** — full supplier records
 - **Reports**
   - Monthly Statement (month/year selector, opening/closing balances, category subtotals)
   - Annual Summary (opening/closing balances, category subtotals)
-  - Club Meeting Report (by month, full year, or custom date range; opening/closing balances)
+  - Club Meeting Report (by month, full year, or custom date range; opening/closing balances; period activity summary)
   - Membership, Merchandise Sales, Stock, Stock Value
   - Donations (split by Club and Charity account)
-  - Tab Debts, Purchase Ledger, Cost of Goods, Analysis, Audit Trail
+  - Tab Debts, Purchase Ledger (with committed PO balances), Cost of Goods, Analysis, Audit Trail
   - All reports export to PDF with period label included
 - **Categories & Config** — income/expense categories, product categories, event types, sizes, colours, roles, assembly groups
 - **Backup & Restore** — JSON export/import with configurable filename prefix and reminder system
@@ -51,6 +51,8 @@ Access is controlled by 4-digit PIN. Managed by Admin in More → Settings.
 1. In Chrome: Settings → Privacy → Clear browsing data → **Cached images and files only**
 2. Reload the page — the new version loads from GitHub
 3. Do **not** clear site data or cookies
+
+> **Note:** Due to file size, uploading via the GitHub web interface may be slow. Use Git on desktop for faster uploads.
 
 ### If Login is Blocked
 
@@ -100,17 +102,29 @@ SELECT * FROM pg_policies WHERE tablename = 'club_data';
 - Set reminder interval in days (0 = disabled). Tap **Save & Sync** to push both settings to all devices
 - Restore accepts any valid backup JSON file regardless of filename
 
+## Purchase Orders
+
+POs support multiple stock line items per order — useful for ordering multiple shirt sizes or product variants from one supplier in a single PO.
+
+- Add stock items with **+ Add Stock Item** — select product, variant, size, colour and quantity
+- Production costs are used to calculate an **estimated total** which can be applied with one tap
+- Full lifecycle: Draft → Ordered → Part Paid → Part Rcvd → Received
+- Assembly Groups (BOM) link multiple POs to one finished product — stock only added on assembly, not on individual component receipt
+
 ## Key Business Rules
 
 - **Membership fees**: Full annual fee applies to all members regardless of join date (no pro-rata)
 - **Assembly group POs**: Stock is NOT added when individual components are received — only added via the Assemble step once all components arrive
 - **PO status**: A PO with outstanding balance after stock receipt shows as "Part Rcvd" and remains visible in the Tab Ledger until fully paid
 - **Tab deletion**: Deleting a tab entry restores stock levels. No financial transaction is created or reversed (tabs are unpaid by definition)
+- **Donations**: Split by account — Club donations and Charity donations are reported separately
 
 ## Version History
 
 | Version | Notes |
 |---------|-------|
+| v3.25 | Multi-line-item POs, production cost estimates, baseline v24 |
+| v3.22 | Meeting report activity summary grouped by product |
 | v3.19 | Remove pro-rata fees, PDF period label fix, baseline v21 |
 | v3.17 | Delete tab entries with stock restore |
 | v3.14 | Assembly group POs no longer add stock on receipt |
