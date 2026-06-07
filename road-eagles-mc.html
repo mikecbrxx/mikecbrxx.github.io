@@ -190,7 +190,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.22</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.24</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -645,16 +645,25 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
       <div><label>Total Value (&#3647;)</label><input type="number" id="po-total" min="0" step="0.01" placeholder="0" oninput="updatePOBalance()"></div>
       <div><label>Account</label><select id="po-account"><option value="club">&#128693; Club</option><option value="charity">&#10084; Charity</option></select></div>
     </div>
-    <div class="fg"><label>Linked Product (for BOM / stock update)</label><select id="po-product"><option value="">&#8212; None (expense only) &#8212;</option></select></div>
-    <div class="fg irow" id="po-bom-row" style="display:none">
-      <div><label>Qty to add to stock on receipt</label><input type="number" id="po-qty" min="1" value="1"></div>
-      <div><label>Variant / Style</label><select id="po-variant"><option value="0">Standard</option></select></div>
+    <div class="fg">
+      <label>Stock Items <span style="font-size:10px;color:var(--muted)">(optional — add products to update stock on receipt)</span></label>
+      <div id="po-line-items" style="margin-bottom:6px"></div>
+      <button type="button" onclick="addPOLineItem()" class="btn btn-out" style="width:100%;font-size:11px;padding:5px">+ Add Stock Item</button>
+      <div id="po-cost-estimate" style="display:none;margin-top:8px;padding:8px 10px;background:var(--sf);border:1px solid var(--gold);border-radius:8px;font-size:11px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="color:var(--muted)">&#128181; Estimated cost from production costs:</span>
+          <span id="po-cost-est-val" style="font-weight:700;color:var(--gold)">฿0</span>
+        </div>
+        <div id="po-cost-est-warn" style="color:var(--warn);margin-top:3px;font-size:10px"></div>
+        <button type="button" onclick="usePOCostEstimate()" style="margin-top:6px;background:var(--gold);color:#000;border:none;border-radius:16px;padding:3px 12px;font-size:11px;cursor:pointer;font-weight:600">Use this total</button>
+      </div>
     </div>
-    <div class="fg" id="po-size-row" style="display:none">
-      <label>Size (if applicable)</label><select id="po-size"><option value="">None</option></select>
-    </div>
-    <div class="fg" id="po-colour-row" style="display:none">
-      <label>Colour (if applicable)</label><select id="po-colour"><option value="">None</option></select>
+    <div style="display:none">
+      <select id="po-product"><option value="">None</option></select>
+      <input type="number" id="po-qty" value="1">
+      <select id="po-variant"><option value="0">Standard</option></select>
+      <select id="po-size"><option value="">None</option></select>
+      <select id="po-colour"><option value="">None</option></select>
     </div>
     <div class="fg">
       <label>Assembly Group <span style="font-size:10px;color:var(--muted)">(optional — link multiple POs to one finished product)</span></label>
@@ -702,7 +711,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
     <div class="mh"><div class="mt">Confirm Stock Receipt</div><button class="mc2" onclick="closeM('mo-po-receive')">&#10005;</button></div>
     <input type="hidden" id="por-po-id">
     <div id="por-summary" style="font-size:12px;color:var(--muted);margin-bottom:10px"></div>
-    <div class="fg irow">
+    <div class="fg irow" id="por-qty-row">
       <div><label>Qty Received</label><input type="number" id="por-qty" min="1" value="1"></div>
       <div><label>Date Received</label><input type="date" id="por-date"></div>
     </div>
@@ -980,6 +989,16 @@ function _migrateD(data,url,key){
   });
   // Migrate PO variantIdx→variantId
   (data.purchaseOrders||[]).forEach(function(po){if(po.productId&&!po.variantId&&po.variantIdx!==undefined){var prod=(data.products||[]).find(function(p){return p.id===po.productId;});if(prod&&prod.variants&&prod.variants[po.variantIdx]){po.variantId=prod.variants[po.variantIdx].id;}}});
+  // Migrate POs: add lineItems array from single-product fields if missing
+  (data.purchaseOrders||[]).forEach(function(po){
+    if(!po.lineItems){
+      if(po.productId){
+        po.lineItems=[{id:po.id+'_li0',productId:po.productId,variantId:po.variantId||'',variantIdx:po.variantIdx||0,size:po.size||'',colour:po.colour||'',qty:po.qty||1}];
+      } else {
+        po.lineItems=[];
+      }
+    }
+  });
   // Migrate PO variantIdx to variantId
   (data.purchaseOrders||[]).forEach(function(po){if(po.productId&&!po.variantId&&po.variantIdx!==undefined){var prod=(data.products||[]).find(function(p){return p.id===po.productId;});if(prod&&prod.variants&&prod.variants[po.variantIdx]){po.variantId=prod.variants[po.variantIdx].id;}}});
   return data;
@@ -3126,6 +3145,43 @@ function poBalance(po){
 function updatePOBalance(){
   // Called when total changes in PO modal - no UI balance shown in create modal
 }
+function calcPOCostEstimate(){
+  // Calculate estimated total from stored production costs across all line items
+  var estDiv=document.getElementById('po-cost-estimate');
+  var estVal=document.getElementById('po-cost-est-val');
+  var estWarn=document.getElementById('po-cost-est-warn');
+  if(!estDiv||!estVal)return;
+  if(!_poLineItems.length){estDiv.style.display='none';return;}
+  var total=0;
+  var missingCost=[];
+  var hasAny=false;
+  _poLineItems.forEach(function(li){
+    if(!li.productId){return;}
+    var prod=D.products.find(function(p){return p.id===li.productId;});
+    if(!prod)return;
+    var v=li.variantId?prod.variants.find(function(x){return x.id===li.variantId;}):prod.variants[0];
+    if(!v)return;
+    var cost=parseFloat(v.production||0);
+    if(cost>0){
+      total+=cost*(li.qty||1);
+      hasAny=true;
+    } else {
+      missingCost.push(prod.name+(v.name&&v.name!=='Standard'?' – '+v.name:''));
+    }
+  });
+  if(!hasAny){estDiv.style.display='none';return;}
+  estDiv.style.display='';
+  estVal.textContent=thb(total);
+  estWarn.textContent=missingCost.length?'No cost set for: '+missingCost.join(', '):'';
+}
+function usePOCostEstimate(){
+  var estVal=document.getElementById('po-cost-est-val');
+  var totalFld=document.getElementById('po-total');
+  if(!estVal||!totalFld)return;
+  // Extract numeric value from thb formatted string
+  var txt=estVal.textContent.replace(/[^0-9.]/g,'');
+  if(txt)totalFld.value=parseFloat(txt)||0;
+}
 
 function renderPOs(){
   if(!D.purchaseOrders)D.purchaseOrders=[];
@@ -3172,7 +3228,84 @@ function _poOpen(id){
   openPODetail(po);
 }
 
+
+// ── PO Line Items ─────────────────────────────────────────────────────────────
+var _poLineItems = []; // session line items array
+
+function addPOLineItem(){
+  _poLineItems.push({id:uid(),productId:'',variantId:'',size:'',colour:'',qty:1});
+  renderPOLineItems();
+}
+
+function removePOLineItem(idx){
+  _poLineItems.splice(idx,1);
+  renderPOLineItems();
+}
+
+function renderPOLineItems(){
+  var el=document.getElementById('po-line-items');
+  if(!el)return;
+  if(!_poLineItems.length){el.innerHTML='';return;}
+  el.innerHTML=_poLineItems.map(function(li,liIdx){
+    var prod=li.productId?D.products.find(function(p){return p.id===li.productId;}):null;
+    var prodOpts='<option value="">— Select product —</option>'
+      +D.products.filter(function(p){return !p.archived;}).sort(function(a,b){return a.name.localeCompare(b.name);}).map(function(p){
+        return '<option value="'+p.id+'"'+(li.productId===p.id?' selected':'')+'>'+p.name+'</option>';
+      }).join('');
+    var varOpts=prod?prod.variants.map(function(v){
+      return '<option value="'+v.id+'"'+(li.variantId===v.id?' selected':'')+'>'+v.name+'</option>';
+    }).join(''):'<option value="">—</option>';
+    var szOpts='<option value="">None</option>'+(prod&&prod.hasSizes?(prod.sizes||SIZES).map(function(s){
+      return '<option value="'+s+'"'+(li.size===s?' selected':'')+'>'+s+'</option>';
+    }).join(''):'');
+    var colOpts='<option value="">None</option>'+(prod&&!isSingleColour(prod)?(prod.colours||[]).map(function(c){
+      return '<option value="'+c+'"'+(li.colour===c?' selected':'')+'>'+c+'</option>';
+    }).join(''):'');
+    var showSz=prod&&prod.hasSizes;
+    var showCol=prod&&!isSingleColour(prod);
+    return '<div style="background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:10px;margin-bottom:8px">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+      +'<span style="font-size:11px;font-weight:600;color:var(--muted)">Stock Item '+(liIdx+1)+'</span>'
+      +'<button data-liidx="'+liIdx+'" onclick="removePOLineItem(parseInt(this.dataset.liidx))" style="background:none;border:none;color:var(--rl);font-size:16px;cursor:pointer;padding:0">&#10005;</button>'
+      +'</div>'
+      +'<select data-liidx="'+liIdx+'" onchange="updatePOLIProduct(parseInt(this.dataset.liidx),this.value)" style="width:100%;margin-bottom:6px">'+prodOpts+'</select>'
+      +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
+      +'<div style="flex:1;min-width:100px"><label style="font-size:9px;color:var(--muted);text-transform:uppercase">Variant</label>'
+      +'<select data-liidx="'+liIdx+'" data-field="variantId" onchange="updatePOLIField(parseInt(this.dataset.liidx),this.dataset.field,this.value)" style="width:100%">'+varOpts+'</select></div>'
+      +(showSz?'<div style="flex:1;min-width:80px"><label style="font-size:9px;color:var(--muted);text-transform:uppercase">Size</label>'
+      +'<select data-liidx="'+liIdx+'" data-field="size" onchange="updatePOLIField(parseInt(this.dataset.liidx),this.dataset.field,this.value)" style="width:100%">'+szOpts+'</select></div>':'')
+      +(showCol?'<div style="flex:1;min-width:80px"><label style="font-size:9px;color:var(--muted);text-transform:uppercase">Colour</label>'
+      +'<select data-liidx="'+liIdx+'" data-field="colour" onchange="updatePOLIField(parseInt(this.dataset.liidx),this.dataset.field,this.value)" style="width:100%">'+colOpts+'</select></div>':'')
+      +'<div style="width:70px"><label style="font-size:9px;color:var(--muted);text-transform:uppercase">Qty</label>'
+      +'<input type="number" min="1" value="'+li.qty+'" data-liidx="'+liIdx+'" data-field="qty" onchange="updatePOLIField(parseInt(this.dataset.liidx),this.dataset.field,parseInt(this.value)||1)" style="width:100%"></div>'
+      +'</div></div>';
+  }).join('');
+  calcPOCostEstimate();
+}
+
+
+function updatePOLIProduct(idx,productId){
+  var li=_poLineItems[idx];
+  if(!li)return;
+  li.productId=productId;
+  li.variantId='';li.size='';li.colour='';
+  // Auto-select first variant
+  var prod=productId?D.products.find(function(p){return p.id===productId;}):null;
+  if(prod&&prod.variants&&prod.variants.length)li.variantId=prod.variants[0].id;
+  if(prod&&prod.hasSizes&&prod.sizes&&prod.sizes.length)li.size=prod.sizes[0];
+  if(prod&&!isSingleColour(prod)&&prod.colours&&prod.colours.length)li.colour=prod.colours[0];
+  renderPOLineItems();
+}
+
+function updatePOLIField(idx,field,value){
+  var li=_poLineItems[idx];
+  if(li){li[field]=value;if(field==='qty')calcPOCostEstimate();}
+}
+
 function openNewPO(){
+  _poLineItems=[];
+  renderPOLineItems();
+  var estDiv=document.getElementById('po-cost-estimate');if(estDiv)estDiv.style.display='none';
   document.getElementById('mo-po-t').textContent='New Purchase Order';
   document.getElementById('po-id').value='';
   document.getElementById('po-desc').value='';
@@ -3281,12 +3414,14 @@ function savePO(status){
     account:document.getElementById('po-account').value,
     ref:document.getElementById('po-ref').value.trim(),
     notes:document.getElementById('po-notes').value.trim(),
-    productId:pid||null,
-    qty:pid?parseInt(document.getElementById('po-qty').value)||1:0,
-    variantIdx:pid?parseInt(document.getElementById('po-variant').value)||0:0,
-    variantId:pid?(function(){var vSel=document.getElementById('po-variant');var idx=parseInt(vSel?vSel.value:0)||0;var prod=D.products.find(function(x){return x.id===pid;});return prod&&prod.variants&&prod.variants[idx]?prod.variants[idx].id:'';})():'',
-    size:pid?document.getElementById('po-size').value:'',
-    colour:pid&&document.getElementById('po-colour-row').style.display!=='none'?document.getElementById('po-colour').value:'',
+    lineItems:_poLineItems.filter(function(li){return li.productId&&li.qty>0;}).map(function(li){return{id:li.id,productId:li.productId,variantId:li.variantId,size:li.size||'',colour:li.colour||'',qty:li.qty||1};}),
+    // Legacy single-product fields (kept for compatibility)
+    productId:_poLineItems.length===1&&_poLineItems[0].productId?_poLineItems[0].productId:null,
+    qty:_poLineItems.length===1&&_poLineItems[0].productId?_poLineItems[0].qty:0,
+    variantIdx:0,
+    variantId:_poLineItems.length===1&&_poLineItems[0].variantId?_poLineItems[0].variantId:'',
+    size:_poLineItems.length===1?_poLineItems[0].size||'':'',
+    colour:_poLineItems.length===1?_poLineItems[0].colour||'':'',
     assemblyGroup:agid||null,
     assemblyGroupName:agName||null,
     status:status,
@@ -3367,7 +3502,12 @@ function openEditPO(id){
       varSel.value=po.variantIdx;
     }
   }
-  // Ensure this PO's assembly group is in D.assemblyGroups (handles legacy uid-based IDs)
+  // Restore line items from po.lineItems (or migrate from legacy single-product fields)
+  _poLineItems=(po.lineItems&&po.lineItems.length)
+    ?po.lineItems.map(function(li){return Object.assign({},li);})
+    :(po.productId?[{id:po.id+'_li0',productId:po.productId,variantId:po.variantId||'',size:po.size||'',colour:po.colour||'',qty:po.qty||1}]:[]);
+  renderPOLineItems();
+    // Ensure this PO's assembly group is in D.assemblyGroups (handles legacy uid-based IDs)
   if(po.assemblyGroup&&po.assemblyGroupName){
     if(!D.assemblyGroups)D.assemblyGroups=[];
     var agExists=D.assemblyGroups.find(function(ag){return ag.id===po.assemblyGroup;});
@@ -3456,19 +3596,25 @@ function savePOPayment(){
 function openPOReceive(id){
   var po=D.purchaseOrders.find(function(p){return p.id===id;});
   if(!po)return;
-  if(!po.productId){alert('This PO has no linked product. Cannot update stock directly.');return;}
+  var items=po.lineItems&&po.lineItems.length?po.lineItems:(po.productId?[{productId:po.productId,variantId:po.variantId,size:po.size,colour:po.colour,qty:po.qty}]:[]);
+  if(!items.length){alert('This PO has no stock items linked. Add stock items before receiving.');return;}
   document.getElementById('por-po-id').value=id;
   document.getElementById('por-date').value=nd();
   document.getElementById('por-notes').value='';
-  document.getElementById('por-qty').value=po.qty||1;
+  // For multi-line POs, show a summary of all items
   var sumEl=document.getElementById('por-summary');
   if(sumEl){
-    var prod=D.products.find(function(p){return p.id===po.productId;});
-    sumEl.innerHTML='<b>'+(prod?prod.name:'Product')+'</b>'
-      +(po.size?' &bull; Size: '+po.size:'')
-      +(po.colour?' &bull; Colour: '+po.colour:'')
-      +'<br>Ordered qty: '+po.qty;
+    sumEl.innerHTML=items.map(function(li){
+      var prod=D.products.find(function(p){return p.id===li.productId;});
+      return '<div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0">'
+        +'<span><b>'+(prod?prod.name:'?')+'</b>'+(li.size?' &bull; '+li.size:'')+(li.colour?' &bull; '+li.colour:'')+'</span>'
+        +'<span style="color:var(--gold)">qty: '+li.qty+'</span></div>';
+    }).join('');
   }
+  // Hide qty field for multi-item POs (each item has its own qty)
+  var qtyRow=document.getElementById('por-qty-row');
+  if(qtyRow)qtyRow.style.display=items.length>1?'none':'';
+  document.getElementById('por-qty').value=items.length===1?items[0].qty:1;
   openM('mo-po-receive');
 }
 
@@ -3478,24 +3624,23 @@ function confirmPOReceive(){
   if(!po)return;
   var qty=parseInt(document.getElementById('por-qty').value)||0;
   if(qty<=0){alert('Please enter quantity received.');return;}
-  var p=D.products.find(function(x){return x.id===po.productId;});
-  if(!p){alert('Product not found.');return;}
-  // Prefer variantId (string ID), fall back to variantIdx (array index) for legacy POs
-  var v=null;
-  if(po.variantId&&p.variants){
-    v=p.variants.find(function(x){return x.id===po.variantId;});
-  }
-  if(!v&&p.variants){
-    var vi=po.variantIdx||0;
-    v=p.variants[vi]||p.variants[0];
-  }
-  if(!v){alert('Product variant not found.');return;}
-  // Use po.colour if explicitly set (even empty string means no colour filter)
-  var col=po.colour!==undefined&&po.colour!==null?po.colour:stockCol(p,'');
-  // Only add stock directly if this PO is NOT part of an assembly group
-  // Assembly group stock is added via the Assemble step once all components arrive
+  // Handle multi-line-item POs
+  var items=po.lineItems&&po.lineItems.length?po.lineItems:(po.productId?[{productId:po.productId,variantId:po.variantId,variantIdx:po.variantIdx,size:po.size,colour:po.colour,qty:po.qty}]:[]);
+  if(!items.length){alert('This PO has no stock items linked. Cannot update stock.');return;}
+  // Only add stock if NOT part of an assembly group
   if(!po.assemblyGroup){
-    adjStock(p.id,v.id,po.size||null,col,qty,'ordered');
+    var stockErrors=[];
+    items.forEach(function(li){
+      var p=D.products.find(function(x){return x.id===li.productId;});
+      if(!p){stockErrors.push('Product not found for item');return;}
+      var v=null;
+      if(li.variantId&&p.variants)v=p.variants.find(function(x){return x.id===li.variantId;});
+      if(!v&&p.variants){var vi=li.variantIdx||0;v=p.variants[vi]||p.variants[0];}
+      if(!v){stockErrors.push('Variant not found for '+p.name);return;}
+      var col=li.colour!==undefined&&li.colour!==null?li.colour:stockCol(p,'');
+      adjStock(p.id,v.id,li.size||null,col,li.qty,'ordered');
+    });
+    if(stockErrors.length){alert('Stock updated with warnings:\n'+stockErrors.join('\n'));}
   }
   // Only mark fully received if fully paid - otherwise part_received keeps it visible
   var remainingBal=poBalance(po);
@@ -3531,14 +3676,24 @@ function openPODetail(po){
   var prod=po.productId?D.products.find(function(p){return p.id===po.productId;}):null;
   var canEdit=po.status==='draft'||po.status==='ordered'||(CU&&CU.role==='admin');
   var canPay=bal>0.01&&po.status!=='received';
-  var canReceive=po.productId&&(po.status==='paid'||po.status==='part_paid'||po.status==='ordered'||po.status==='part_received');
+  var hasItems=(po.lineItems&&po.lineItems.length>0)||po.productId;
+  var canReceive=hasItems&&(po.status==='paid'||po.status==='part_paid'||po.status==='ordered'||po.status==='part_received');
   var canAssemble=po.assemblyGroup&&!po.assembled&&(function(){var s=getBOMGroupStatus(po.assemblyGroup);return s&&s.allReceived&&!s.assembled;})();
 
   var html='<div style="font-size:20px;font-weight:700;margin-bottom:4px">'+po.desc+'</div>'
     +'<div style="margin-bottom:8px"><span style="font-size:11px;font-weight:700;color:'+st.col+';background:var(--sf);padding:2px 10px;border-radius:10px;border:1px solid '+st.col+'">'+st.label+'</span></div>'
     +(po.supplier?'<div style="font-size:12px;color:var(--muted);margin-bottom:3px">&#127978;&#65039; '+po.supplier+'</div>':'')
     +'<div style="font-size:12px;color:var(--muted);margin-bottom:3px">&#128197; '+po.date+(po.ref?' &bull; Ref: '+po.ref:'')+'</div>'
-    +(prod?'<div style="font-size:12px;color:var(--muted);margin-bottom:3px">&#128085;&#65039; '+prod.name+(po.size?' &bull; '+po.size:'')+(po.colour?' &bull; '+po.colour:'')+(po.qty?' &bull; Qty: '+po.qty:'')+'</div>':'')
+    +(function(){
+      var items=po.lineItems&&po.lineItems.length?po.lineItems:(po.productId?[{productId:po.productId,variantId:po.variantId,size:po.size,colour:po.colour,qty:po.qty}]:[]);
+      if(!items.length)return '';
+      return '<div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:6px 0 4px">Stock Items</div>'+items.map(function(li){
+        var p=D.products.find(function(x){return x.id===li.productId;});
+        if(!p)return '';
+        var v=li.variantId?p.variants.find(function(x){return x.id===li.variantId;}):null;
+        return '<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--bd);font-size:11px">'          +'<span>&#128085;&#65039; '+p.name+(v?' &mdash; '+v.name:'')+(li.size?' &bull; '+li.size:'')+(li.colour?' &bull; '+li.colour:'')+'</span>'          +'<span style="font-weight:600;color:var(--gold)">qty: '+li.qty+'</span></div>';
+      }).join('')+'<div style="margin-bottom:8px"></div>';
+    })()
     +(po.notes?'<div style="font-size:11px;color:var(--dim);margin-bottom:8px;font-style:italic">'+po.notes+'</div>':'')
     +(po.assemblyGroup?'<div style="font-size:11px;color:var(--gold);margin-bottom:6px">&#127381; Assembly Group: '+po.assemblyGroupName+'</div>':'')
     +(po.assembled?'<div style="font-size:11px;color:var(--grn);margin-bottom:6px">&#10003; Assembled on '+po.assembledDate+' (qty: '+po.assembledQty+')</div>':'')
