@@ -316,7 +316,7 @@ label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;l
   </div>
   <div style="margin-top:20px;padding:10px;background:var(--sf2);border:1px solid var(--bd);border-radius:10px;text-align:center">
   <div style="font-size:10px;color:var(--dim)">REMC Rallye Planner</div>
-  <div style="font-size:16px;font-weight:700;color:var(--crim2);margin:2px 0">v1.9</div>
+  <div style="font-size:16px;font-weight:700;color:var(--crim2);margin:2px 0">v2.0</div>
   <div style="font-size:10px;color:var(--dim)">Road Eagles MC Thailand · 20th Anniversary</div>
 </div>
 </div>
@@ -2303,9 +2303,11 @@ function saveStockItem() {
   } else {
     D.stock.push(item);
   }
-  save(); closeM('mo-stock-item'); renderStock();
-
-  if(_screen!=='stock'){_stockTab='items';goTo('stock');}
+  _stockTab='items';
+  _stockTab='items';
+  save(); closeM('mo-stock-item');
+  if(_screen!=='stock'){goTo('stock');}else{renderStock();}
+  setStockTab(document.querySelector('#stock-tabs .tab'),'items');
   toast(id ? 'Item updated' : 'Item added');
 }
 
@@ -2393,9 +2395,11 @@ function saveBarSale() {
   } else {
     D.barSales.push(sale);
   }
-  save(); closeM('mo-bar-sale'); renderStock(); renderDash();
-
-  if(_screen!=='stock'){_stockTab='sales';goTo('stock');}
+  _stockTab='sales';
+  save(); closeM('mo-bar-sale'); renderDash();
+  if(_screen!=='stock'){goTo('stock');}else{renderStock();}
+  var bsTabBtn=document.querySelectorAll('#stock-tabs .tab')[1];
+  if(bsTabBtn)setStockTab(bsTabBtn,'sales');
   toast(id?'Sale updated':'Sale recorded');
 }
 
