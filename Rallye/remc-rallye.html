@@ -1112,6 +1112,8 @@ function saveTask() {
     D.tasks.push(task);
   }
   save(); closeM('mo-task'); renderTasks(); renderDash();
+
+  if(_screen!=='tasks')goTo('tasks');
   toast(id ? 'Task updated' : 'Task added');
 }
 
@@ -1207,6 +1209,8 @@ function saveWorker() {
     D.workers.push(worker);
   }
   save(); closeM('mo-worker'); renderPeople();
+
+  if(_screen!=='people'){_peopleTab='workers';goTo('people');}
   toast(id ? 'Worker updated' : 'Worker added');
 }
 
@@ -1281,6 +1285,8 @@ function saveDonor() {
     D.donors.push(donor);
   }
   save(); closeM('mo-donor'); renderPeople(); renderDash();
+
+  if(_screen!=='people'){_peopleTab='donors';goTo('people');}
   toast(id ? 'Donor updated' : 'Donor added');
 }
 
@@ -1414,6 +1420,8 @@ function saveTicketSale() {
     D.ticketSales.push(sale);
   }
   save(); closeM('mo-ticket'); renderSales(); renderDash();
+
+  if(_screen!=='sales'){_salesTab='tickets';goTo('sales');}
   toast(id ? 'Sale updated' : 'Sale recorded');
 }
 
@@ -1460,6 +1468,8 @@ function saveStall() {
     D.stalls.push(stall);
   }
   save(); closeM('mo-stall'); renderSales(); renderDash();
+
+  if(_screen!=='sales'){_salesTab='stalls';goTo('sales');}
   toast(id ? 'Stall updated' : 'Stall added');
 }
 
@@ -1622,6 +1632,8 @@ function saveMerchProduct() {
   if (id) { var i=D.merch.findIndex(function(x){return x.id===id;}); if(i>=0)D.merch[i]=prod; }
   else D.merch.push(prod);
   save(); closeM('mo-merch-product'); renderMerch();
+
+  if(_screen!=='sales'){_salesTab='merch';goTo('sales');}
   toast(id?'Product updated':'Product added');
 }
 
@@ -1727,6 +1739,8 @@ function saveMerchOrder() {
   if (id) { var i=D.merchOrders.findIndex(function(x){return x.id===id;}); if(i>=0)D.merchOrders[i]=order; }
   else D.merchOrders.push(order);
   save(); closeM('mo-merch-order'); renderMerch(); renderDash();
+
+  if(_screen!=='sales'){_salesTab='merch';goTo('sales');}
   toast(id?'Order updated':'Order created');
 }
 
@@ -1818,6 +1832,8 @@ function saveMerchSale() {
   if (id) { var i=D.merchSales.findIndex(function(x){return x.id===id;}); if(i>=0)D.merchSales[i]=sale; }
   else D.merchSales.push(sale);
   save(); closeM('mo-merch-sale'); renderMerch(); renderDash();
+
+  if(_screen!=='sales'){_salesTab='merch';goTo('sales');}
   toast(id?'Sale updated':'Sale recorded');
 }
 
@@ -1928,6 +1944,8 @@ function saveCost() {
     D.costs.push(cost);
   }
   save(); closeM('mo-cost'); renderFinance(); renderDash();
+
+  if(_screen!=='finance'){_finTab='costs';goTo('finance');}
   toast(id ? 'Cost updated' : 'Cost recorded');
 }
 
@@ -1978,6 +1996,8 @@ function saveDonation() {
     D.donations.push(don);
   }
   save(); closeM('mo-donation'); renderFinance(); renderDash();
+
+  if(_screen!=='finance'){_finTab='donations';goTo('finance');}
   toast(id ? 'Donation updated' : 'Donation recorded');
 }
 
@@ -2284,6 +2304,8 @@ function saveStockItem() {
     D.stock.push(item);
   }
   save(); closeM('mo-stock-item'); renderStock();
+
+  if(_screen!=='stock'){_stockTab='items';goTo('stock');}
   toast(id ? 'Item updated' : 'Item added');
 }
 
@@ -2372,6 +2394,8 @@ function saveBarSale() {
     D.barSales.push(sale);
   }
   save(); closeM('mo-bar-sale'); renderStock(); renderDash();
+
+  if(_screen!=='stock'){_stockTab='sales';goTo('stock');}
   toast(id?'Sale updated':'Sale recorded');
 }
 
@@ -2460,6 +2484,8 @@ function saveCfgItem() {
     D.settings[meta.key].push(val);
   }
   save(); closeM('mo-cfg'); renderCfg();
+
+  if(_screen!=='config')goTo('config');
   toast(idx >= 0 ? 'Item updated' : 'Item added');
 }
 
