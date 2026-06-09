@@ -183,6 +183,7 @@ label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;l
     <div class="dcard"><div class="dlbl">Tables Sold</div><div class="dval c" id="db-tables">0</div></div>
     <div class="dcard"><div class="dlbl">Tickets Sold</div><div class="dval c" id="db-tickets">0</div></div>
     <div class="dcard"><div class="dlbl">Vendor Stalls</div><div class="dval c" id="db-stalls">0</div></div>
+    <div class="dcard"><div class="dlbl">Bar Revenue</div><div class="dval g" id="db-bar-rev">฿0</div></div>
     <div class="dcard"><div class="dlbl">Donations</div><div class="dval g" id="db-donations">฿0</div></div>
   </div>
 
@@ -194,7 +195,7 @@ label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;l
     <div class="dcard"><div class="dlbl">Unassigned</div><div class="dval r" id="db-tasks-un">0</div></div>
   </div>
 
-  <div class="ver">v1.6 — REMC Rallye Planner</div>
+  <div class="ver">v1.8 — REMC Rallye Planner</div>
 </div>
 
 <!-- SCREEN: Tasks -->
@@ -223,9 +224,16 @@ label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;l
   <div class="tabs">
     <button class="tab on" onclick="setSalesTab(this,'tickets')">Tickets &amp; Tables</button>
     <button class="tab" onclick="setSalesTab(this,'stalls')">Vendor Stalls</button>
-    <button class="tab" onclick="setSalesTab(this,'merch')">Memorabilia</button>
+    <button class="tab" onclick="setSalesTab(this,'merch')">👕 Merch</button>
   </div>
-  <div id="sales-list"></div>
+  <div id="merch-sub-tabs" style="display:none;margin-bottom:10px">
+  <div class="tabs" id="merch-tabs">
+    <button class="tab on" onclick="setMerchTab(this,'products')">Products</button>
+    <button class="tab" onclick="setMerchTab(this,'orders')">Orders</button>
+    <button class="tab" onclick="setMerchTab(this,'sales')">Sales</button>
+  </div>
+</div>
+<div id="sales-list"></div>
 </div>
 
 <!-- SCREEN: Finance -->
@@ -238,6 +246,22 @@ label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;l
 </div>
 
 <!-- SCREEN: Reports -->
+<div class="scr" id="scr-bar">
+  <div class="tabs" id="bar-tabs">
+    <button class="tab on" onclick="setBarTab(this,'stock')">Stock</button>
+    <button class="tab" onclick="setBarTab(this,'sales')">Sales</button>
+  </div>
+  <div id="bar-list"></div>
+</div>
+
+<div class="scr" id="scr-stock">
+  <div class="tabs" id="stock-tabs">
+    <button class="tab on" onclick="setStockTab(this,'items')">Stock Items</button>
+    <button class="tab" onclick="setStockTab(this,'sales')">Bar Sales</button>
+  </div>
+  <div id="stock-list"></div>
+</div>
+
 <div class="scr" id="scr-reports">
   <div class="sec-hdr">📄 Reports</div>
   <button class="btn btn-crim" onclick="showReport('pl')">📊 Event P&amp;L</button>
@@ -290,7 +314,7 @@ label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;l
     <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Permanently deletes all app data. Cannot be undone. Export a backup first.</div>
     <button class="btn" onclick="confirmClearAll()" style="background:var(--rl);color:#fff;border:none;padding:10px;border-radius:20px;width:100%;font-weight:700">🗑️ Clear All App Data</button>
   </div>
-  <div class="ver">v1.6 — Road Eagles MC Rallye Planner</div>
+  <div class="ver">v1.8 — Road Eagles MC Rallye Planner</div>
 </div>
 
 <!-- Bottom Nav -->
@@ -300,6 +324,8 @@ label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;l
   <button class="nb" id="nb-people" onclick="goTo('people')"><span class="ni">👥</span>People</button>
   <button class="nb" id="nb-sales" onclick="goTo('sales')"><span class="ni">🎫</span>Sales</button>
   <button class="nb" id="nb-finance" onclick="goTo('finance')"><span class="ni">💰</span>Finance</button>
+  <button class="nb" id="nb-stock" onclick="goTo('stock')"><span class="ni">🍺</span>Bar</button>
+  <button class="nb" id="nb-bar" onclick="goTo('bar')"><span class="ni">🍺</span>Bar</button>
 </div>
 
 <!-- FAB -->
@@ -317,7 +343,13 @@ label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;l
     <button class="btn btn-sil" onclick="closeM('mo-fab');openStallModal()">🏪 Add Vendor Stall</button>
     <button class="btn btn-sil" onclick="closeM('mo-fab');openCostModal()">💰 Record Cost</button>
     <button class="btn btn-sil" onclick="closeM('mo-fab');openDonationModal()">🤲 Record Donation</button>
-    <button class="btn btn-sil" onclick="closeM('mo-fab');openMerchModal()">👕 Add Memorabilia Item</button>
+    <button class="btn btn-sil" onclick="closeM('mo-fab');goTo('sales');setSalesTab(document.querySelector('[onclick*=merch]'),'merch');openMerchProductModal()">👕 Add Merch Product</button>
+    <button class="btn btn-sil" onclick="closeM('mo-fab');openMerchOrderModal()">📦 New Merch Order</button>
+    <button class="btn btn-sil" onclick="closeM('mo-fab');openMerchSaleModal()">🛍️ Record Merch Sale</button>
+    <button class="btn btn-sil" onclick="closeM('mo-fab');openStockItemModal()">🍺 Add Bar / Stock Item</button>
+    <button class="btn btn-sil" onclick="closeM('mo-fab');openBarSaleModal()">🧾 Record Bar Sale</button>
+    <button class="btn btn-sil" onclick="closeM('mo-fab');openBarItemModal()">🍺 Add Bar / Donated Stock</button>
+    <button class="btn btn-sil" onclick="closeM('mo-fab');openBarSaleModal()">💸 Record Bar Sale</button>
   </div>
 </div>
 
@@ -519,21 +551,202 @@ label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;l
   </div>
 </div>
 
-<!-- Modal: Merch Item -->
-<div class="mo" id="mo-merch">
+<!-- Modal: Merch Product -->
+<div class="mo" id="mo-merch-product">
   <div class="modal">
-    <div class="mh"><div class="mt" id="mo-merch-t">Add Memorabilia</div><button class="mc2" onclick="closeM('mo-merch')">✕</button></div>
-    <input type="hidden" id="merch-id">
-    <div class="fg"><label>Item Name</label><input type="text" id="merch-name" placeholder="e.g. Anniversary T-Shirt"></div>
+    <div class="mh"><div class="mt" id="mo-mp-t">Add Product</div><button class="mc2" onclick="closeM('mo-merch-product')">✕</button></div>
+    <input type="hidden" id="mp-id">
+    <div class="fg"><label>Product Name</label><input type="text" id="mp-name" placeholder="e.g. Anniversary T-Shirt"></div>
+    <div class="fg"><label>Description / Notes</label><input type="text" id="mp-desc" placeholder="Optional"></div>
+    <div class="fg"><label>Sizes (comma separated, blank if none)</label><input type="text" id="mp-sizes" placeholder="S, M, L, XL, 2XL"></div>
+    <div class="fg"><label>Colours / Designs (comma separated, blank if one)</label><input type="text" id="mp-colours" placeholder="Black, White, Red"></div>
+    <div class="sec-hdr" style="margin-top:4px">🏷️ Variants &amp; Pricing</div>
+    <div style="font-size:10px;color:var(--muted);margin-bottom:8px">Add a variant for each style (e.g. Short Sleeve, Long Sleeve). Set sale and cost price per variant.</div>
+    <div id="mp-variants"></div>
+    <button type="button" onclick="addMerchVariant()" class="btn btn-sil" style="padding:6px;font-size:11px;margin-bottom:10px">+ Add Variant</button>
+    <button class="btn btn-crim" onclick="saveMerchProduct()">Save Product</button>
+    <button class="btn btn-out" id="mp-del-btn" onclick="deleteMerchProduct()" style="margin-top:6px;display:none">Delete Product</button>
+  </div>
+</div>
+
+<!-- Modal: Merch Order -->
+<div class="mo" id="mo-merch-order">
+  <div class="modal">
+    <div class="mh"><div class="mt" id="mo-mo-t">New Merch Order</div><button class="mc2" onclick="closeM('mo-merch-order')">✕</button></div>
+    <input type="hidden" id="mo-id">
+    <div class="fg"><label>Description</label><input type="text" id="mo-desc" placeholder="e.g. Anniversary Shirt Order 1"></div>
     <div class="irow">
-      <div class="fg"><label>Sale Price (฿)</label><input type="number" id="merch-price" placeholder="0"></div>
-      <div class="fg"><label>Cost Price (฿)</label><input type="number" id="merch-cost" placeholder="0"></div>
+      <div class="fg"><label>Supplier</label><input type="text" id="mo-supplier" placeholder="Supplier name"></div>
+      <div class="fg"><label>Date</label><input type="date" id="mo-date"></div>
     </div>
-    <div class="fg"><label>Sizes (comma separated, blank if none)</label><input type="text" id="merch-sizes" placeholder="S, M, L, XL, 2XL"></div>
-    <div class="fg"><label>Colours / Designs (comma separated, blank if one)</label><input type="text" id="merch-colours" placeholder="Black, White, Red"></div>
-    <div class="fg"><label>Notes</label><input type="text" id="merch-notes" placeholder="Optional"></div>
-    <button class="btn btn-crim" onclick="saveMerch()">Save Item</button>
-    <button class="btn btn-out" id="merch-del-btn" onclick="deleteMerch()" style="margin-top:6px;display:none">Delete</button>
+    <div class="fg"><label>Sponsor / Donor (if applicable)</label><select id="mo-donor"><option value="">— None —</option></select></div>
+    <div class="sec-hdr" style="margin-top:4px">📦 Order Lines</div>
+    <div id="mo-lines"></div>
+    <button type="button" onclick="addMerchOrderLine()" class="btn btn-sil" style="padding:6px;font-size:11px;margin-bottom:8px">+ Add Line Item</button>
+    <div class="irow">
+      <div class="fg"><label>Total Cost (฿)</label><input type="number" id="mo-total" placeholder="0" min="0"></div>
+      <div class="fg"><label>Status</label>
+        <select id="mo-status">
+          <option value="draft">Draft</option>
+          <option value="ordered">Ordered</option>
+          <option value="received">Received</option>
+          <option value="paid">Paid</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg"><label>Notes</label><input type="text" id="mo-notes" placeholder="Optional"></div>
+    <button class="btn btn-crim" onclick="saveMerchOrder()">Save Order</button>
+    <button class="btn btn-out" id="mo-del-btn" onclick="deleteMerchOrder()" style="margin-top:6px;display:none">Delete Order</button>
+  </div>
+</div>
+
+<!-- Modal: Merch Sale -->
+<div class="mo" id="mo-merch-sale">
+  <div class="modal">
+    <div class="mh"><div class="mt" id="mo-ms-t">Record Merch Sale</div><button class="mc2" onclick="closeM('mo-merch-sale')">✕</button></div>
+    <input type="hidden" id="ms-id">
+    <div class="fg"><label>Product</label><select id="ms-product" onchange="updateMerchSaleOptions()"></select></div>
+    <div class="fg"><label>Variant</label><select id="ms-variant" onchange="updateMerchSalePrice()"></select></div>
+    <div class="irow">
+      <div class="fg"><label>Size</label><select id="ms-size"></select></div>
+      <div class="fg"><label>Colour</label><select id="ms-colour"></select></div>
+    </div>
+    <div class="irow">
+      <div class="fg"><label>Qty</label><input type="number" id="ms-qty" value="1" min="1" oninput="updateMerchSaleTotal()"></div>
+      <div class="fg"><label>Unit Price (฿)</label><input type="number" id="ms-price" value="0" oninput="updateMerchSaleTotal()"></div>
+    </div>
+    <div class="fg"><label>Total (฿)</label><input type="number" id="ms-total" value="0"></div>
+    <div class="fg"><label>Buyer Name (optional)</label><input type="text" id="ms-buyer" placeholder="Name"></div>
+    <div class="irow">
+      <div class="fg"><label>Status</label>
+        <select id="ms-status">
+          <option value="paid">Paid</option>
+          <option value="tab">Tab</option>
+        </select>
+      </div>
+      <div class="fg"><label>Date</label><input type="date" id="ms-date"></div>
+    </div>
+    <button class="btn btn-crim" onclick="saveMerchSale()">Record Sale</button>
+    <button class="btn btn-out" id="ms-del-btn" onclick="deleteMerchSale()" style="margin-top:6px;display:none">Delete</button>
+  </div>
+</div>
+
+<!-- Modal: Bar Stock Item -->
+<div class="mo" id="mo-bar-item">
+  <div class="modal">
+    <div class="mh"><div class="mt" id="mo-bar-item-t">Add Stock Item</div><button class="mc2" onclick="closeM('mo-bar-item')">✕</button></div>
+    <input type="hidden" id="bi-id">
+    <div class="fg"><label>Item Name</label><input type="text" id="bi-name" placeholder="e.g. Chang Beer"></div>
+    <div class="fg"><label>Sponsor / Donor</label><select id="bi-sponsor"><option value="">— None / Purchased —</option></select></div>
+    <div class="fg"><label>Base Unit</label><input type="text" id="bi-unit" placeholder="e.g. bottle, can, portion"></div>
+    <div class="irow">
+      <div class="fg"><label>Total Base Units</label><input type="number" id="bi-qty" placeholder="0" min="0" oninput="updateBarCost()"></div>
+      <div class="fg"><label>Cost to Us (฿ total)</label><input type="number" id="bi-cost" placeholder="0" min="0"></div>
+    </div>
+    <div class="fg" style="background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:10px">
+      <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Donation Details (if donated by sponsor)</div>
+      <div class="irow">
+        <div class="fg"><label>Donated Unit</label><input type="text" id="bi-don-unit" placeholder="e.g. case"></div>
+        <div class="fg"><label>Units per Donated Unit</label><input type="number" id="bi-don-per" placeholder="e.g. 12" min="1" oninput="updateBarCost()"></div>
+      </div>
+      <div class="irow">
+        <div class="fg"><label>Donated Qty</label><input type="number" id="bi-don-qty" placeholder="0" min="0" oninput="updateBarCost()"></div>
+        <div class="fg"><label>Cost per Donated Unit (฿)</label><input type="number" id="bi-don-cost" placeholder="0" min="0" oninput="updateBarCost()"></div>
+      </div>
+      <div id="bi-cost-calc" style="font-size:11px;color:var(--gold);margin-top:4px"></div>
+    </div>
+    <div class="sec-hdr" style="margin-top:12px">Selling Tiers</div>
+    <div style="font-size:10px;color:var(--muted);margin-bottom:8px">Define how you sell this item — e.g. single bottle, 3-pack, case</div>
+    <div id="bi-tiers"></div>
+    <button type="button" onclick="addBarTier()" class="btn btn-sil" style="font-size:11px;padding:6px;margin-bottom:8px">+ Add Selling Tier</button>
+    <div class="fg"><label>Notes</label><input type="text" id="bi-notes" placeholder="Optional"></div>
+    <button class="btn btn-crim" onclick="saveBarItem()">Save Item</button>
+    <button class="btn btn-out" id="bi-del-btn" onclick="deleteBarItem()" style="margin-top:6px;display:none">Delete Item</button>
+  </div>
+</div>
+
+<!-- Modal: Bar Sale -->
+<div class="mo" id="mo-bar-sale">
+  <div class="modal">
+    <div class="mh"><div class="mt">Record Sale</div><button class="mc2" onclick="closeM('mo-bar-sale')">✕</button></div>
+    <input type="hidden" id="bs-id">
+    <input type="hidden" id="bs-item-id">
+    <div class="fg"><label>Item</label><select id="bs-item" onchange="updateBarSaleItem()"></select></div>
+    <div class="fg"><label>Selling Tier</label><select id="bs-tier" onchange="updateBarSaleTotal()"></select></div>
+    <div class="irow">
+      <div class="fg"><label>Quantity</label><input type="number" id="bs-qty" value="1" min="1" oninput="updateBarSaleTotal()"></div>
+      <div class="fg"><label>Total (฿)</label><input type="number" id="bs-total" placeholder="0"></div>
+    </div>
+    <div id="bs-stock-warn" style="font-size:11px;color:var(--warn);margin-bottom:6px"></div>
+    <div class="irow">
+      <div class="fg"><label>Status</label>
+        <select id="bs-status">
+          <option value="paid">Paid</option>
+          <option value="tab">Tab</option>
+        </select>
+      </div>
+      <div class="fg"><label>Date</label><input type="date" id="bs-date"></div>
+    </div>
+    <div class="fg"><label>Notes</label><input type="text" id="bs-notes" placeholder="Optional"></div>
+    <button class="btn btn-crim" onclick="saveBarSale()">Record Sale</button>
+    <button class="btn btn-out" id="bs-del-btn" onclick="deleteBarSale()" style="margin-top:6px;display:none">Delete</button>
+  </div>
+</div>
+
+<!-- Modal: Stock Item -->
+<div class="mo" id="mo-stock-item">
+  <div class="modal">
+    <div class="mh"><div class="mt" id="mo-stock-item-t">Add Stock Item</div><button class="mc2" onclick="closeM('mo-stock-item')">✕</button></div>
+    <input type="hidden" id="si-id">
+    <div class="fg"><label>Item Name</label><input type="text" id="si-name" placeholder="e.g. Chang Beer"></div>
+    <div class="fg"><label>Sponsor / Donor</label><select id="si-donor"><option value="">— None / Direct Purchase —</option></select></div>
+    <div class="fg"><label>Description / Notes</label><input type="text" id="si-desc" placeholder="Optional"></div>
+
+    <div class="sec-hdr" style="margin-top:12px">📦 Stock Received</div>
+    <div class="irow">
+      <div class="fg"><label>Qty Received</label><input type="number" id="si-qty" min="0" value="0" oninput="calcStockCost()"></div>
+      <div class="fg"><label>Unit Name</label><input type="text" id="si-unit" placeholder="e.g. case"></div>
+    </div>
+    <div class="irow">
+      <div class="fg"><label>Cost Per Unit (฿)</label><input type="number" id="si-cost-per" min="0" value="0" oninput="calcStockCost()"></div>
+      <div class="fg"><label>Total Cost (฿)</label><input type="number" id="si-cost-total" min="0" value="0"></div>
+    </div>
+    <div style="font-size:10px;color:var(--dim);margin-bottom:8px">Leave cost at 0 if fully donated</div>
+
+    <div class="sec-hdr">🏷️ Selling Tiers</div>
+    <div style="font-size:10px;color:var(--muted);margin-bottom:8px">Define how you sell this item — e.g. single bottle, set of 3, full case</div>
+    <div id="si-tiers"></div>
+    <button type="button" onclick="addStockTier()" class="btn btn-sil btn-sm" style="width:100%;margin-bottom:12px">+ Add Selling Tier</button>
+
+    <button class="btn btn-crim" onclick="saveStockItem()">Save Item</button>
+    <button class="btn btn-out" id="si-del-btn" onclick="deleteStockItem()" style="margin-top:6px;display:none">Delete Item</button>
+  </div>
+</div>
+
+<!-- Modal: Bar Sale -->
+<div class="mo" id="mo-bar-sale">
+  <div class="modal">
+    <div class="mh"><div class="mt">Record Bar Sale</div><button class="mc2" onclick="closeM('mo-bar-sale')">✕</button></div>
+    <input type="hidden" id="bs-id">
+    <div class="fg"><label>Item</label><select id="bs-item" onchange="updateBarSaleTiers()"></select></div>
+    <div class="fg"><label>Selling Tier</label><select id="bs-tier" onchange="updateBarSalePrice()"></select></div>
+    <div class="irow">
+      <div class="fg"><label>Quantity</label><input type="number" id="bs-qty" value="1" min="1" oninput="updateBarSaleTotal()"></div>
+      <div class="fg"><label>Unit Price (฿)</label><input type="number" id="bs-price" value="0" oninput="updateBarSaleTotal()"></div>
+    </div>
+    <div class="fg"><label>Total (฿)</label><input type="number" id="bs-total" value="0"></div>
+    <div class="irow">
+      <div class="fg"><label>Status</label>
+        <select id="bs-status">
+          <option value="paid">Paid</option>
+          <option value="tab">Tab</option>
+        </select>
+      </div>
+      <div class="fg"><label>Date</label><input type="date" id="bs-date"></div>
+    </div>
+    <div class="fg"><label>Notes</label><input type="text" id="bs-notes" placeholder="Optional"></div>
+    <button class="btn btn-crim" onclick="saveBarSale()">Record Sale</button>
+    <button class="btn btn-out" id="bs-del-btn" onclick="deleteBarSale()" style="margin-top:6px;display:none">Delete</button>
   </div>
 </div>
 
@@ -656,7 +869,7 @@ function load(callback) {
 
 function applyData(parsed) {
   D = Object.assign(D, parsed);
-  ['workers','donors','tasks','ticketSales','stalls','costs','donations','merch'].forEach(function(k){
+  ['workers','donors','tasks','ticketSales','stalls','costs','donations','merch','merchOrders','merchSales','stock','barSales'].forEach(function(k){
     if (!D[k]) D[k] = [];
   });
   if (!D.settings) D.settings = {};
@@ -703,7 +916,7 @@ function goTo(screen) {
   _screen = screen;
   var fab = document.getElementById('fab');
   var backBtn = document.getElementById('back-btn');
-  var mainScreens = ['dash','tasks','people','sales','finance'];
+  var mainScreens = ['dash','tasks','people','sales','finance','stock'];
   if (fab) fab.style.display = mainScreens.includes(screen) ? 'flex' : 'none';
   if (backBtn) backBtn.style.display = mainScreens.includes(screen) ? 'none' : 'flex';
   renderScreen(screen);
@@ -719,6 +932,7 @@ function renderScreen(s) {
   else if (s === 'finance') renderFinance();
   else if (s === 'settings') renderSettings();
   else if (s === 'config') renderCfg();
+  else if (s === 'stock') renderStock();
 }
 
 // ── MODALS ────────────────────────────────────────────────────────────────────
@@ -765,6 +979,9 @@ function renderDash() {
   document.getElementById('db-tickets').textContent = tickets;
   document.getElementById('db-stalls').textContent = stalls;
   document.getElementById('db-donations').innerHTML = thb(donations);
+  var barRev = D.barSales.filter(function(s){ return s.status==='paid'; }).reduce(function(a,s){ return a+parseFloat(s.total||0); }, 0);
+  var barRevEl = document.getElementById('db-bar-rev');
+  if (barRevEl) barRevEl.innerHTML = thb(barRev);
 
   // Tasks
   var tasks = D.tasks;
@@ -775,19 +992,23 @@ function renderDash() {
 }
 
 function calcActualIncome() {
+  var bar = D.barSales.filter(function(s){ return s.status === 'paid'; }).reduce(function(a,s){ return a + parseFloat(s.total||0); }, 0);
   var t = D.ticketSales.filter(function(s){ return s.status === 'paid'; }).reduce(function(a,s){ return a + parseFloat(s.total||0); }, 0);
   var st = D.stalls.filter(function(s){ return s.status === 'paid'; }).reduce(function(a,s){ return a + parseFloat(s.fee||0); }, 0);
   var d = D.donations.reduce(function(a,d){ return a + parseFloat(d.amount||0); }, 0);
-  return t + st + d;
+  var ms = (D.merchSales||[]).filter(function(s){ return s.status === 'paid'; }).reduce(function(a,s){ return a + parseFloat(s.total||0); }, 0);
+  return t + st + d + bar + ms;
 }
 function calcActualCosts() {
   return D.costs.filter(function(c){ return c.status === 'paid'; }).reduce(function(a,c){ return a + parseFloat(c.actual||c.est||0); }, 0);
 }
 function calcEstIncome() {
+  var bar2 = D.barSales.reduce(function(a,s){ return a + parseFloat(s.total||0); }, 0);
   var t = D.ticketSales.reduce(function(a,s){ return a + parseFloat(s.total||0); }, 0);
   var st = D.stalls.filter(function(s){ return s.status !== 'cancelled'; }).reduce(function(a,s){ return a + parseFloat(s.fee||0); }, 0);
   var d = D.donations.reduce(function(a,d){ return a + parseFloat(d.amount||0); }, 0);
-  return t + st + d;
+  var esms2=(D.merchSales||[]).reduce(function(a,s){return a+parseFloat(s.total||0);},0);
+  return t + st + d + bar2 + esms2;
 }
 function calcEstCosts() {
   return D.costs.reduce(function(a,c){ return a + parseFloat(c.est||0); }, 0);
@@ -1073,6 +1294,8 @@ function setSalesTab(btn, tab) {
   document.querySelectorAll('#scr-sales .tab').forEach(function(b){ b.classList.remove('on'); });
   btn.classList.add('on');
   _salesTab = tab;
+  var subTabs = document.getElementById('merch-sub-tabs');
+  if (subTabs) subTabs.style.display = tab === 'merch' ? '' : 'none';
   renderSales();
 }
 
@@ -1126,25 +1349,11 @@ function renderSales() {
           + '</div>';
       }).join('');
   } else {
-    // Merch
-    if (!D.merch.length) {
-      el.innerHTML = '<div class="empty"><div class="ei">👕</div>No memorabilia items yet.</div>';
-      return;
-    }
-    D.merch.sort(function(a,b){return a.name.localeCompare(b.name);});
-    el.innerHTML = D.merch.map(function(m) {
-      return '<div class="lrow" onclick="openMerchModal(\'' + m.id + '\')">'
-        + '<div style="font-size:22px">👕</div>'
-        + '<div class="lrow-body">'
-        + '<div class="lrow-name">' + m.name + '</div>'
-        + '<div class="lrow-sub">'
-        + (m.sizes ? 'Sizes: ' + m.sizes + ' ' : '')
-        + (m.colours ? '· ' + m.colours : '')
-        + '</div>'
-        + '</div>'
-        + '<div class="lrow-amt">' + thb(m.price) + '</div>'
-        + '</div>';
-    }).join('');
+    // Show merch sub-tabs and delegate to renderMerch
+    var subTabs = document.getElementById('merch-sub-tabs');
+    if (subTabs) subTabs.style.display = '';
+    renderMerch();
+    return;
   }
 }
 
@@ -1259,53 +1468,365 @@ function deleteStall() {
   toast('Stall removed');
 }
 
-function openMerchModal(id) {
-  closeM('mo-fab');
-  var m = id ? D.merch.find(function(x){ return x.id === id; }) : null;
-  document.getElementById('mo-merch-t').textContent = m ? 'Edit Item' : 'Add Memorabilia';
-  document.getElementById('merch-id').value = m ? m.id : '';
-  document.getElementById('merch-name').value = m ? m.name : '';
-  document.getElementById('merch-price').value = m ? (m.price||0) : 0;
-  document.getElementById('merch-cost').value = m ? (m.cost||0) : 0;
-  document.getElementById('merch-sizes').value = m ? (m.sizes||'') : '';
-  document.getElementById('merch-colours').value = m ? (m.colours||'') : '';
-  document.getElementById('merch-notes').value = m ? (m.notes||'') : '';
-  document.getElementById('merch-del-btn').style.display = m ? '' : 'none';
-  openM('mo-merch');
+// ── MERCH MODULE ──────────────────────────────────────────────────────────────
+var _merchTab = 'products';
+var _mpVariants = []; // session variants for product modal
+var _moLines = [];    // session lines for order modal
+
+function setMerchTab(btn, tab) {
+  document.querySelectorAll('#merch-tabs .tab').forEach(function(b){ b.classList.remove('on'); });
+  btn.classList.add('on');
+  _merchTab = tab;
+  renderMerch();
 }
 
-function saveMerch() {
-  var id = document.getElementById('merch-id').value;
-  var name = document.getElementById('merch-name').value.trim();
-  if (!name) { alert('Please enter an item name.'); return; }
-  var item = {
-    id: id || uid(),
-    name: name,
-    price: parseFloat(document.getElementById('merch-price').value)||0,
-    cost: parseFloat(document.getElementById('merch-cost').value)||0,
-    sizes: document.getElementById('merch-sizes').value.trim(),
-    colours: document.getElementById('merch-colours').value.trim(),
-    notes: document.getElementById('merch-notes').value.trim()
-  };
-  if (id) {
-    var idx = D.merch.findIndex(function(m){ return m.id === id; });
-    if (idx >= 0) D.merch[idx] = item;
+function renderMerch() {
+  var el = document.getElementById('sales-list');
+  if (!el) return;
+  if (_merchTab === 'products') {
+    if (!D.merch.length) {
+      el.innerHTML = '<div class="empty"><div class="ei">👕</div>No products yet. Tap + to add.</div>';
+      return;
+    }
+    el.innerHTML = D.merch.slice().sort(function(a,b){return a.name.localeCompare(b.name);}).map(function(p) {
+      var stock = getMerchStock(p);
+      var stockColor = stock.total === 0 ? 'var(--rl)' : stock.total < 5 ? 'var(--warn)' : 'var(--grnl)';
+      return ['<div class="card" data-id="'+p.id+'" onclick="openMerchProductModal(this.dataset.id)">',
+        '<div class="card-hdr">',
+        '<div><div class="card-title">'+p.name+'</div>',
+        '<div class="card-sub">'+(p.variants&&p.variants.length?p.variants.map(function(v){return v.name;}).join(', '):'No variants')+'</div></div>',
+        '<div style="text-align:right"><div style="font-size:18px;font-weight:700;color:'+stockColor+'">'+stock.total+'</div>',
+        '<div style="font-size:9px;color:var(--muted)">in stock</div></div>',
+        '</div>',
+        (p.sizes?'<div style="font-size:10px;color:var(--muted);margin-top:2px">Sizes: '+p.sizes+'</div>':''),
+        (p.colours?'<div style="font-size:10px;color:var(--muted)">Colours: '+p.colours+'</div>':''),
+        '</div>'].join('');
+    }).join('');
+  } else if (_merchTab === 'orders') {
+    if (!D.merchOrders.length) {
+      el.innerHTML = '<div class="empty"><div class="ei">📋</div>No orders yet. Tap + to create an order.</div>';
+      return;
+    }
+    var scol = {draft:'var(--dim)',ordered:'var(--warn)',received:'var(--blul)',paid:'var(--grnl)'};
+    el.innerHTML = D.merchOrders.slice().sort(function(a,b){return (b.date||'').localeCompare(a.date||'');}).map(function(o) {
+      return ['<div class="lrow" data-id="'+o.id+'" onclick="openMerchOrderModal(this.dataset.id)">',
+        '<div style="font-size:22px">📦</div>',
+        '<div class="lrow-body">',
+        '<div class="lrow-name">'+o.desc+'</div>',
+        '<div class="lrow-sub">'+(o.supplier||'No supplier')+' · '+fd(o.date)+'</div>',
+        '<div style="font-size:10px;margin-top:2px"><span style="color:'+scol[o.status]+'">'+o.status+'</span>',
+        ' · '+(o.lines?o.lines.length:0)+' items</div>',
+        '</div>',
+        '<div class="lrow-amt">'+thb(o.total)+'</div>',
+        '</div>'].join('');
+    }).join('');
   } else {
-    D.merch.push(item);
+    // Merch sales
+    if (!D.merchSales.length) {
+      el.innerHTML = '<div class="empty"><div class="ei">🛍️</div>No sales recorded yet. Tap + to record a sale.</div>';
+      return;
+    }
+    var sTotal = D.merchSales.reduce(function(a,s){return a+parseFloat(s.total||0);},0);
+    el.innerHTML = '<div class="dcard" style="margin-bottom:10px"><div class="dlbl">Total Merch Revenue</div><div class="dval g">'+thb(sTotal)+'</div></div>'
+      + D.merchSales.slice().sort(function(a,b){return (b.date||'').localeCompare(a.date||'');}).map(function(s) {
+        var prod = D.merch.find(function(p){return p.id===s.productId;});
+        return ['<div class="lrow" data-id="'+s.id+'" onclick="openMerchSaleModal(this.dataset.id)">',
+          '<div style="font-size:22px">🛍️</div>',
+          '<div class="lrow-body">',
+          '<div class="lrow-name">'+(prod?prod.name:'Unknown')+(s.variantName?' — '+s.variantName:'')+'</div>',
+          '<div class="lrow-sub">'+(s.size?s.size+' ':'')+(s.colour?s.colour+' ':'')+' ×'+s.qty,
+          (s.buyer?' · '+s.buyer:''),
+          ' · <span style="color:'+(s.status==='paid'?'var(--grnl)':'var(--warn)')+'">'+s.status+'</span></div>',
+          '</div>',
+          '<div class="lrow-amt">'+thb(s.total)+'</div>',
+          '</div>'].join('');
+      }).join('');
   }
-  save(); closeM('mo-merch'); renderSales();
-  toast(id ? 'Item updated' : 'Item added');
 }
 
-function deleteMerch() {
-  var id = document.getElementById('merch-id').value;
-  if (!id || !confirm('Remove this item?')) return;
-  D.merch = D.merch.filter(function(m){ return m.id !== id; });
-  save(); closeM('mo-merch'); renderSales();
-  toast('Item removed');
+// ── Stock helpers ─────────────────────────────────────────────────────────────
+function getMerchStock(product) {
+  // Build stock object from orders received minus sales
+  var stock = {};
+  // Add from received orders
+  (D.merchOrders||[]).filter(function(o){return o.status==='received'||o.status==='paid';}).forEach(function(o){
+    (o.lines||[]).filter(function(l){return l.productId===product.id;}).forEach(function(l){
+      var key = (l.variantName||'')+'|'+(l.size||'')+'|'+(l.colour||'');
+      stock[key] = (stock[key]||0) + (parseInt(l.qty)||0);
+    });
+  });
+  // Subtract sales
+  (D.merchSales||[]).filter(function(s){return s.productId===product.id;}).forEach(function(s){
+    var key = (s.variantName||'')+'|'+(s.size||'')+'|'+(s.colour||'');
+    stock[key] = (stock[key]||0) - (parseInt(s.qty)||0);
+  });
+  var total = Object.values(stock).reduce(function(a,v){return a+Math.max(0,v);},0);
+  return {total:total, breakdown:stock};
 }
 
-// ── FINANCE ───────────────────────────────────────────────────────────────────
+// ── Merch Product Modal ───────────────────────────────────────────────────────
+function addMerchVariant() {
+  _mpVariants.push({id:uid(),name:'',salePrice:0,costPrice:0});
+  renderMerchVariants();
+}
+function removeMerchVariant(idx) { _mpVariants.splice(idx,1); renderMerchVariants(); }
+function updateMerchVariant(idx,field,value) { if(_mpVariants[idx])_mpVariants[idx][field]=value; }
+
+function renderMerchVariants() {
+  var el = document.getElementById('mp-variants');
+  if (!el) return;
+  if (!_mpVariants.length) { el.innerHTML = '<div style="font-size:11px;color:var(--dim);margin-bottom:8px">No variants yet — add one below</div>'; return; }
+  el.innerHTML = _mpVariants.map(function(v,idx) {
+    return ['<div style="background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:10px;margin-bottom:8px">',
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">',
+      '<span style="font-size:11px;font-weight:600;color:var(--muted)">Variant '+(idx+1)+'</span>',
+      '<button data-vidx="'+idx+'" onclick="removeMerchVariant(parseInt(this.dataset.vidx))" style="background:none;border:none;color:var(--rl);font-size:16px;cursor:pointer">✕</button>',
+      '</div>',
+      '<div class="irow3">',
+      '<div class="fg"><label>Name</label><input type="text" placeholder="e.g. Short Sleeve" value="'+(v.name||'')+'" data-vidx="'+idx+'" data-field="name" onchange="updateMerchVariant(parseInt(this.dataset.vidx),this.dataset.field,this.value)"></div>',
+      '<div class="fg"><label>Sale Price (฿)</label><input type="number" min="0" value="'+(v.salePrice||0)+'" data-vidx="'+idx+'" data-field="salePrice" onchange="updateMerchVariant(parseInt(this.dataset.vidx),this.dataset.field,parseFloat(this.value)||0)"></div>',
+      '<div class="fg"><label>Cost Price (฿)</label><input type="number" min="0" value="'+(v.costPrice||0)+'" data-vidx="'+idx+'" data-field="costPrice" onchange="updateMerchVariant(parseInt(this.dataset.vidx),this.dataset.field,parseFloat(this.value)||0)"></div>',
+      '</div></div>'].join('');
+  }).join('');
+}
+
+function openMerchProductModal(id) {
+  closeM('mo-fab');
+  var p = id ? D.merch.find(function(x){return x.id===id;}) : null;
+  document.getElementById('mo-mp-t').textContent = p ? 'Edit Product' : 'Add Product';
+  document.getElementById('mp-id').value = p ? p.id : '';
+  document.getElementById('mp-name').value = p ? p.name : '';
+  document.getElementById('mp-desc').value = p ? (p.desc||'') : '';
+  document.getElementById('mp-sizes').value = p ? (p.sizes||'') : '';
+  document.getElementById('mp-colours').value = p ? (p.colours||'') : '';
+  _mpVariants = p&&p.variants ? p.variants.map(function(v){return Object.assign({},v);}) : [];
+  renderMerchVariants();
+  document.getElementById('mp-del-btn').style.display = p ? '' : 'none';
+  openM('mo-merch-product');
+}
+
+function saveMerchProduct() {
+  var id = document.getElementById('mp-id').value;
+  var name = document.getElementById('mp-name').value.trim();
+  if (!name) { alert('Please enter a product name.'); return; }
+  var prod = {
+    id: id||uid(), name: name,
+    desc: document.getElementById('mp-desc').value.trim(),
+    sizes: document.getElementById('mp-sizes').value.trim(),
+    colours: document.getElementById('mp-colours').value.trim(),
+    variants: _mpVariants.filter(function(v){return v.name;}).map(function(v){return Object.assign({},v);})
+  };
+  if (id) { var i=D.merch.findIndex(function(x){return x.id===id;}); if(i>=0)D.merch[i]=prod; }
+  else D.merch.push(prod);
+  save(); closeM('mo-merch-product'); renderMerch();
+  toast(id?'Product updated':'Product added');
+}
+
+function deleteMerchProduct() {
+  var id = document.getElementById('mp-id').value;
+  if (!id||!confirm('Delete this product? Orders and sales data will remain.')) return;
+  D.merch = D.merch.filter(function(x){return x.id!==id;});
+  save(); closeM('mo-merch-product'); renderMerch();
+  toast('Product deleted');
+}
+
+// ── Merch Order Modal ─────────────────────────────────────────────────────────
+function addMerchOrderLine() {
+  _moLines.push({id:uid(),productId:'',variantName:'',size:'',colour:'',qty:1,costPer:0});
+  renderMerchOrderLines();
+}
+function removeMerchOrderLine(idx) { _moLines.splice(idx,1); renderMerchOrderLines(); }
+function updateMerchOrderLine(idx,field,value) { if(_moLines[idx])_moLines[idx][field]=value; }
+function updateMOLProduct(idx,productId) {
+  if(!_moLines[idx])return;
+  _moLines[idx].productId=productId;
+  _moLines[idx].variantName='';
+  var prod=D.merch.find(function(p){return p.id===productId;});
+  if(prod&&prod.variants&&prod.variants.length)_moLines[idx].variantName=prod.variants[0].name;
+  if(prod&&prod.variants&&prod.variants.length)_moLines[idx].costPer=prod.variants[0].costPrice||0;
+  renderMerchOrderLines();
+  calcMerchOrderTotal();
+}
+function calcMerchOrderTotal() {
+  var t=_moLines.reduce(function(a,l){return a+(parseFloat(l.costPer)||0)*(parseInt(l.qty)||0);},0);
+  var el=document.getElementById('mo-total'); if(el)el.value=t||0;
+}
+
+function renderMerchOrderLines() {
+  var el = document.getElementById('mo-lines');
+  if (!el) return;
+  if (!_moLines.length) { el.innerHTML = '<div style="font-size:11px;color:var(--dim);margin-bottom:8px">No items yet — add a line below</div>'; return; }
+  el.innerHTML = _moLines.map(function(l,idx) {
+    var prod = l.productId ? D.merch.find(function(p){return p.id===l.productId;}) : null;
+    var prodOpts = '<option value="">— Select product —</option>'
+      + D.merch.slice().sort(function(a,b){return a.name.localeCompare(b.name);}).map(function(p){
+        return '<option value="'+p.id+'"'+(l.productId===p.id?' selected':'')+'>'+p.name+'</option>';
+      }).join('');
+    var varOpts = prod&&prod.variants&&prod.variants.length
+      ? prod.variants.map(function(v){return '<option value="'+v.name+'"'+(l.variantName===v.name?' selected':'')+'>'+v.name+'</option>';}).join('')
+      : '<option value="">—</option>';
+    var szOpts = '<option value="">Any</option>'+(prod&&prod.sizes?prod.sizes.split(',').map(function(s){s=s.trim();return '<option value="'+s+'"'+(l.size===s?' selected':'')+'>'+s+'</option>';}).join(''):'');
+    var colOpts = '<option value="">Any</option>'+(prod&&prod.colours?prod.colours.split(',').map(function(c){c=c.trim();return '<option value="'+c+'"'+(l.colour===c?' selected':'')+'>'+c+'</option>';}).join(''):'');
+    return ['<div style="background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:10px;margin-bottom:8px">',
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">',
+      '<span style="font-size:11px;font-weight:600;color:var(--muted)">Line '+(idx+1)+'</span>',
+      '<button data-lidx="'+idx+'" onclick="removeMerchOrderLine(parseInt(this.dataset.lidx))" style="background:none;border:none;color:var(--rl);font-size:16px;cursor:pointer">✕</button>',
+      '</div>',
+      '<select data-lidx="'+idx+'" onchange="updateMOLProduct(parseInt(this.dataset.lidx),this.value)" style="width:100%;margin-bottom:6px">'+prodOpts+'</select>',
+      '<div class="irow">',
+      '<div class="fg"><label>Variant</label><select data-lidx="'+idx+'" data-field="variantName" onchange="updateMerchOrderLine(parseInt(this.dataset.lidx),this.dataset.field,this.value)">'+varOpts+'</select></div>',
+      '<div class="fg"><label>Size</label><select data-lidx="'+idx+'" data-field="size" onchange="updateMerchOrderLine(parseInt(this.dataset.lidx),this.dataset.field,this.value)">'+szOpts+'</select></div>',
+      '</div>',
+      '<div class="irow">',
+      '<div class="fg"><label>Colour</label><select data-lidx="'+idx+'" data-field="colour" onchange="updateMerchOrderLine(parseInt(this.dataset.lidx),this.dataset.field,this.value)">'+colOpts+'</select></div>',
+      '<div class="fg"><label>Qty</label><input type="number" min="1" value="'+(l.qty||1)+'" data-lidx="'+idx+'" data-field="qty" onchange="updateMerchOrderLine(parseInt(this.dataset.lidx),this.dataset.field,parseInt(this.value)||1);calcMerchOrderTotal()"></div>',
+      '</div>',
+      '<div class="fg"><label>Cost Per Unit (฿)</label><input type="number" min="0" value="'+(l.costPer||0)+'" data-lidx="'+idx+'" data-field="costPer" onchange="updateMerchOrderLine(parseInt(this.dataset.lidx),this.dataset.field,parseFloat(this.value)||0);calcMerchOrderTotal()"></div>',
+      '</div>'].join('');
+  }).join('');
+}
+
+function openMerchOrderModal(id) {
+  closeM('mo-fab');
+  var o = id ? D.merchOrders.find(function(x){return x.id===id;}) : null;
+  document.getElementById('mo-mo-t').textContent = o ? 'Edit Order' : 'New Merch Order';
+  document.getElementById('mo-id').value = o ? o.id : '';
+  document.getElementById('mo-desc').value = o ? o.desc : '';
+  document.getElementById('mo-supplier').value = o ? (o.supplier||'') : '';
+  document.getElementById('mo-date').value = o ? (o.date||nd()) : nd();
+  document.getElementById('mo-total').value = o ? (o.total||0) : 0;
+  document.getElementById('mo-status').value = o ? o.status : 'draft';
+  document.getElementById('mo-notes').value = o ? (o.notes||'') : '';
+  var donSel = document.getElementById('mo-donor');
+  donSel.innerHTML = '<option value="">— None —</option>'
+    + D.donors.filter(function(d){return d.type==='named';}).sort(function(a,b){return a.name.localeCompare(b.name);})
+      .map(function(d){return '<option value="'+d.id+'"'+(o&&o.donorId===d.id?' selected':'')+'>'+d.name+'</option>';}).join('');
+  _moLines = o&&o.lines ? o.lines.map(function(l){return Object.assign({},l);}) : [];
+  renderMerchOrderLines();
+  document.getElementById('mo-del-btn').style.display = o ? '' : 'none';
+  openM('mo-merch-order');
+}
+
+function saveMerchOrder() {
+  var id = document.getElementById('mo-id').value;
+  var desc = document.getElementById('mo-desc').value.trim();
+  if (!desc) { alert('Please enter a description.'); return; }
+  var order = {
+    id: id||uid(), desc: desc,
+    supplier: document.getElementById('mo-supplier').value.trim(),
+    date: document.getElementById('mo-date').value,
+    donorId: document.getElementById('mo-donor').value,
+    total: parseFloat(document.getElementById('mo-total').value)||0,
+    status: document.getElementById('mo-status').value,
+    notes: document.getElementById('mo-notes').value.trim(),
+    lines: _moLines.filter(function(l){return l.productId;}).map(function(l){return Object.assign({},l);})
+  };
+  if (id) { var i=D.merchOrders.findIndex(function(x){return x.id===id;}); if(i>=0)D.merchOrders[i]=order; }
+  else D.merchOrders.push(order);
+  save(); closeM('mo-merch-order'); renderMerch(); renderDash();
+  toast(id?'Order updated':'Order created');
+}
+
+function deleteMerchOrder() {
+  var id = document.getElementById('mo-id').value;
+  if (!id||!confirm('Delete this order?')) return;
+  D.merchOrders = D.merchOrders.filter(function(x){return x.id!==id;});
+  save(); closeM('mo-merch-order'); renderMerch();
+  toast('Order deleted');
+}
+
+// ── Merch Sale Modal ──────────────────────────────────────────────────────────
+function updateMerchSaleOptions() {
+  var prodId = document.getElementById('ms-product').value;
+  var prod = D.merch.find(function(p){return p.id===prodId;});
+  var varSel = document.getElementById('ms-variant');
+  varSel.innerHTML = prod&&prod.variants&&prod.variants.length
+    ? prod.variants.map(function(v){return '<option value="'+v.id+'|'+v.name+'" data-price="'+v.salePrice+'">'+v.name+'</option>';}).join('')
+    : '<option value="">Standard</option>';
+  var szSel = document.getElementById('ms-size');
+  szSel.innerHTML = '<option value="">—</option>'+(prod&&prod.sizes?prod.sizes.split(',').map(function(s){s=s.trim();return '<option value="'+s+'">'+s+'</option>';}).join(''):'');
+  var colSel = document.getElementById('ms-colour');
+  colSel.innerHTML = '<option value="">—</option>'+(prod&&prod.colours?prod.colours.split(',').map(function(c){c=c.trim();return '<option value="'+c+'">'+c+'</option>';}).join(''):'');
+  updateMerchSalePrice();
+}
+function updateMerchSalePrice() {
+  var varSel = document.getElementById('ms-variant');
+  var opt = varSel.options[varSel.selectedIndex];
+  if (opt&&opt.dataset.price) {
+    document.getElementById('ms-price').value = opt.dataset.price||0;
+    updateMerchSaleTotal();
+  }
+}
+function updateMerchSaleTotal() {
+  var qty = parseFloat(document.getElementById('ms-qty').value)||0;
+  var price = parseFloat(document.getElementById('ms-price').value)||0;
+  document.getElementById('ms-total').value = qty*price;
+}
+
+function openMerchSaleModal(id) {
+  closeM('mo-fab');
+  var s = id ? D.merchSales.find(function(x){return x.id===id;}) : null;
+  document.getElementById('mo-ms-t').textContent = s ? 'Edit Sale' : 'Record Merch Sale';
+  document.getElementById('ms-id').value = s ? s.id : '';
+  var prodSel = document.getElementById('ms-product');
+  prodSel.innerHTML = D.merch.slice().sort(function(a,b){return a.name.localeCompare(b.name);})
+    .map(function(p){return '<option value="'+p.id+'"'+(s&&s.productId===p.id?' selected':'')+'>'+p.name+'</option>';}).join('');
+  updateMerchSaleOptions();
+  if (s) {
+    document.getElementById('ms-variant').value = s.variantId+'|'+s.variantName;
+    document.getElementById('ms-size').value = s.size||'';
+    document.getElementById('ms-colour').value = s.colour||'';
+    document.getElementById('ms-qty').value = s.qty||1;
+    document.getElementById('ms-price').value = s.price||0;
+    document.getElementById('ms-total').value = s.total||0;
+    document.getElementById('ms-buyer').value = s.buyer||'';
+    document.getElementById('ms-status').value = s.status||'paid';
+    document.getElementById('ms-date').value = s.date||nd();
+  } else {
+    document.getElementById('ms-qty').value = 1;
+    document.getElementById('ms-buyer').value = '';
+    document.getElementById('ms-status').value = 'paid';
+    document.getElementById('ms-date').value = nd();
+  }
+  document.getElementById('ms-del-btn').style.display = s ? '' : 'none';
+  openM('mo-merch-sale');
+}
+
+function saveMerchSale() {
+  var id = document.getElementById('ms-id').value;
+  var prodId = document.getElementById('ms-product').value;
+  if (!prodId) { alert('Please select a product.'); return; }
+  var varVal = document.getElementById('ms-variant').value;
+  var varParts = varVal.split('|');
+  var sale = {
+    id: id||uid(),
+    productId: prodId,
+    variantId: varParts[0]||'',
+    variantName: varParts[1]||'',
+    size: document.getElementById('ms-size').value,
+    colour: document.getElementById('ms-colour').value,
+    qty: parseInt(document.getElementById('ms-qty').value)||1,
+    price: parseFloat(document.getElementById('ms-price').value)||0,
+    total: parseFloat(document.getElementById('ms-total').value)||0,
+    buyer: document.getElementById('ms-buyer').value.trim(),
+    status: document.getElementById('ms-status').value,
+    date: document.getElementById('ms-date').value
+  };
+  if (id) { var i=D.merchSales.findIndex(function(x){return x.id===id;}); if(i>=0)D.merchSales[i]=sale; }
+  else D.merchSales.push(sale);
+  save(); closeM('mo-merch-sale'); renderMerch(); renderDash();
+  toast(id?'Sale updated':'Sale recorded');
+}
+
+function deleteMerchSale() {
+  var id = document.getElementById('ms-id').value;
+  if (!id||!confirm('Delete this sale?')) return;
+  D.merchSales = D.merchSales.filter(function(x){return x.id!==id;});
+  save(); closeM('mo-merch-sale'); renderMerch(); renderDash();
+  toast('Sale deleted');
+}
+
+// ── FINANCE ─────────────────────────────────────────────────────────────────── ───────────────────────────────────────────────────────────────────
 function setFinTab(btn, tab) {
   document.querySelectorAll('#scr-finance .tab').forEach(function(b){ b.classList.remove('on'); });
   btn.classList.add('on');
@@ -1587,6 +2108,278 @@ function saveSettings() {
   toast('Settings saved');
 }
 
+// ── BAR & DONATED GOODS ──────────────────────────────────────────────────────
+var _barTab = 'stock';
+var _barTiers = []; // session tiers for current edit
+
+function setBarTab(btn, tab) {
+  document.querySelectorAll('#bar-tabs .tab').forEach(function(b){ b.classList.remove('on'); });
+  btn.classList.add('on');
+  _barTab = tab;
+  renderBar();
+}
+
+function setStockTab(btn, tab) {
+  document.querySelectorAll('#stock-tabs .tab').forEach(function(b){ b.classList.remove('on'); });
+  btn.classList.add('on');
+  _stockTab = tab;
+  renderStock();
+}
+
+function renderStock() {
+  var el = document.getElementById('stock-list');
+  if (!el) return;
+  if (_stockTab === 'items') {
+    if (!D.stock.length) {
+      el.innerHTML = '<div class="empty"><div class="ei">🍺</div>No stock items yet.<br>Tap + to add donated or purchased goods.</div>';
+      return;
+    }
+    var sorted = D.stock.slice().sort(function(a,b){ return a.name.localeCompare(b.name); });
+    el.innerHTML = sorted.map(function(item) {
+      var remaining = calcStockRemaining(item);
+      var totalCost = parseFloat(item.costTotal||0);
+      var totalRev = calcStockRevenue(item);
+      var pct = totalCost > 0 ? Math.min(100, Math.round((totalRev/totalCost)*100)) : 100;
+      var donor = item.donorId ? D.donors.find(function(d){ return d.id === item.donorId; }) : null;
+      var remColor = remaining > 0 ? 'var(--grnl)' : 'var(--rl)';
+      var netColor = (totalRev-totalCost) >= 0 ? 'var(--grnl)' : 'var(--rl)';
+      var tiers = item.tiers && item.tiers.length
+        ? '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">'
+          + item.tiers.map(function(t){ return '<span class="badge badge-sil">'+t.name+' '+thb(t.price)+'</span>'; }).join('')
+          + '</div>' : '';
+      return [
+        '<div class="card" data-id="'+item.id+'" onclick="openStockItemModal(this.dataset.id)">',
+        '<div class="card-hdr">',
+        '<div><div class="card-title">'+item.name+'</div>',
+        '<div class="card-sub">'+(donor?'💝 '+donor.name+' · ':'')+(item.desc||'')+'</div></div>',
+        '<div style="text-align:right">',
+        '<div style="font-size:18px;font-weight:700;color:'+remColor+'">'+remaining+'</div>',
+        '<div style="font-size:9px;color:var(--muted)">'+(item.unit||'units')+' left</div>',
+        '</div></div>',
+        '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:6px">',
+        '<span style="color:var(--muted)">Cost: <span style="color:var(--rl)">'+thb(totalCost)+'</span></span>',
+        '<span style="color:var(--muted)">Revenue: <span style="color:var(--grnl)">'+thb(totalRev)+'</span></span>',
+        '<span style="color:var(--muted)">Net: <span style="color:'+netColor+'">'+thb(totalRev-totalCost)+'</span></span>',
+        '</div>',
+        '<div class="prog-wrap"><div class="prog-bar" style="width:'+pct+'%;background:var(--grnl)"></div></div>',
+        '<div style="font-size:9px;color:var(--dim);margin-top:3px">'+pct+'% of cost recovered</div>',
+        tiers,
+        '</div>'
+      ].join('');
+    }).join('');
+  } else {
+    // Bar sales list
+    if (!D.barSales.length) {
+      el.innerHTML = '<div class="empty"><div class="ei">🧾</div>No bar sales recorded yet.</div>';
+      return;
+    }
+    var totalSales = D.barSales.reduce(function(a,s){ return a+parseFloat(s.total||0); }, 0);
+    var sorted2 = D.barSales.slice().sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
+    el.innerHTML = '<div class="dcard" style="margin-bottom:10px"><div class="dlbl">Total Bar Revenue</div><div class="dval g">' + thb(totalSales) + '</div></div>'
+      + sorted2.map(function(s) {
+        var item = D.stock.find(function(x){ return x.id === s.itemId; });
+        return '<div class="lrow" data-id="' + s.id + '" onclick="openBarSaleModal(this.dataset.id)">'
+          + '<div style="font-size:22px">🍺</div>'
+          + '<div class="lrow-body">'
+          + '<div class="lrow-name">' + (item?item.name:'Unknown') + ' — ' + (s.tierName||'') + ' ×' + s.qty + '</div>'
+          + '<div class="lrow-sub">' + fd(s.date) + ' · <span style="color:' + (s.status==='paid'?'var(--grnl)':'var(--warn)') + '">' + s.status + '</span></div>'
+          + '</div>'
+          + '<div class="lrow-amt">' + thb(s.total) + '</div>'
+          + '</div>';
+      }).join('');
+  }
+}
+
+function calcStockRemaining(item) {
+  var received = parseFloat(item.qty||0);
+  // Sum all sales for this item in base units
+  var sold = D.barSales.filter(function(s){ return s.itemId === item.id; })
+    .reduce(function(a,s){ return a + (parseFloat(s.baseUnits||0)); }, 0);
+  return Math.max(0, received - sold);
+}
+
+function calcStockRevenue(item) {
+  return D.barSales.filter(function(s){ return s.itemId === item.id; })
+    .reduce(function(a,s){ return a + parseFloat(s.total||0); }, 0);
+}
+
+// ── Stock Item Modal ──────────────────────────────────────────────────────────
+function addStockTier() {
+  _siTiers.push({id:uid(), name:'', unitsPerTier:1, price:0});
+  renderStockTiers();
+}
+
+function renderStockTiers() {
+  var el = document.getElementById('si-tiers');
+  if (!el) return;
+  if (!_siTiers.length) { el.innerHTML = ''; return; }
+  el.innerHTML = _siTiers.map(function(t, idx) {
+    return '<div style="background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:10px;margin-bottom:8px">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+      + '<span style="font-size:11px;font-weight:600;color:var(--muted)">Tier ' + (idx+1) + '</span>'
+      + '<button data-tidx="' + idx + '" onclick="removeStockTier(parseInt(this.dataset.tidx))" style="background:none;border:none;color:var(--rl);font-size:16px;cursor:pointer">✕</button>'
+      + '</div>'
+      + '<div class="irow3">'
+      + '<div class="fg"><label>Name</label><input type="text" placeholder="e.g. Bottle" value="' + (t.name||'') + '" data-tidx="' + idx + '" data-field="name" onchange="updateStockTier(parseInt(this.dataset.tidx),this.dataset.field,this.value)"></div>'
+      + '<div class="fg"><label>Units/Tier</label><input type="number" min="1" value="' + (t.unitsPerTier||1) + '" data-tidx="' + idx + '" data-field="unitsPerTier" onchange="updateStockTier(parseInt(this.dataset.tidx),this.dataset.field,parseFloat(this.value)||1)"></div>'
+      + '<div class="fg"><label>Sell Price (฿)</label><input type="number" min="0" value="' + (t.price||0) + '" data-tidx="' + idx + '" data-field="price" onchange="updateStockTier(parseInt(this.dataset.tidx),this.dataset.field,parseFloat(this.value)||0)"></div>'
+      + '</div></div>';
+  }).join('');
+}
+
+function removeStockTier(idx) { _siTiers.splice(idx,1); renderStockTiers(); }
+function updateStockTier(idx, field, value) { if (_siTiers[idx]) _siTiers[idx][field] = value; }
+
+function calcStockCost() {
+  var qty = parseFloat(document.getElementById('si-qty').value)||0;
+  var costPer = parseFloat(document.getElementById('si-cost-per').value)||0;
+  document.getElementById('si-cost-total').value = qty * costPer;
+}
+
+function openStockItemModal(id) {
+  closeM('mo-fab');
+  var item = id ? D.stock.find(function(x){ return x.id===id; }) : null;
+  document.getElementById('mo-stock-item-t').textContent = item ? 'Edit Stock Item' : 'Add Stock Item';
+  document.getElementById('si-id').value = item ? item.id : '';
+  document.getElementById('si-name').value = item ? item.name : '';
+  document.getElementById('si-desc').value = item ? (item.desc||'') : '';
+  document.getElementById('si-qty').value = item ? (item.qty||0) : 0;
+  document.getElementById('si-unit').value = item ? (item.unit||'') : '';
+  document.getElementById('si-cost-per').value = item ? (item.costPer||0) : 0;
+  document.getElementById('si-cost-total').value = item ? (item.costTotal||0) : 0;
+  // Populate donor select
+  var donSel = document.getElementById('si-donor');
+  donSel.innerHTML = '<option value="">— None / Direct Purchase —</option>'
+    + D.donors.filter(function(d){ return d.type==='named'; }).sort(function(a,b){ return a.name.localeCompare(b.name); })
+      .map(function(d){ return '<option value="'+d.id+'"'+(item&&item.donorId===d.id?' selected':'')+'>'+d.name+'</option>'; }).join('');
+  // Tiers
+  _siTiers = item&&item.tiers ? item.tiers.map(function(t){ return Object.assign({},t); }) : [];
+  renderStockTiers();
+  document.getElementById('si-del-btn').style.display = item ? '' : 'none';
+  openM('mo-stock-item');
+}
+
+function saveStockItem() {
+  var id = document.getElementById('si-id').value;
+  var name = document.getElementById('si-name').value.trim();
+  if (!name) { alert('Please enter an item name.'); return; }
+  var item = {
+    id: id || uid(),
+    name: name,
+    desc: document.getElementById('si-desc').value.trim(),
+    donorId: document.getElementById('si-donor').value,
+    qty: parseFloat(document.getElementById('si-qty').value)||0,
+    unit: document.getElementById('si-unit').value.trim()||'unit',
+    costPer: parseFloat(document.getElementById('si-cost-per').value)||0,
+    costTotal: parseFloat(document.getElementById('si-cost-total').value)||0,
+    tiers: _siTiers.filter(function(t){ return t.name; }).map(function(t){ return Object.assign({},t); })
+  };
+  if (id) {
+    var idx = D.stock.findIndex(function(x){ return x.id===id; });
+    if (idx>=0) D.stock[idx]=item;
+  } else {
+    D.stock.push(item);
+  }
+  save(); closeM('mo-stock-item'); renderStock();
+  toast(id ? 'Item updated' : 'Item added');
+}
+
+function deleteStockItem() {
+  var id = document.getElementById('si-id').value;
+  if (!id||!confirm('Delete this stock item? All associated bar sales will remain.')) return;
+  D.stock = D.stock.filter(function(x){ return x.id!==id; });
+  save(); closeM('mo-stock-item'); renderStock();
+  toast('Item deleted');
+}
+
+// ── Bar Sale Modal ────────────────────────────────────────────────────────────
+function openBarSaleModal(id) {
+  closeM('mo-fab');
+  var sale = id ? D.barSales.find(function(x){ return x.id===id; }) : null;
+  document.getElementById('bs-id').value = sale ? sale.id : '';
+  document.getElementById('bs-date').value = sale ? (sale.date||nd()) : nd();
+  document.getElementById('bs-status').value = sale ? (sale.status||'paid') : 'paid';
+  document.getElementById('bs-notes').value = sale ? (sale.notes||'') : '';
+  document.getElementById('bs-qty').value = sale ? (sale.qty||1) : 1;
+  document.getElementById('bs-total').value = sale ? (sale.total||0) : 0;
+  // Populate item select
+  var itemSel = document.getElementById('bs-item');
+  itemSel.innerHTML = D.stock.slice().sort(function(a,b){ return a.name.localeCompare(b.name); })
+    .map(function(x){ return '<option value="'+x.id+'"'+(sale&&sale.itemId===x.id?' selected':'')+'>'+x.name+'</option>'; }).join('');
+  updateBarSaleTiers(sale);
+  document.getElementById('bs-del-btn').style.display = sale ? '' : 'none';
+  openM('mo-bar-sale');
+}
+
+function updateBarSaleTiers(sale) {
+  var itemId = document.getElementById('bs-item').value;
+  var item = D.stock.find(function(x){ return x.id===itemId; });
+  var tierSel = document.getElementById('bs-tier');
+  tierSel.innerHTML = item&&item.tiers&&item.tiers.length
+    ? item.tiers.map(function(t){ return '<option value="'+t.id+'"'+(sale&&sale.tierId===t.id?' selected':'')+'>'+t.name+' ('+thb(t.price)+')</option>'; }).join('')
+    : '<option value="">No tiers defined</option>';
+  updateBarSalePrice(sale);
+}
+
+function updateBarSalePrice(sale) {
+  var itemId = document.getElementById('bs-item').value;
+  var tierId = document.getElementById('bs-tier').value;
+  var item = D.stock.find(function(x){ return x.id===itemId; });
+  var tier = item&&item.tiers ? item.tiers.find(function(t){ return t.id===tierId; }) : null;
+  if (tier&&!sale) {
+    document.getElementById('bs-price').value = tier.price||0;
+    updateBarSaleTotal();
+  } else if (sale) {
+    document.getElementById('bs-price').value = sale.unitPrice||0;
+  }
+}
+
+function updateBarSaleTotal() {
+  var qty = parseFloat(document.getElementById('bs-qty').value)||0;
+  var price = parseFloat(document.getElementById('bs-price').value)||0;
+  document.getElementById('bs-total').value = qty*price;
+}
+
+function saveBarSale() {
+  var id = document.getElementById('bs-id').value;
+  var itemId = document.getElementById('bs-item').value;
+  var tierId = document.getElementById('bs-tier').value;
+  if (!itemId) { alert('Please select an item.'); return; }
+  var item = D.stock.find(function(x){ return x.id===itemId; });
+  var tier = item&&item.tiers ? item.tiers.find(function(t){ return t.id===tierId; }) : null;
+  var qty = parseFloat(document.getElementById('bs-qty').value)||1;
+  var baseUnits = tier ? qty*(parseFloat(tier.unitsPerTier)||1) : qty;
+  var sale = {
+    id: id||uid(),
+    itemId: itemId,
+    tierId: tierId,
+    tierName: tier ? tier.name : '',
+    qty: qty,
+    baseUnits: baseUnits,
+    unitPrice: parseFloat(document.getElementById('bs-price').value)||0,
+    total: parseFloat(document.getElementById('bs-total').value)||0,
+    status: document.getElementById('bs-status').value,
+    date: document.getElementById('bs-date').value,
+    notes: document.getElementById('bs-notes').value.trim()
+  };
+  if (id) {
+    var idx2 = D.barSales.findIndex(function(x){ return x.id===id; });
+    if (idx2>=0) D.barSales[idx2]=sale;
+  } else {
+    D.barSales.push(sale);
+  }
+  save(); closeM('mo-bar-sale'); renderStock(); renderDash();
+  toast(id?'Sale updated':'Sale recorded');
+}
+
+function deleteBarSale() {
+  var id = document.getElementById('bs-id').value;
+  if (!id||!confirm('Delete this sale?')) return;
+  D.barSales = D.barSales.filter(function(x){ return x.id!==id; });
+  save(); closeM('mo-bar-sale'); renderStock(); renderDash();
+  toast('Sale deleted');
+}
+
 // ── CONFIG / CATEGORIES ──────────────────────────────────────────────────────
 var _cfgTab = 'costcats';
 
@@ -1691,7 +2484,7 @@ function confirmClearAll() {
         costCats: [], taskCats: [], paymentMethods: [], taskPriorities: []
       },
       workers: [], donors: [], tasks: [], ticketSales: [],
-      stalls: [], costs: [], donations: [], merch: []
+      stalls: [], costs: [], donations: [], merch: [], merchOrders: [], merchSales: [], stock: [], barSales: []
     };
     toast('All data cleared');
     setTimeout(function(){ location.reload(); }, 1000);
