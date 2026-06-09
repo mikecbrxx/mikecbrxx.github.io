@@ -1,0 +1,1809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Rallye">
+<meta name="theme-color" content="#8B1A1A">
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjogIlJFTUMgUmFsbHllIFBsYW5uZXIiLCAic2hvcnRfbmFtZSI6ICJSYWxseWUiLCAiZGVzY3JpcHRpb24iOiAiUm9hZCBFYWdsZXMgTUMgMjB0aCBBbm5pdmVyc2FyeSBDaGFyaXR5IFJhbGx5ZSBQbGFubmVyIiwgInN0YXJ0X3VybCI6ICIuL3JlbWMtcmFsbHllLmh0bWwiLCAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwgIm9yaWVudGF0aW9uIjogInBvcnRyYWl0IiwgImJhY2tncm91bmRfY29sb3IiOiAiIzBhMGEwYSIsICJ0aGVtZV9jb2xvciI6ICIjOEIxQTFBIiwgImljb25zIjogW3sic3JjIjogImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhOMlp5QjRiV3h1Y3owaWFIUjBjRG92TDNkM2R5NTNNeTV2Y21jdk1qQXdNQzl6ZG1jaUlIWnBaWGRDYjNnOUlqQWdNQ0ExTVRJZ05URXlJajRLSUNBOElTMHRJRUpoWTJ0bmNtOTFibVFnTFMwK0NpQWdQR05wY21Oc1pTQmplRDBpTWpVMklpQmplVDBpTWpVMklpQnlQU0l5TlRZaUlHWnBiR3c5SWlNNFFqRkJNVUVpTHo0S0lDQThJUzB0SUU5MWRHVnlJSE5wYkhabGNpQnlhVzVuSUMwdFBnb2dJRHhqYVhKamJHVWdZM2c5SWpJMU5pSWdZM2s5SWpJMU5pSWdjajBpTWpRd0lpQm1hV3hzUFNKdWIyNWxJaUJ6ZEhKdmEyVTlJaU5ETUVNd1F6QWlJSE4wY205clpTMTNhV1IwYUQwaU9DSXZQZ29nSUR3aExTMGdTVzV1WlhJZ2MybHNkbVZ5SUhKcGJtY2dMUzArQ2lBZ1BHTnBjbU5zWlNCamVEMGlNalUySWlCamVUMGlNalUySWlCeVBTSXlNVEFpSUdacGJHdzlJbTV2Ym1VaUlITjBjbTlyWlQwaUkwTXdRekJETUNJZ2MzUnliMnRsTFhkcFpIUm9QU0l6SWk4K0NpQWdQQ0V0TFNCRllXZHNaU0JpYjJSNUlDMHRQZ29nSUR4bGJHeHBjSE5sSUdONFBTSXlOVFlpSUdONVBTSXlPVEFpSUhKNFBTSTFOU0lnY25rOUlqY3dJaUJtYVd4c1BTSWpRekJETUVNd0lpOCtDaUFnUENFdExTQkZZV2RzWlNCb1pXRmtJQzB0UGdvZ0lEeGphWEpqYkdVZ1kzZzlJakkxTmlJZ1kzazlJakU1TlNJZ2NqMGlNemdpSUdacGJHdzlJaU5ETUVNd1F6QWlMejRLSUNBOElTMHRJRUpsWVdzZ0xTMCtDaUFnUEhCdmJIbG5iMjRnY0c5cGJuUnpQU0l5TlRZc01qQTFJREkzTlN3eU1qVWdNalUyTERJek5TQXlNemNzTWpJMUlpQm1hV3hzUFNJalF6bEJNakkzSWk4K0NpQWdQQ0V0TFNCRmVXVWdiR1ZtZENBdExUNEtJQ0E4WTJseVkyeGxJR040UFNJeU5ETWlJR041UFNJeE9EZ2lJSEk5SWpjaUlHWnBiR3c5SWlNNFFqRkJNVUVpTHo0S0lDQThZMmx5WTJ4bElHTjRQU0l5TkRNaUlHTjVQU0l4T0RnaUlISTlJak1pSUdacGJHdzlJaU13WVRCaE1HRWlMejRLSUNBOElTMHRJRVY1WlNCeWFXZG9kQ0F0TFQ0S0lDQThZMmx5WTJ4bElHTjRQU0l5TmpraUlHTjVQU0l4T0RnaUlISTlJamNpSUdacGJHdzlJaU00UWpGQk1VRWlMejRLSUNBOFkybHlZMnhsSUdONFBTSXlOamtpSUdONVBTSXhPRGdpSUhJOUlqTWlJR1pwYkd3OUlpTXdZVEJoTUdFaUx6NEtJQ0E4SVMwdElFeGxablFnZDJsdVp5QXRMVDRLSUNBOGNHRjBhQ0JrUFNKTk1qQXdMREkyTUNCUk1USXdMREl3TUNBNE1Dd3lPREFnVVRFd01Dd3pNakFnTVRZd0xETXdNQ0JSTVRnd0xETTBNQ0F5TURBc016SXdJRm9pSUdacGJHdzlJaU5ETUVNd1F6QWlMejRLSUNBOElTMHRJRkpwWjJoMElIZHBibWNnTFMwK0NpQWdQSEJoZEdnZ1pEMGlUVE14TWl3eU5qQWdVVE01TWl3eU1EQWdORE15TERJNE1DQlJOREV5TERNeU1DQXpOVElzTXpBd0lGRXpNeklzTXpRd0lETXhNaXd6TWpBZ1dpSWdabWxzYkQwaUkwTXdRekJETUNJdlBnb2dJRHdoTFMwZ1YybHVaeUJrWlhSaGFXd2diR1ZtZENBdExUNEtJQ0E4Y0dGMGFDQmtQU0pOTWpBd0xESTJNQ0JSTVRVd0xESTBNQ0F4TVRBc01qa3dJaUJtYVd4c1BTSnViMjVsSWlCemRISnZhMlU5SWlNNFFqRkJNVUVpSUhOMGNtOXJaUzEzYVdSMGFEMGlNaUl2UGdvZ0lEeHdZWFJvSUdROUlrMHhPVFVzTWpjMUlGRXhORFVzTWpZd0lERXdOU3d6TURVaUlHWnBiR3c5SW01dmJtVWlJSE4wY205clpUMGlJemhDTVVFeFFTSWdjM1J5YjJ0bExYZHBaSFJvUFNJeUlpOCtDaUFnUENFdExTQlhhVzVuSUdSbGRHRnBiQ0J5YVdkb2RDQXRMVDRLSUNBOGNHRjBhQ0JrUFNKTk16RXlMREkyTUNCUk16WXlMREkwTUNBME1ESXNNamt3SWlCbWFXeHNQU0p1YjI1bElpQnpkSEp2YTJVOUlpTTRRakZCTVVFaUlITjBjbTlyWlMxM2FXUjBhRDBpTWlJdlBnb2dJRHh3WVhSb0lHUTlJazB6TVRjc01qYzFJRkV6Tmpjc01qWXdJRFF3Tnl3ek1EVWlJR1pwYkd3OUltNXZibVVpSUhOMGNtOXJaVDBpSXpoQ01VRXhRU0lnYzNSeWIydGxMWGRwWkhSb1BTSXlJaTgrQ2lBZ1BDRXRMU0JVWVd4dmJuTWdMUzArQ2lBZ1BIQmhkR2dnWkQwaVRUSXpNQ3d6TlRVZ1VUSXlNQ3d6TnpVZ01qRXdMRE00TlNCTk1qTXdMRE0xTlNCUk1qSTFMRE0zTlNBeU1qQXNNemt3SUUweU16QXNNelUxSUZFeU16QXNNemM0SURJeU9Dd3pPVElpSUhOMGNtOXJaVDBpSTBNNVFUSXlOeUlnYzNSeWIydGxMWGRwWkhSb1BTSTBJaUJtYVd4c1BTSnViMjVsSWlCemRISnZhMlV0YkdsdVpXTmhjRDBpY205MWJtUWlMejRLSUNBOGNHRjBhQ0JrUFNKTk1qZ3lMRE0xTlNCUk1qa3lMRE0zTlNBek1ESXNNemcxSUUweU9ESXNNelUxSUZFeU9EY3NNemMxSURJNU1pd3pPVEFnVFRJNE1pd3pOVFVnVVRJNE1pd3pOemdnTWpnMExETTVNaUlnYzNSeWIydGxQU0lqUXpsQk1qSTNJaUJ6ZEhKdmEyVXRkMmxrZEdnOUlqUWlJR1pwYkd3OUltNXZibVVpSUhOMGNtOXJaUzFzYVc1bFkyRndQU0p5YjNWdVpDSXZQZ29nSUR3aExTMGdWRzl3SUhSbGVIUWdZWEpqSUd4aFltVnNJQzB0UGdvZ0lEeHdZWFJvSUdsa1BTSjBiM0JCY21NaUlHUTlJazBnTVRBd0xESTFOaUJCSURFMU5pd3hOVFlnTUNBd0xERWdOREV5TERJMU5pSWdabWxzYkQwaWJtOXVaU0l2UGdvZ0lEeDBaWGgwSUdadmJuUXRabUZ0YVd4NVBTSkJjbWxoYkNCQ2JHRmpheXh6WVc1ekxYTmxjbWxtSWlCbWIyNTBMWE5wZW1VOUlqTTBJaUJtYjI1MExYZGxhV2RvZEQwaU9UQXdJaUJtYVd4c1BTSWpRemxCTWpJM0lpQnNaWFIwWlhJdGMzQmhZMmx1WnowaU15SStDaUFnSUNBOGRHVjRkRkJoZEdnZ2FISmxaajBpSTNSdmNFRnlZeUlnYzNSaGNuUlBabVp6WlhROUlqZ2xJajVTVDBGRUlFVkJSMHhGVXlCTlF6d3ZkR1Y0ZEZCaGRHZytDaUFnUEM5MFpYaDBQZ29nSUR3aExTMGdRbTkwZEc5dElIUmxlSFFnTFMwK0NpQWdQSEJoZEdnZ2FXUTlJbUp2ZEVGeVl5SWdaRDBpVFNBeE1EVXNNamN3SUVFZ01UVXhMREUxTVNBd0lEQXNNQ0EwTURjc01qY3dJaUJtYVd4c1BTSnViMjVsSWk4K0NpQWdQSFJsZUhRZ1ptOXVkQzFtWVcxcGJIazlJa0Z5YVdGc0xITmhibk10YzJWeWFXWWlJR1p2Ym5RdGMybDZaVDBpTWpJaUlHWnZiblF0ZDJWcFoyaDBQU0kzTURBaUlHWnBiR3c5SWlORE1FTXdRekFpSUd4bGRIUmxjaTF6Y0dGamFXNW5QU0l5SWo0S0lDQWdJRHgwWlhoMFVHRjBhQ0JvY21WbVBTSWpZbTkwUVhKaklpQnpkR0Z5ZEU5bVpuTmxkRDBpTVRnbElqNVNRVXhNV1VVZ1VFeEJUazVGVWp3dmRHVjRkRkJoZEdnK0NpQWdQQzkwWlhoMFBnbzhMM04yWno0PSIsICJzaXplcyI6ICIxOTJ4MTkyIiwgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCIsICJwdXJwb3NlIjogImFueSBtYXNrYWJsZSJ9LCB7InNyYyI6ICJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBITjJaeUI0Yld4dWN6MGlhSFIwY0RvdkwzZDNkeTUzTXk1dmNtY3ZNakF3TUM5emRtY2lJSFpwWlhkQ2IzZzlJakFnTUNBMU1USWdOVEV5SWo0S0lDQThJUzB0SUVKaFkydG5jbTkxYm1RZ0xTMCtDaUFnUEdOcGNtTnNaU0JqZUQwaU1qVTJJaUJqZVQwaU1qVTJJaUJ5UFNJeU5UWWlJR1pwYkd3OUlpTTRRakZCTVVFaUx6NEtJQ0E4SVMwdElFOTFkR1Z5SUhOcGJIWmxjaUJ5YVc1bklDMHRQZ29nSUR4amFYSmpiR1VnWTNnOUlqSTFOaUlnWTNrOUlqSTFOaUlnY2owaU1qUXdJaUJtYVd4c1BTSnViMjVsSWlCemRISnZhMlU5SWlORE1FTXdRekFpSUhOMGNtOXJaUzEzYVdSMGFEMGlPQ0l2UGdvZ0lEd2hMUzBnU1c1dVpYSWdjMmxzZG1WeUlISnBibWNnTFMwK0NpQWdQR05wY21Oc1pTQmplRDBpTWpVMklpQmplVDBpTWpVMklpQnlQU0l5TVRBaUlHWnBiR3c5SW01dmJtVWlJSE4wY205clpUMGlJME13UXpCRE1DSWdjM1J5YjJ0bExYZHBaSFJvUFNJeklpOCtDaUFnUENFdExTQkZZV2RzWlNCaWIyUjVJQzB0UGdvZ0lEeGxiR3hwY0hObElHTjRQU0l5TlRZaUlHTjVQU0l5T1RBaUlISjRQU0kxTlNJZ2NuazlJamN3SWlCbWFXeHNQU0lqUXpCRE1FTXdJaTgrQ2lBZ1BDRXRMU0JGWVdkc1pTQm9aV0ZrSUMwdFBnb2dJRHhqYVhKamJHVWdZM2c5SWpJMU5pSWdZM2s5SWpFNU5TSWdjajBpTXpnaUlHWnBiR3c5SWlORE1FTXdRekFpTHo0S0lDQThJUzB0SUVKbFlXc2dMUzArQ2lBZ1BIQnZiSGxuYjI0Z2NHOXBiblJ6UFNJeU5UWXNNakExSURJM05Td3lNalVnTWpVMkxESXpOU0F5TXpjc01qSTFJaUJtYVd4c1BTSWpRemxCTWpJM0lpOCtDaUFnUENFdExTQkZlV1VnYkdWbWRDQXRMVDRLSUNBOFkybHlZMnhsSUdONFBTSXlORE1pSUdONVBTSXhPRGdpSUhJOUlqY2lJR1pwYkd3OUlpTTRRakZCTVVFaUx6NEtJQ0E4WTJseVkyeGxJR040UFNJeU5ETWlJR041UFNJeE9EZ2lJSEk5SWpNaUlHWnBiR3c5SWlNd1lUQmhNR0VpTHo0S0lDQThJUzB0SUVWNVpTQnlhV2RvZENBdExUNEtJQ0E4WTJseVkyeGxJR040UFNJeU5qa2lJR041UFNJeE9EZ2lJSEk5SWpjaUlHWnBiR3c5SWlNNFFqRkJNVUVpTHo0S0lDQThZMmx5WTJ4bElHTjRQU0l5TmpraUlHTjVQU0l4T0RnaUlISTlJak1pSUdacGJHdzlJaU13WVRCaE1HRWlMejRLSUNBOElTMHRJRXhsWm5RZ2QybHVaeUF0TFQ0S0lDQThjR0YwYUNCa1BTSk5NakF3TERJMk1DQlJNVEl3TERJd01DQTRNQ3d5T0RBZ1VURXdNQ3d6TWpBZ01UWXdMRE13TUNCUk1UZ3dMRE0wTUNBeU1EQXNNekl3SUZvaUlHWnBiR3c5SWlORE1FTXdRekFpTHo0S0lDQThJUzB0SUZKcFoyaDBJSGRwYm1jZ0xTMCtDaUFnUEhCaGRHZ2daRDBpVFRNeE1pd3lOakFnVVRNNU1pd3lNREFnTkRNeUxESTRNQ0JSTkRFeUxETXlNQ0F6TlRJc016QXdJRkV6TXpJc016UXdJRE14TWl3ek1qQWdXaUlnWm1sc2JEMGlJME13UXpCRE1DSXZQZ29nSUR3aExTMGdWMmx1WnlCa1pYUmhhV3dnYkdWbWRDQXRMVDRLSUNBOGNHRjBhQ0JrUFNKTk1qQXdMREkyTUNCUk1UVXdMREkwTUNBeE1UQXNNamt3SWlCbWFXeHNQU0p1YjI1bElpQnpkSEp2YTJVOUlpTTRRakZCTVVFaUlITjBjbTlyWlMxM2FXUjBhRDBpTWlJdlBnb2dJRHh3WVhSb0lHUTlJazB4T1RVc01qYzFJRkV4TkRVc01qWXdJREV3TlN3ek1EVWlJR1pwYkd3OUltNXZibVVpSUhOMGNtOXJaVDBpSXpoQ01VRXhRU0lnYzNSeWIydGxMWGRwWkhSb1BTSXlJaTgrQ2lBZ1BDRXRMU0JYYVc1bklHUmxkR0ZwYkNCeWFXZG9kQ0F0TFQ0S0lDQThjR0YwYUNCa1BTSk5NekV5TERJMk1DQlJNell5TERJME1DQTBNRElzTWprd0lpQm1hV3hzUFNKdWIyNWxJaUJ6ZEhKdmEyVTlJaU00UWpGQk1VRWlJSE4wY205clpTMTNhV1IwYUQwaU1pSXZQZ29nSUR4d1lYUm9JR1E5SWswek1UY3NNamMxSUZFek5qY3NNall3SURRd055d3pNRFVpSUdacGJHdzlJbTV2Ym1VaUlITjBjbTlyWlQwaUl6aENNVUV4UVNJZ2MzUnliMnRsTFhkcFpIUm9QU0l5SWk4K0NpQWdQQ0V0TFNCVVlXeHZibk1nTFMwK0NpQWdQSEJoZEdnZ1pEMGlUVEl6TUN3ek5UVWdVVEl5TUN3ek56VWdNakV3TERNNE5TQk5Nak13TERNMU5TQlJNakkxTERNM05TQXlNakFzTXprd0lFMHlNekFzTXpVMUlGRXlNekFzTXpjNElESXlPQ3d6T1RJaUlITjBjbTlyWlQwaUkwTTVRVEl5TnlJZ2MzUnliMnRsTFhkcFpIUm9QU0kwSWlCbWFXeHNQU0p1YjI1bElpQnpkSEp2YTJVdGJHbHVaV05oY0QwaWNtOTFibVFpTHo0S0lDQThjR0YwYUNCa1BTSk5Namd5TERNMU5TQlJNamt5TERNM05TQXpNRElzTXpnMUlFMHlPRElzTXpVMUlGRXlPRGNzTXpjMUlESTVNaXd6T1RBZ1RUSTRNaXd6TlRVZ1VUSTRNaXd6TnpnZ01qZzBMRE01TWlJZ2MzUnliMnRsUFNJalF6bEJNakkzSWlCemRISnZhMlV0ZDJsa2RHZzlJalFpSUdacGJHdzlJbTV2Ym1VaUlITjBjbTlyWlMxc2FXNWxZMkZ3UFNKeWIzVnVaQ0l2UGdvZ0lEd2hMUzBnVkc5d0lIUmxlSFFnWVhKaklHeGhZbVZzSUMwdFBnb2dJRHh3WVhSb0lHbGtQU0owYjNCQmNtTWlJR1E5SWswZ01UQXdMREkxTmlCQklERTFOaXd4TlRZZ01DQXdMREVnTkRFeUxESTFOaUlnWm1sc2JEMGlibTl1WlNJdlBnb2dJRHgwWlhoMElHWnZiblF0Wm1GdGFXeDVQU0pCY21saGJDQkNiR0ZqYXl4ellXNXpMWE5sY21sbUlpQm1iMjUwTFhOcGVtVTlJak0wSWlCbWIyNTBMWGRsYVdkb2REMGlPVEF3SWlCbWFXeHNQU0lqUXpsQk1qSTNJaUJzWlhSMFpYSXRjM0JoWTJsdVp6MGlNeUkrQ2lBZ0lDQThkR1Y0ZEZCaGRHZ2dhSEpsWmowaUkzUnZjRUZ5WXlJZ2MzUmhjblJQWm1aelpYUTlJamdsSWo1U1QwRkVJRVZCUjB4RlV5Qk5Rend2ZEdWNGRGQmhkR2crQ2lBZ1BDOTBaWGgwUGdvZ0lEd2hMUzBnUW05MGRHOXRJSFJsZUhRZ0xTMCtDaUFnUEhCaGRHZ2dhV1E5SW1KdmRFRnlZeUlnWkQwaVRTQXhNRFVzTWpjd0lFRWdNVFV4TERFMU1TQXdJREFzTUNBME1EY3NNamN3SWlCbWFXeHNQU0p1YjI1bElpOCtDaUFnUEhSbGVIUWdabTl1ZEMxbVlXMXBiSGs5SWtGeWFXRnNMSE5oYm5NdGMyVnlhV1lpSUdadmJuUXRjMmw2WlQwaU1qSWlJR1p2Ym5RdGQyVnBaMmgwUFNJM01EQWlJR1pwYkd3OUlpTkRNRU13UXpBaUlHeGxkSFJsY2kxemNHRmphVzVuUFNJeUlqNEtJQ0FnSUR4MFpYaDBVR0YwYUNCb2NtVm1QU0lqWW05MFFYSmpJaUJ6ZEdGeWRFOW1abk5sZEQwaU1UZ2xJajVTUVV4TVdVVWdVRXhCVGs1RlVqd3ZkR1Y0ZEZCaGRHZytDaUFnUEM5MFpYaDBQZ284TDNOMlp6ND0iLCAic2l6ZXMiOiAiNTEyeDUxMiIsICJ0eXBlIjogImltYWdlL3N2Zyt4bWwiLCAicHVycG9zZSI6ICJhbnkgbWFza2FibGUifV19">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8IS0tIEJhY2tncm91bmQgLS0+CiAgPGNpcmNsZSBjeD0iMjU2IiBjeT0iMjU2IiByPSIyNTYiIGZpbGw9IiM4QjFBMUEiLz4KICA8IS0tIE91dGVyIHNpbHZlciByaW5nIC0tPgogIDxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iMjQwIiBmaWxsPSJub25lIiBzdHJva2U9IiNDMEMwQzAiIHN0cm9rZS13aWR0aD0iOCIvPgogIDwhLS0gSW5uZXIgc2lsdmVyIHJpbmcgLS0+CiAgPGNpcmNsZSBjeD0iMjU2IiBjeT0iMjU2IiByPSIyMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0MwQzBDMCIgc3Ryb2tlLXdpZHRoPSIzIi8+CiAgPCEtLSBFYWdsZSBib2R5IC0tPgogIDxlbGxpcHNlIGN4PSIyNTYiIGN5PSIyOTAiIHJ4PSI1NSIgcnk9IjcwIiBmaWxsPSIjQzBDMEMwIi8+CiAgPCEtLSBFYWdsZSBoZWFkIC0tPgogIDxjaXJjbGUgY3g9IjI1NiIgY3k9IjE5NSIgcj0iMzgiIGZpbGw9IiNDMEMwQzAiLz4KICA8IS0tIEJlYWsgLS0+CiAgPHBvbHlnb24gcG9pbnRzPSIyNTYsMjA1IDI3NSwyMjUgMjU2LDIzNSAyMzcsMjI1IiBmaWxsPSIjQzlBMjI3Ii8+CiAgPCEtLSBFeWUgbGVmdCAtLT4KICA8Y2lyY2xlIGN4PSIyNDMiIGN5PSIxODgiIHI9IjciIGZpbGw9IiM4QjFBMUEiLz4KICA8Y2lyY2xlIGN4PSIyNDMiIGN5PSIxODgiIHI9IjMiIGZpbGw9IiMwYTBhMGEiLz4KICA8IS0tIEV5ZSByaWdodCAtLT4KICA8Y2lyY2xlIGN4PSIyNjkiIGN5PSIxODgiIHI9IjciIGZpbGw9IiM4QjFBMUEiLz4KICA8Y2lyY2xlIGN4PSIyNjkiIGN5PSIxODgiIHI9IjMiIGZpbGw9IiMwYTBhMGEiLz4KICA8IS0tIExlZnQgd2luZyAtLT4KICA8cGF0aCBkPSJNMjAwLDI2MCBRMTIwLDIwMCA4MCwyODAgUTEwMCwzMjAgMTYwLDMwMCBRMTgwLDM0MCAyMDAsMzIwIFoiIGZpbGw9IiNDMEMwQzAiLz4KICA8IS0tIFJpZ2h0IHdpbmcgLS0+CiAgPHBhdGggZD0iTTMxMiwyNjAgUTM5MiwyMDAgNDMyLDI4MCBRNDEyLDMyMCAzNTIsMzAwIFEzMzIsMzQwIDMxMiwzMjAgWiIgZmlsbD0iI0MwQzBDMCIvPgogIDwhLS0gV2luZyBkZXRhaWwgbGVmdCAtLT4KICA8cGF0aCBkPSJNMjAwLDI2MCBRMTUwLDI0MCAxMTAsMjkwIiBmaWxsPSJub25lIiBzdHJva2U9IiM4QjFBMUEiIHN0cm9rZS13aWR0aD0iMiIvPgogIDxwYXRoIGQ9Ik0xOTUsMjc1IFExNDUsMjYwIDEwNSwzMDUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzhCMUExQSIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgPCEtLSBXaW5nIGRldGFpbCByaWdodCAtLT4KICA8cGF0aCBkPSJNMzEyLDI2MCBRMzYyLDI0MCA0MDIsMjkwIiBmaWxsPSJub25lIiBzdHJva2U9IiM4QjFBMUEiIHN0cm9rZS13aWR0aD0iMiIvPgogIDxwYXRoIGQ9Ik0zMTcsMjc1IFEzNjcsMjYwIDQwNywzMDUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzhCMUExQSIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgPCEtLSBUYWxvbnMgLS0+CiAgPHBhdGggZD0iTTIzMCwzNTUgUTIyMCwzNzUgMjEwLDM4NSBNMjMwLDM1NSBRMjI1LDM3NSAyMjAsMzkwIE0yMzAsMzU1IFEyMzAsMzc4IDIyOCwzOTIiIHN0cm9rZT0iI0M5QTIyNyIgc3Ryb2tlLXdpZHRoPSI0IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8cGF0aCBkPSJNMjgyLDM1NSBRMjkyLDM3NSAzMDIsMzg1IE0yODIsMzU1IFEyODcsMzc1IDI5MiwzOTAgTTI4MiwzNTUgUTI4MiwzNzggMjg0LDM5MiIgc3Ryb2tlPSIjQzlBMjI3IiBzdHJva2Utd2lkdGg9IjQiIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDwhLS0gVG9wIHRleHQgYXJjIGxhYmVsIC0tPgogIDxwYXRoIGlkPSJ0b3BBcmMiIGQ9Ik0gMTAwLDI1NiBBIDE1NiwxNTYgMCAwLDEgNDEyLDI1NiIgZmlsbD0ibm9uZSIvPgogIDx0ZXh0IGZvbnQtZmFtaWx5PSJBcmlhbCBCbGFjayxzYW5zLXNlcmlmIiBmb250LXNpemU9IjM0IiBmb250LXdlaWdodD0iOTAwIiBmaWxsPSIjQzlBMjI3IiBsZXR0ZXItc3BhY2luZz0iMyI+CiAgICA8dGV4dFBhdGggaHJlZj0iI3RvcEFyYyIgc3RhcnRPZmZzZXQ9IjglIj5ST0FEIEVBR0xFUyBNQzwvdGV4dFBhdGg+CiAgPC90ZXh0PgogIDwhLS0gQm90dG9tIHRleHQgLS0+CiAgPHBhdGggaWQ9ImJvdEFyYyIgZD0iTSAxMDUsMjcwIEEgMTUxLDE1MSAwIDAsMCA0MDcsMjcwIiBmaWxsPSJub25lIi8+CiAgPHRleHQgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjIiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IiNDMEMwQzAiIGxldHRlci1zcGFjaW5nPSIyIj4KICAgIDx0ZXh0UGF0aCBocmVmPSIjYm90QXJjIiBzdGFydE9mZnNldD0iMTglIj5SQUxMWUUgUExBTk5FUjwvdGV4dFBhdGg+CiAgPC90ZXh0Pgo8L3N2Zz4=">
+<title>REMC Rallye Planner</title>
+<style>
+:root{
+  --bg:#0a0a0a;--sf:#141414;--sf2:#1c1c1c;--sf3:#242424;
+  --bd:#2a2a2a;--txt:#f0f0f0;--muted:#888;--dim:#555;
+  --crim:#8B1A1A;--crim2:#a52020;--crim3:#c0392b;
+  --sil:#b0b0b0;--sil2:#d0d0d0;
+  --grn:#27ae60;--grnl:#2ecc71;
+  --rl:#e74c3c;--warn:#e67e22;--gold:#C9A227;
+  --blul:#3498db;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;overflow-x:hidden;}
+input,select,textarea{width:100%;background:var(--sf2);border:1px solid var(--bd);color:var(--txt);font-size:14px;padding:10px 12px;border-radius:10px;outline:none;font-family:inherit;appearance:none;}
+input[type=number]{-moz-appearance:textfield;}
+button{cursor:pointer;font-family:inherit;}
+label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
+
+/* Header */
+.hdr{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--bg);border-bottom:1px solid var(--bd);padding:10px 14px;display:flex;align-items:center;gap:10px;}
+.hdr-logo{width:36px;height:36px;border-radius:50%;border:2px solid var(--crim);object-fit:cover;flex-shrink:0;}
+.hdr-info{flex:1;min-width:0;}
+.hdr-title{font-size:12px;font-weight:800;color:var(--crim2);letter-spacing:1.5px;text-transform:uppercase;line-height:1;}
+.hdr-sub{font-size:10px;color:var(--muted);margin-top:1px;}
+.hdr-actions{display:flex;gap:6px;align-items:center;}
+
+/* Screens */
+.scr{display:none;position:fixed;inset:0;top:60px;bottom:68px;overflow-y:auto;padding:14px;}
+.scr.on{display:block;}
+
+/* Bottom nav */
+.bn{position:fixed;bottom:0;left:0;right:0;background:var(--sf);border-top:1px solid var(--bd);display:flex;z-index:100;height:68px;}
+.nb{flex:1;background:none;border:none;color:var(--dim);font-size:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 0;}
+.nb.on{color:var(--crim2);}
+.nb .ni{font-size:22px;line-height:1;}
+
+/* FAB */
+.fab{position:fixed;right:16px;bottom:80px;z-index:99;width:36px;height:36px;border-radius:50%;background:var(--crim);color:#fff;border:none;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(139,26,26,0.5);}
+
+/* Cards */
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:14px;margin-bottom:10px;}
+.card-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.card-title{font-size:14px;font-weight:700;color:var(--sil2);}
+.card-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+
+/* Dashboard grid */
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.dcard{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:10px 12px;}
+.dlbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;}
+.dval{font-size:16px;font-weight:700;}
+.dval.g{color:var(--grnl);}
+.dval.r{color:var(--rl);}
+.dval.c{color:var(--crim2);}
+.dval.s{color:var(--sil2);}
+.dval.w{color:var(--warn);}
+
+/* Section headers */
+.sec-hdr{font-size:11px;font-weight:700;color:var(--crim2);text-transform:uppercase;letter-spacing:1px;margin:14px 0 8px;display:flex;align-items:center;gap:6px;}
+.sec-hdr::after{content:'';flex:1;height:1px;background:var(--bd);}
+
+/* Buttons */
+.btn{display:block;width:100%;padding:12px;border-radius:24px;border:none;font-size:14px;font-weight:700;text-align:center;margin-top:8px;}
+.btn-crim{background:var(--crim);color:#fff;}
+.btn-out{background:none;border:1px solid var(--bd);color:var(--muted);}
+.btn-grn{background:var(--grn);color:#fff;}
+.btn-sil{background:var(--sf3);color:var(--sil2);border:1px solid var(--bd);}
+.btn-sm{padding:4px 12px;font-size:11px;border-radius:16px;display:inline-block;width:auto;}
+
+/* Form groups */
+.fg{margin-bottom:12px;}
+.irow{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.irow3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+
+/* Badges */
+.badge{display:inline-block;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700;}
+.badge-crim{background:var(--crim);color:#fff;}
+.badge-grn{background:var(--grn);color:#fff;}
+.badge-warn{background:var(--warn);color:#fff;}
+.badge-sil{background:var(--sf3);color:var(--sil);border:1px solid var(--bd);}
+.badge-rl{background:var(--rl);color:#fff;}
+
+/* List rows */
+.lrow{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
+.lrow-body{flex:1;min-width:0;}
+.lrow-name{font-size:13px;font-weight:600;color:var(--txt);}
+.lrow-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.lrow-amt{font-size:14px;font-weight:700;color:var(--crim2);flex-shrink:0;}
+
+/* Progress bar */
+.prog-wrap{background:var(--sf2);border-radius:6px;height:8px;overflow:hidden;margin-top:6px;}
+.prog-bar{height:100%;background:var(--crim);border-radius:6px;transition:width 0.3s;}
+
+/* Tabs */
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;margin-bottom:12px;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{background:var(--sf2);border:1px solid var(--bd);color:var(--muted);border-radius:20px;padding:5px 14px;font-size:11px;font-weight:600;white-space:nowrap;cursor:pointer;flex-shrink:0;}
+.tab.on{background:var(--crim);border-color:var(--crim);color:#fff;}
+
+/* Modals */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:200;display:none;align-items:flex-start;}
+.mo.on{display:flex;}
+.modal{background:var(--sf);border-radius:0 0 20px 20px;padding:18px;width:100%;max-height:88vh;overflow-y:auto;}
+.mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.mt{font-size:16px;font-weight:700;color:var(--crim2);}
+.mc2{background:var(--sf3);border:none;color:var(--muted);border-radius:50%;width:28px;height:28px;font-size:14px;display:flex;align-items:center;justify-content:center;}
+
+/* Empty state */
+.empty{text-align:center;padding:40px 20px;color:var(--dim);}
+.empty .ei{font-size:40px;margin-bottom:10px;}
+
+/* Back button */
+.back-btn{display:none;position:fixed;left:16px;bottom:80px;z-index:300;width:36px;height:36px;border-radius:50%;background:var(--crim);color:#fff;border:none;font-size:18px;align-items:center;justify-content:center;}
+
+/* Amount display */
+.amt-pos{color:var(--grnl);}
+.amt-neg{color:var(--rl);}
+
+/* Divider */
+.div{border-top:1px solid var(--bd);margin:10px 0;}
+
+/* Version */
+.ver{font-size:9px;color:var(--dim);text-align:center;margin-top:4px;}
+
+/* Task status colors */
+.ts-todo{color:var(--muted);}
+.ts-prog{color:var(--warn);}
+.ts-done{color:var(--grnl);}
+
+/* Avatar */
+.av{width:38px;height:38px;border-radius:50%;background:var(--crim);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0;}
+
+/* Toast */
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--crim);color:#fff;padding:8px 18px;border-radius:20px;font-size:12px;font-weight:600;z-index:9999;display:none;white-space:nowrap;}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="hdr">
+  <div style="width:36px;height:36px;border-radius:50%;border:2px solid var(--crim);background:var(--sf2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🦅</div>
+  <div class="hdr-info">
+    <div class="hdr-title">REMC Rallye Planner</div>
+    <div class="hdr-sub" id="hdr-event-name">20th Anniversary Charity Rallye</div>
+  </div>
+  <div class="hdr-actions">
+    <button onclick="goTo('settings')" style="background:none;border:none;color:var(--muted);font-size:18px;">⚙️</button>
+  </div>
+</div>
+
+<!-- SCREEN: Dashboard -->
+<div class="scr on" id="scr-dash">
+  <div style="font-size:10px;color:var(--muted);margin-bottom:10px" id="dash-event-date"></div>
+
+  <div class="sec-hdr">📊 Financial Overview</div>
+  <div class="dgrid">
+    <div class="dcard"><div class="dlbl">Total Income</div><div class="dval g" id="db-income">฿0</div><div style="font-size:9px;color:var(--dim)">Actual received</div></div>
+    <div class="dcard"><div class="dlbl">Total Costs</div><div class="dval r" id="db-costs">฿0</div><div style="font-size:9px;color:var(--dim)">Actual spent</div></div>
+    <div class="dcard"><div class="dlbl">Est. Income</div><div class="dval s" id="db-est-income">฿0</div><div style="font-size:9px;color:var(--dim)">Projected</div></div>
+    <div class="dcard"><div class="dlbl">Est. Costs</div><div class="dval w" id="db-est-costs">฿0</div><div style="font-size:9px;color:var(--dim)">Projected</div></div>
+  </div>
+  <div class="dcard" style="margin-bottom:10px">
+    <div class="dlbl">Net Position (Actual)</div>
+    <div class="dval" id="db-net" style="font-size:18px">฿0</div>
+    <div class="prog-wrap"><div class="prog-bar" id="db-prog" style="width:0%"></div></div>
+    <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:9px;color:var(--dim)">
+      <span>Costs covered</span><span id="db-prog-pct">0%</span>
+    </div>
+  </div>
+
+  <div class="sec-hdr">🎫 Sales Summary</div>
+  <div class="dgrid">
+    <div class="dcard"><div class="dlbl">Tables Sold</div><div class="dval c" id="db-tables">0</div></div>
+    <div class="dcard"><div class="dlbl">Tickets Sold</div><div class="dval c" id="db-tickets">0</div></div>
+    <div class="dcard"><div class="dlbl">Vendor Stalls</div><div class="dval c" id="db-stalls">0</div></div>
+    <div class="dcard"><div class="dlbl">Donations</div><div class="dval g" id="db-donations">฿0</div></div>
+  </div>
+
+  <div class="sec-hdr">✅ Tasks</div>
+  <div class="dgrid">
+    <div class="dcard"><div class="dlbl">Total Tasks</div><div class="dval s" id="db-tasks-total">0</div></div>
+    <div class="dcard"><div class="dlbl">Completed</div><div class="dval g" id="db-tasks-done">0</div></div>
+    <div class="dcard"><div class="dlbl">In Progress</div><div class="dval w" id="db-tasks-prog">0</div></div>
+    <div class="dcard"><div class="dlbl">Unassigned</div><div class="dval r" id="db-tasks-un">0</div></div>
+  </div>
+
+  <div class="ver">v1.4 — REMC Rallye Planner</div>
+</div>
+
+<!-- SCREEN: Tasks -->
+<div class="scr" id="scr-tasks">
+  <div class="tabs" id="task-tabs">
+    <button class="tab on" onclick="setTaskTab(this,'all')">All</button>
+    <button class="tab" onclick="setTaskTab(this,'todo')">To Do</button>
+    <button class="tab" onclick="setTaskTab(this,'inprog')">In Progress</button>
+    <button class="tab" onclick="setTaskTab(this,'done')">Done</button>
+    <button class="tab" onclick="setTaskTab(this,'unassigned')">Unassigned</button>
+  </div>
+  <div id="task-list"></div>
+</div>
+
+<!-- SCREEN: People -->
+<div class="scr" id="scr-people">
+  <div class="tabs">
+    <button class="tab on" onclick="setPeopleTab(this,'workers')">Workers</button>
+    <button class="tab" onclick="setPeopleTab(this,'donors')">Donors / Sponsors</button>
+  </div>
+  <div id="people-list"></div>
+</div>
+
+<!-- SCREEN: Sales -->
+<div class="scr" id="scr-sales">
+  <div class="tabs">
+    <button class="tab on" onclick="setSalesTab(this,'tickets')">Tickets &amp; Tables</button>
+    <button class="tab" onclick="setSalesTab(this,'stalls')">Vendor Stalls</button>
+    <button class="tab" onclick="setSalesTab(this,'merch')">Memorabilia</button>
+  </div>
+  <div id="sales-list"></div>
+</div>
+
+<!-- SCREEN: Finance -->
+<div class="scr" id="scr-finance">
+  <div class="tabs">
+    <button class="tab on" onclick="setFinTab(this,'costs')">Costs</button>
+    <button class="tab" onclick="setFinTab(this,'donations')">Donations</button>
+  </div>
+  <div id="finance-list"></div>
+</div>
+
+<!-- SCREEN: Reports -->
+<div class="scr" id="scr-reports">
+  <div class="sec-hdr">📄 Reports</div>
+  <button class="btn btn-crim" onclick="showReport('pl')">📊 Event P&amp;L</button>
+  <button class="btn btn-sil" onclick="showReport('donations')">💝 Donations Report</button>
+  <button class="btn btn-sil" onclick="showReport('sales')">🎫 Sales Report</button>
+  <button class="btn btn-sil" onclick="showReport('costs')">💰 Cost Breakdown</button>
+  <button class="btn btn-sil" onclick="showReport('tasks')">✅ Task Report</button>
+  <div id="report-output" style="margin-top:16px"></div>
+</div>
+
+<!-- SCREEN: Settings -->
+<div class="scr" id="scr-config">
+  <div class="tabs" id="cfg-tabs">
+    <button class="tab on" onclick="setCfgTab(this,'costcats')">Cost Categories</button>
+    <button class="tab" onclick="setCfgTab(this,'taskcats')">Task Categories</button>
+    <button class="tab" onclick="setCfgTab(this,'paymentmethods')">Payment Methods</button>
+    <button class="tab" onclick="setCfgTab(this,'priorities')">Task Priorities</button>
+  </div>
+  <div id="cfg-list"></div>
+  <button class="btn btn-crim" onclick="openCfgAdd()" style="margin-top:4px">+ Add Item</button>
+</div>
+
+<div class="scr" id="scr-settings">
+  <div class="sec-hdr">🎪 Event Details</div>
+  <div class="fg"><label>Event Name</label><input type="text" id="set-event-name" placeholder="20th Anniversary Charity Rallye"></div>
+  <div class="fg"><label>Event Date</label><input type="date" id="set-event-date"></div>
+  <div class="fg"><label>Venue</label><input type="text" id="set-venue" placeholder="Venue name"></div>
+  <div class="fg"><label>Target Fundraising (฿)</label><input type="number" id="set-target" placeholder="0"></div>
+
+  <div class="sec-hdr">🎫 Pricing</div>
+  <div class="irow">
+    <div class="fg"><label>Ticket Price (฿)</label><input type="number" id="set-ticket-price" placeholder="0"></div>
+    <div class="fg"><label>Table Price (฿)</label><input type="number" id="set-table-price" placeholder="0"></div>
+  </div>
+  <div class="irow">
+    <div class="fg"><label>Seats per Table</label><input type="number" id="set-seats" placeholder="6"></div>
+    <div class="fg"><label>Stall Charge (฿)</label><input type="number" id="set-stall-price" placeholder="0"></div>
+  </div>
+
+  <div class="sec-hdr">📋 Categories &amp; Config</div>
+  <button class="btn btn-sil" onclick="goTo('config')">⚙️ Manage Categories &amp; Options</button>
+
+  <button class="btn btn-crim" onclick="saveSettings()">Save Settings</button>
+  <button class="btn btn-out" onclick="exportData()" style="margin-top:8px">📥 Export Backup</button>
+  <button class="btn btn-out" onclick="document.getElementById('import-file').click()" style="margin-top:8px">📤 Import Backup</button>
+  <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(this)">
+  <button class="btn btn-out" onclick="resetWorkers()" style="margin-top:8px">👷 Reset Workers to Club Members</button>
+  <div style="margin-top:16px;padding:12px;background:var(--sf2);border:1px solid var(--rl);border-radius:12px">
+    <div style="font-size:11px;font-weight:700;color:var(--rl);margin-bottom:6px">⚠️ Danger Zone</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Permanently deletes all app data. Cannot be undone. Export a backup first.</div>
+    <button class="btn" onclick="confirmClearAll()" style="background:var(--rl);color:#fff;border:none;padding:10px;border-radius:20px;width:100%;font-weight:700">🗑️ Clear All App Data</button>
+  </div>
+  <div class="ver">v1.4 — Road Eagles MC Rallye Planner</div>
+</div>
+
+<!-- Bottom Nav -->
+<div class="bn">
+  <button class="nb on" id="nb-dash" onclick="goTo('dash')"><span class="ni">🏠</span>Home</button>
+  <button class="nb" id="nb-tasks" onclick="goTo('tasks')"><span class="ni">✅</span>Tasks</button>
+  <button class="nb" id="nb-people" onclick="goTo('people')"><span class="ni">👥</span>People</button>
+  <button class="nb" id="nb-sales" onclick="goTo('sales')"><span class="ni">🎫</span>Sales</button>
+  <button class="nb" id="nb-finance" onclick="goTo('finance')"><span class="ni">💰</span>Finance</button>
+</div>
+
+<!-- FAB -->
+<button class="fab" id="fab" onclick="openFab()">+</button>
+<button class="back-btn" id="back-btn" onclick="goBack()" style="display:flex">‹</button>
+
+<!-- FAB Menu -->
+<div class="mo" id="mo-fab">
+  <div class="modal">
+    <div class="mh"><div class="mt">Add New</div><button class="mc2" onclick="closeM('mo-fab')">✕</button></div>
+    <button class="btn btn-crim" onclick="closeM('mo-fab');openTaskModal()">✅ Add Task</button>
+    <button class="btn btn-sil" onclick="closeM('mo-fab');openWorkerModal()">👷 Add Worker</button>
+    <button class="btn btn-sil" onclick="closeM('mo-fab');openDonorModal()">💝 Add Donor / Sponsor</button>
+    <button class="btn btn-sil" onclick="closeM('mo-fab');openTicketSale()">🎫 Record Ticket / Table Sale</button>
+    <button class="btn btn-sil" onclick="closeM('mo-fab');openStallModal()">🏪 Add Vendor Stall</button>
+    <button class="btn btn-sil" onclick="closeM('mo-fab');openCostModal()">💰 Record Cost</button>
+    <button class="btn btn-sil" onclick="closeM('mo-fab');openDonationModal()">🤲 Record Donation</button>
+    <button class="btn btn-sil" onclick="closeM('mo-fab');openMerchModal()">👕 Add Memorabilia Item</button>
+  </div>
+</div>
+
+<!-- Modal: Task -->
+<div class="mo" id="mo-task">
+  <div class="modal">
+    <div class="mh"><div class="mt" id="mo-task-t">Add Task</div><button class="mc2" onclick="closeM('mo-task')">✕</button></div>
+    <input type="hidden" id="task-id">
+    <div class="fg"><label>Task Description</label><input type="text" id="task-desc" placeholder="What needs to be done?"></div>
+    <div class="irow">
+      <div class="fg"><label>Category</label><select id="task-cat"></select></div>
+      <div class="fg"><label>Priority</label>
+        <select id="task-priority">
+          <option value="normal">Normal</option>
+          <option value="high">High</option>
+          <option value="low">Low</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg"><label>Assign To</label><select id="task-worker"><option value="">— Unassigned —</option></select></div>
+    <div class="irow">
+      <div class="fg"><label>Due Date</label><input type="date" id="task-due"></div>
+      <div class="fg"><label>Status</label>
+        <select id="task-status">
+          <option value="todo">To Do</option>
+          <option value="inprog">In Progress</option>
+          <option value="done">Done</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg"><label>Notes</label><textarea id="task-notes" rows="2" placeholder="Optional notes"></textarea></div>
+    <button class="btn btn-crim" onclick="saveTask()">Save Task</button>
+    <button class="btn btn-out" id="task-del-btn" onclick="deleteTask()" style="margin-top:6px;display:none">Delete Task</button>
+  </div>
+</div>
+
+<!-- Modal: Worker -->
+<div class="mo" id="mo-worker">
+  <div class="modal">
+    <div class="mh"><div class="mt" id="mo-worker-t">Add Worker</div><button class="mc2" onclick="closeM('mo-worker')">✕</button></div>
+    <input type="hidden" id="worker-id">
+    <div class="fg"><label>Name</label><input type="text" id="worker-name" placeholder="Full name"></div>
+    <div class="irow">
+      <div class="fg"><label>Phone</label><input type="tel" id="worker-phone" placeholder="Phone"></div>
+      <div class="fg"><label>Role</label><input type="text" id="worker-role" placeholder="e.g. Road Captain"></div>
+    </div>
+    <div class="fg"><label>Email</label><input type="email" id="worker-email" placeholder="Email address"></div>
+    <div class="fg"><label>Notes</label><input type="text" id="worker-notes" placeholder="Optional"></div>
+    <button class="btn btn-crim" onclick="saveWorker()">Save Worker</button>
+    <button class="btn btn-out" id="worker-del-btn" onclick="deleteWorker()" style="margin-top:6px;display:none">Delete Worker</button>
+  </div>
+</div>
+
+<!-- Modal: Donor/Sponsor -->
+<div class="mo" id="mo-donor">
+  <div class="modal">
+    <div class="mh"><div class="mt" id="mo-donor-t">Add Donor / Sponsor</div><button class="mc2" onclick="closeM('mo-donor')">✕</button></div>
+    <input type="hidden" id="donor-id">
+    <div class="fg">
+      <label>Type</label>
+      <select id="donor-type" onchange="updateDonorType()">
+        <option value="named">Named Individual / Company</option>
+        <option value="anonymous">Anonymous</option>
+      </select>
+    </div>
+    <div id="donor-named-fields">
+      <div class="fg"><label>Name / Company</label><input type="text" id="donor-name" placeholder="Name or company"></div>
+      <div class="irow">
+        <div class="fg"><label>Contact Person</label><input type="text" id="donor-contact" placeholder="Contact name"></div>
+        <div class="fg"><label>Phone</label><input type="tel" id="donor-phone" placeholder="Phone"></div>
+      </div>
+      <div class="fg"><label>Email</label><input type="email" id="donor-email" placeholder="Email"></div>
+      <div class="fg"><label>Website</label><input type="url" id="donor-website" placeholder="https://"></div>
+      <div class="fg">
+        <label>Logo (for banners) — tap to upload</label>
+        <div id="donor-logo-preview" style="width:80px;height:80px;background:var(--sf2);border:1px solid var(--bd);border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:6px;cursor:pointer;font-size:24px" onclick="document.getElementById('donor-logo-file').click()">🖼️</div>
+        <input type="file" id="donor-logo-file" accept="image/*" style="display:none" onchange="loadDonorLogo(this)">
+        <input type="hidden" id="donor-logo">
+      </div>
+      <div class="fg">
+        <label>Banner Display</label>
+        <select id="donor-banner">
+          <option value="yes">Yes — display at event</option>
+          <option value="no">No</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg"><label>Donation Amount (฿)</label><input type="number" id="donor-amount" placeholder="0" min="0"></div>
+    <div class="fg"><label>Notes</label><textarea id="donor-notes" rows="2" placeholder="Optional"></textarea></div>
+    <button class="btn btn-crim" onclick="saveDonor()">Save Donor</button>
+    <button class="btn btn-out" id="donor-del-btn" onclick="deleteDonor()" style="margin-top:6px;display:none">Delete</button>
+  </div>
+</div>
+
+<!-- Modal: Ticket/Table Sale -->
+<div class="mo" id="mo-ticket">
+  <div class="modal">
+    <div class="mh"><div class="mt">Record Sale</div><button class="mc2" onclick="closeM('mo-ticket')">✕</button></div>
+    <input type="hidden" id="ticket-id">
+    <div class="fg">
+      <label>Sale Type</label>
+      <select id="ticket-type" onchange="updateTicketType()">
+        <option value="ticket">Individual Ticket</option>
+        <option value="table">Table (6 seats)</option>
+      </select>
+    </div>
+    <div class="fg"><label>Buyer Name</label><input type="text" id="ticket-buyer" placeholder="Name"></div>
+    <div class="irow">
+      <div class="fg"><label>Quantity</label><input type="number" id="ticket-qty" value="1" min="1" oninput="updateTicketTotal()"></div>
+      <div class="fg"><label>Unit Price (฿)</label><input type="number" id="ticket-price" placeholder="0" oninput="updateTicketTotal()"></div>
+    </div>
+    <div class="fg"><label>Total (฿)</label><input type="number" id="ticket-total" placeholder="0"></div>
+    <div class="irow">
+      <div class="fg"><label>Status</label>
+        <select id="ticket-status">
+          <option value="estimated">Estimated</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="paid">Paid</option>
+        </select>
+      </div>
+      <div class="fg"><label>Date</label><input type="date" id="ticket-date"></div>
+    </div>
+    <div class="fg"><label>Notes</label><input type="text" id="ticket-notes" placeholder="Optional"></div>
+    <button class="btn btn-crim" onclick="saveTicketSale()">Save Sale</button>
+    <button class="btn btn-out" id="ticket-del-btn" onclick="deleteTicketSale()" style="margin-top:6px;display:none">Delete</button>
+  </div>
+</div>
+
+<!-- Modal: Vendor Stall -->
+<div class="mo" id="mo-stall">
+  <div class="modal">
+    <div class="mh"><div class="mt" id="mo-stall-t">Add Vendor Stall</div><button class="mc2" onclick="closeM('mo-stall')">✕</button></div>
+    <input type="hidden" id="stall-id">
+    <div class="fg"><label>Vendor Name</label><input type="text" id="stall-vendor" placeholder="Vendor / business name"></div>
+    <div class="fg"><label>Contact</label><input type="text" id="stall-contact" placeholder="Contact details"></div>
+    <div class="fg"><label>What They Sell</label><input type="text" id="stall-desc" placeholder="Products / services"></div>
+    <div class="irow">
+      <div class="fg"><label>Stall Fee (฿)</label><input type="number" id="stall-fee" placeholder="0" min="0"></div>
+      <div class="fg"><label>Status</label>
+        <select id="stall-status">
+          <option value="enquiry">Enquiry</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="paid">Paid</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg"><label>Notes</label><input type="text" id="stall-notes" placeholder="Optional"></div>
+    <button class="btn btn-crim" onclick="saveStall()">Save Stall</button>
+    <button class="btn btn-out" id="stall-del-btn" onclick="deleteStall()" style="margin-top:6px;display:none">Delete</button>
+  </div>
+</div>
+
+<!-- Modal: Cost -->
+<div class="mo" id="mo-cost">
+  <div class="modal">
+    <div class="mh"><div class="mt" id="mo-cost-t">Record Cost</div><button class="mc2" onclick="closeM('mo-cost')">✕</button></div>
+    <input type="hidden" id="cost-id">
+    <div class="fg"><label>Description</label><input type="text" id="cost-desc" placeholder="What is this cost for?"></div>
+    <div class="fg"><label>Category</label><select id="cost-cat"></select></div>
+    <div class="fg"><label>Supplier / Payee</label><input type="text" id="cost-supplier" placeholder="Who are you paying?"></div>
+    <div class="irow">
+      <div class="fg"><label>Estimated (฿)</label><input type="number" id="cost-est" placeholder="0" min="0"></div>
+      <div class="fg"><label>Actual (฿)</label><input type="number" id="cost-actual" placeholder="0" min="0"></div>
+    </div>
+    <div class="irow">
+      <div class="fg"><label>Status</label>
+        <select id="cost-status">
+          <option value="estimated">Estimated</option>
+          <option value="committed">Committed</option>
+          <option value="paid">Paid</option>
+        </select>
+      </div>
+      <div class="fg"><label>Date</label><input type="date" id="cost-date"></div>
+    </div>
+    <div class="fg"><label>Notes</label><input type="text" id="cost-notes" placeholder="Optional"></div>
+    <button class="btn btn-crim" onclick="saveCost()">Save Cost</button>
+    <button class="btn btn-out" id="cost-del-btn" onclick="deleteCost()" style="margin-top:6px;display:none">Delete</button>
+  </div>
+</div>
+
+<!-- Modal: Donation -->
+<div class="mo" id="mo-donation">
+  <div class="modal">
+    <div class="mh"><div class="mt">Record Donation</div><button class="mc2" onclick="closeM('mo-donation')">✕</button></div>
+    <input type="hidden" id="don-id">
+    <div class="fg">
+      <label>Link to Donor</label>
+      <select id="don-donor"><option value="">— Anonymous / New —</option></select>
+    </div>
+    <div class="fg"><label>Amount (฿)</label><input type="number" id="don-amount" placeholder="0" min="0"></div>
+    <div class="irow">
+      <div class="fg"><label>Date</label><input type="date" id="don-date"></div>
+      <div class="fg"><label>Method</label><select id="don-method"></select></div>
+    </div>
+    <div class="fg"><label>Notes</label><input type="text" id="don-notes" placeholder="Optional"></div>
+    <button class="btn btn-crim" onclick="saveDonation()">Save Donation</button>
+    <button class="btn btn-out" id="don-del-btn" onclick="deleteDonation()" style="margin-top:6px;display:none">Delete</button>
+  </div>
+</div>
+
+<!-- Modal: Merch Item -->
+<div class="mo" id="mo-merch">
+  <div class="modal">
+    <div class="mh"><div class="mt" id="mo-merch-t">Add Memorabilia</div><button class="mc2" onclick="closeM('mo-merch')">✕</button></div>
+    <input type="hidden" id="merch-id">
+    <div class="fg"><label>Item Name</label><input type="text" id="merch-name" placeholder="e.g. Anniversary T-Shirt"></div>
+    <div class="irow">
+      <div class="fg"><label>Sale Price (฿)</label><input type="number" id="merch-price" placeholder="0"></div>
+      <div class="fg"><label>Cost Price (฿)</label><input type="number" id="merch-cost" placeholder="0"></div>
+    </div>
+    <div class="fg"><label>Sizes (comma separated, blank if none)</label><input type="text" id="merch-sizes" placeholder="S, M, L, XL, 2XL"></div>
+    <div class="fg"><label>Colours / Designs (comma separated, blank if one)</label><input type="text" id="merch-colours" placeholder="Black, White, Red"></div>
+    <div class="fg"><label>Notes</label><input type="text" id="merch-notes" placeholder="Optional"></div>
+    <button class="btn btn-crim" onclick="saveMerch()">Save Item</button>
+    <button class="btn btn-out" id="merch-del-btn" onclick="deleteMerch()" style="margin-top:6px;display:none">Delete</button>
+  </div>
+</div>
+
+<!-- Modal: Config Item -->
+<div class="mo" id="mo-cfg">
+  <div class="modal">
+    <div class="mh"><div class="mt" id="mo-cfg-t">Add Item</div><button class="mc2" onclick="closeM('mo-cfg')">✕</button></div>
+    <input type="hidden" id="cfg-tab-type">
+    <input type="hidden" id="cfg-item-idx" value="-1">
+    <div class="fg"><label id="cfg-item-label">Item Name</label><input type="text" id="cfg-item-val" placeholder="Enter name"></div>
+    <button class="btn btn-crim" onclick="saveCfgItem()">Save</button>
+    <button class="btn btn-out" id="cfg-del-btn" onclick="deleteCfgItem()" style="margin-top:6px;display:none">Delete</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+// ── DATA ─────────────────────────────────────────────────────────────────────
+var D = {
+  settings: {
+    eventName: '20th Anniversary Charity Rallye',
+    eventDate: '',
+    venue: '',
+    target: 0,
+    ticketPrice: 500,
+    tablePrice: 2500,
+    seatsPerTable: 6,
+    stallPrice: 500,
+    costCats: ['Venue','Bands / Entertainment','Drinks & Bar','Security','Police','Staff','Marketing','Transport','AV / Sound','Misc'],
+    taskCats: ['Setup','Breakdown','Bar','Security','Front of House','Registration','Catering','AV','Parking','Misc']
+  },
+  workers: [],
+  donors: [],
+  tasks: [],
+  ticketSales: [],
+  stalls: [],
+  costs: [],
+  donations: [],
+  merch: []
+};
+
+var _screen = 'dash';
+var _taskTab = 'all';
+var _peopleTab = 'workers';
+var _salesTab = 'tickets';
+var _finTab = 'costs';
+
+// ── STORAGE — IndexedDB (survives cache clears, only clearable from app) ──────
+var DB_NAME = 'remc-rallye';
+var DB_VERSION = 1;
+var STORE_NAME = 'appdata';
+var _db = null;
+var _saveTimer = null;
+
+function openDB(callback) {
+  if (_db) { callback(_db); return; }
+  var req = indexedDB.open(DB_NAME, DB_VERSION);
+  req.onupgradeneeded = function(e) {
+    var db = e.target.result;
+    if (!db.objectStoreNames.contains(STORE_NAME)) {
+      db.createObjectStore(STORE_NAME, {keyPath: 'key'});
+    }
+  };
+  req.onsuccess = function(e) {
+    _db = e.target.result;
+    callback(_db);
+  };
+  req.onerror = function(e) {
+    console.warn('IndexedDB open failed:', e);
+    // Fall back to localStorage if IndexedDB unavailable
+    callback(null);
+  };
+}
+
+function save() {
+  // Debounce saves to avoid hammering IndexedDB
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(function() { _saveNow(); }, 150);
+}
+
+function _saveNow() {
+  openDB(function(db) {
+    if (!db) {
+      // localStorage fallback
+      try { localStorage.setItem('remc-rallye-fallback', JSON.stringify(D)); } catch(e) {}
+      return;
+    }
+    var tx = db.transaction(STORE_NAME, 'readwrite');
+    var store = tx.objectStore(STORE_NAME);
+    store.put({key: 'data', value: JSON.stringify(D)});
+    tx.onerror = function(e) { console.warn('Save failed:', e); };
+  });
+}
+
+function load(callback) {
+  openDB(function(db) {
+    if (!db) {
+      // localStorage fallback
+      try {
+        var raw = localStorage.getItem('remc-rallye-fallback');
+        if (raw) applyData(JSON.parse(raw));
+      } catch(e) {}
+      callback();
+      return;
+    }
+    var tx = db.transaction(STORE_NAME, 'readonly');
+    var store = tx.objectStore(STORE_NAME);
+    var req = store.get('data');
+    req.onsuccess = function(e) {
+      if (e.target.result && e.target.result.value) {
+        try { applyData(JSON.parse(e.target.result.value)); } catch(ex) {}
+      }
+      callback();
+    };
+    req.onerror = function() { callback(); };
+  });
+}
+
+function applyData(parsed) {
+  D = Object.assign(D, parsed);
+  ['workers','donors','tasks','ticketSales','stalls','costs','donations','merch'].forEach(function(k){
+    if (!D[k]) D[k] = [];
+  });
+  if (!D.settings) D.settings = {};
+}
+
+function clearAllData(callback) {
+  openDB(function(db) {
+    if (!db) {
+      try { localStorage.removeItem('remc-rallye-fallback'); } catch(e) {}
+      callback();
+      return;
+    }
+    var tx = db.transaction(STORE_NAME, 'readwrite');
+    tx.objectStore(STORE_NAME).clear();
+    tx.oncomplete = function() { callback(); };
+    tx.onerror = function() { callback(); };
+  });
+}
+
+// ── UTILITIES ─────────────────────────────────────────────────────────────────
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function thb(n) { return '฿' + parseFloat(n||0).toLocaleString('en', {minimumFractionDigits:0, maximumFractionDigits:0}); }
+function nd() { return new Date().toISOString().slice(0,10); }
+function fd(s) { if(!s) return ''; try { return new Date(s).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}); } catch(e) { return s; } }
+function initials(name) {
+  if (!name) return '?';
+  return name.split(' ').map(function(w){ return w[0]; }).join('').toUpperCase().slice(0,2);
+}
+function toast(msg) {
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(function(){ el.style.display = 'none'; }, 2000);
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+function goTo(screen) {
+  document.querySelectorAll('.scr').forEach(function(s){ s.classList.remove('on'); });
+  document.querySelectorAll('.nb').forEach(function(b){ b.classList.remove('on'); });
+  var scr = document.getElementById('scr-' + screen);
+  if (scr) scr.classList.add('on');
+  var nb = document.getElementById('nb-' + screen);
+  if (nb) nb.classList.add('on');
+  _screen = screen;
+  var fab = document.getElementById('fab');
+  if (fab) fab.style.display = ['dash','tasks','people','sales','finance'].includes(screen) ? 'flex' : 'none';
+  renderScreen(screen);
+}
+
+function goBack() { goTo(_screen === 'settings' ? 'dash' : 'dash'); }
+
+function renderScreen(s) {
+  if (s === 'dash') renderDash();
+  else if (s === 'tasks') renderTasks();
+  else if (s === 'people') renderPeople();
+  else if (s === 'sales') renderSales();
+  else if (s === 'finance') renderFinance();
+  else if (s === 'settings') renderSettings();
+  else if (s === 'config') renderCfg();
+}
+
+// ── MODALS ────────────────────────────────────────────────────────────────────
+function openM(id) { var el = document.getElementById(id); if (el) el.classList.add('on'); }
+function closeM(id) { var el = document.getElementById(id); if (el) el.classList.remove('on'); }
+
+function openFab() { openM('mo-fab'); }
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+function renderDash() {
+  // Settings
+  var s = D.settings;
+  document.getElementById('hdr-event-name').textContent = s.eventName || '20th Anniversary Charity Rallye';
+  var dateEl = document.getElementById('dash-event-date');
+  dateEl.textContent = s.eventDate ? '📅 ' + fd(s.eventDate) + (s.venue ? ' · 📍 ' + s.venue : '') : '';
+
+  // Financials
+  var actualIncome = calcActualIncome();
+  var actualCosts = calcActualCosts();
+  var estIncome = calcEstIncome();
+  var estCosts = calcEstCosts();
+  var net = actualIncome - actualCosts;
+
+  document.getElementById('db-income').innerHTML = thb(actualIncome);
+  document.getElementById('db-costs').innerHTML = thb(actualCosts);
+  document.getElementById('db-est-income').innerHTML = thb(estIncome);
+  document.getElementById('db-est-costs').innerHTML = thb(estCosts);
+  var netEl = document.getElementById('db-net');
+  netEl.innerHTML = thb(Math.abs(net));
+  netEl.style.color = net >= 0 ? 'var(--grnl)' : 'var(--rl)';
+
+  // Progress toward target
+  var target = parseFloat(s.target) || 0;
+  var pct = target > 0 ? Math.min(100, Math.round((net / target) * 100)) : 0;
+  document.getElementById('db-prog').style.width = pct + '%';
+  document.getElementById('db-prog-pct').textContent = pct + '%';
+
+  // Sales summary
+  var tables = D.ticketSales.filter(function(t){ return t.type === 'table' && t.status !== 'estimated'; }).reduce(function(a,t){ return a + (parseInt(t.qty)||1); }, 0);
+  var tickets = D.ticketSales.filter(function(t){ return t.type === 'ticket' && t.status !== 'estimated'; }).reduce(function(a,t){ return a + (parseInt(t.qty)||1); }, 0);
+  var stalls = D.stalls.filter(function(s){ return s.status === 'confirmed' || s.status === 'paid'; }).length;
+  var donations = D.donations.reduce(function(a,d){ return a + parseFloat(d.amount||0); }, 0);
+  document.getElementById('db-tables').textContent = tables;
+  document.getElementById('db-tickets').textContent = tickets;
+  document.getElementById('db-stalls').textContent = stalls;
+  document.getElementById('db-donations').innerHTML = thb(donations);
+
+  // Tasks
+  var tasks = D.tasks;
+  document.getElementById('db-tasks-total').textContent = tasks.length;
+  document.getElementById('db-tasks-done').textContent = tasks.filter(function(t){ return t.status === 'done'; }).length;
+  document.getElementById('db-tasks-prog').textContent = tasks.filter(function(t){ return t.status === 'inprog'; }).length;
+  document.getElementById('db-tasks-un').textContent = tasks.filter(function(t){ return !t.workerId; }).length;
+}
+
+function calcActualIncome() {
+  var t = D.ticketSales.filter(function(s){ return s.status === 'paid'; }).reduce(function(a,s){ return a + parseFloat(s.total||0); }, 0);
+  var st = D.stalls.filter(function(s){ return s.status === 'paid'; }).reduce(function(a,s){ return a + parseFloat(s.fee||0); }, 0);
+  var d = D.donations.reduce(function(a,d){ return a + parseFloat(d.amount||0); }, 0);
+  return t + st + d;
+}
+function calcActualCosts() {
+  return D.costs.filter(function(c){ return c.status === 'paid'; }).reduce(function(a,c){ return a + parseFloat(c.actual||c.est||0); }, 0);
+}
+function calcEstIncome() {
+  var t = D.ticketSales.reduce(function(a,s){ return a + parseFloat(s.total||0); }, 0);
+  var st = D.stalls.filter(function(s){ return s.status !== 'cancelled'; }).reduce(function(a,s){ return a + parseFloat(s.fee||0); }, 0);
+  var d = D.donations.reduce(function(a,d){ return a + parseFloat(d.amount||0); }, 0);
+  return t + st + d;
+}
+function calcEstCosts() {
+  return D.costs.reduce(function(a,c){ return a + parseFloat(c.est||0); }, 0);
+}
+
+// ── TASKS ─────────────────────────────────────────────────────────────────────
+function setTaskTab(btn, tab) {
+  document.querySelectorAll('#task-tabs .tab').forEach(function(b){ b.classList.remove('on'); });
+  btn.classList.add('on');
+  _taskTab = tab;
+  renderTasks();
+}
+
+function renderTasks() {
+  var el = document.getElementById('task-list');
+  var tasks = D.tasks.filter(function(t) {
+    if (_taskTab === 'all') return true;
+    if (_taskTab === 'todo') return t.status === 'todo';
+    if (_taskTab === 'inprog') return t.status === 'inprog';
+    if (_taskTab === 'done') return t.status === 'done';
+    if (_taskTab === 'unassigned') return !t.workerId;
+    return true;
+  });
+
+  if (!tasks.length) {
+    el.innerHTML = '<div class="empty"><div class="ei">✅</div>No tasks here yet</div>';
+    return;
+  }
+
+  var statusIcon = {todo:'⭕',inprog:'🔄',done:'✅'};
+  var priorityCol = {high:'var(--rl)',normal:'var(--muted)',low:'var(--dim)'};
+
+  el.innerHTML = tasks.map(function(t) {
+    var worker = t.workerId ? D.workers.find(function(w){ return w.id === t.workerId; }) : null;
+    return '<div class="lrow" onclick="openTaskModal(\'' + t.id + '\')">'
+      + '<div style="font-size:22px">' + (statusIcon[t.status]||'⭕') + '</div>'
+      + '<div class="lrow-body">'
+      + '<div class="lrow-name">' + t.desc + '</div>'
+      + '<div class="lrow-sub">'
+      + (t.cat ? '<span class="badge badge-sil">' + t.cat + '</span> ' : '')
+      + (worker ? '👷 ' + worker.name : '<span style="color:var(--warn)">Unassigned</span>')
+      + (t.due ? ' · Due: ' + fd(t.due) : '')
+      + '</div>'
+      + '</div>'
+      + '<div style="font-size:11px;color:' + (priorityCol[t.priority]||'var(--muted)') + ';flex-shrink:0">'
+      + (t.priority === 'high' ? '🔴' : t.priority === 'low' ? '🟢' : '🟡')
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function openTaskModal(id) {
+  closeM('mo-fab');
+  var t = id ? D.tasks.find(function(x){ return x.id === id; }) : null;
+  document.getElementById('mo-task-t').textContent = t ? 'Edit Task' : 'Add Task';
+  document.getElementById('task-id').value = t ? t.id : '';
+  document.getElementById('task-desc').value = t ? t.desc : '';
+  document.getElementById('task-priority').value = t ? (t.priority||'normal') : 'normal';
+  document.getElementById('task-due').value = t ? (t.due||'') : '';
+  document.getElementById('task-status').value = t ? (t.status||'todo') : 'todo';
+  document.getElementById('task-notes').value = t ? (t.notes||'') : '';
+
+  // Populate category
+  var catSel = document.getElementById('task-cat');
+  var cats = D.settings.taskCats || [];
+  catSel.innerHTML = '<option value="">— Select —</option>' + cats.map(function(c){ return '<option value="' + c + '"' + (t&&t.cat===c?' selected':'') + '>' + c + '</option>'; }).join('');
+
+  // Populate worker
+  var wSel = document.getElementById('task-worker');
+  wSel.innerHTML = '<option value="">— Unassigned —</option>' + D.workers.map(function(w){ return '<option value="' + w.id + '"' + (t&&t.workerId===w.id?' selected':'') + '>' + w.name + '</option>'; }).join('');
+
+  document.getElementById('task-del-btn').style.display = t ? '' : 'none';
+  openM('mo-task');
+}
+
+function saveTask() {
+  var id = document.getElementById('task-id').value;
+  var desc = document.getElementById('task-desc').value.trim();
+  if (!desc) { alert('Please enter a task description.'); return; }
+  var task = {
+    id: id || uid(),
+    desc: desc,
+    cat: document.getElementById('task-cat').value,
+    priority: document.getElementById('task-priority').value,
+    workerId: document.getElementById('task-worker').value,
+    due: document.getElementById('task-due').value,
+    status: document.getElementById('task-status').value,
+    notes: document.getElementById('task-notes').value.trim()
+  };
+  if (id) {
+    var idx = D.tasks.findIndex(function(t){ return t.id === id; });
+    if (idx >= 0) D.tasks[idx] = task;
+  } else {
+    D.tasks.push(task);
+  }
+  save(); closeM('mo-task'); renderTasks(); renderDash();
+  toast(id ? 'Task updated' : 'Task added');
+}
+
+function deleteTask() {
+  var id = document.getElementById('task-id').value;
+  if (!id || !confirm('Delete this task?')) return;
+  D.tasks = D.tasks.filter(function(t){ return t.id !== id; });
+  save(); closeM('mo-task'); renderTasks(); renderDash();
+  toast('Task deleted');
+}
+
+// ── PEOPLE ────────────────────────────────────────────────────────────────────
+function setPeopleTab(btn, tab) {
+  document.querySelectorAll('#scr-people .tab').forEach(function(b){ b.classList.remove('on'); });
+  btn.classList.add('on');
+  _peopleTab = tab;
+  renderPeople();
+}
+
+function renderPeople() {
+  var el = document.getElementById('people-list');
+  if (_peopleTab === 'workers') {
+    if (!D.workers.length) {
+      el.innerHTML = '<div class="empty"><div class="ei">👷</div>No workers yet.<br>Add club members or helpers.</div>';
+      return;
+    }
+    el.innerHTML = D.workers.map(function(w) {
+      var taskCount = D.tasks.filter(function(t){ return t.workerId === w.id; }).length;
+      var doneCount = D.tasks.filter(function(t){ return t.workerId === w.id && t.status === 'done'; }).length;
+      return '<div class="lrow" onclick="openWorkerModal(\'' + w.id + '\')">'
+        + '<div class="av">' + initials(w.name) + '</div>'
+        + '<div class="lrow-body">'
+        + '<div class="lrow-name">' + w.name + '</div>'
+        + '<div class="lrow-sub">' + (w.role||'Worker') + (w.phone?' · '+w.phone:'') + (w.email?' · '+w.email:'') + '</div>'
+        + (taskCount ? '<div style="font-size:10px;color:var(--muted);margin-top:2px">' + doneCount + '/' + taskCount + ' tasks complete</div>' : '')
+        + '</div>'
+        + '</div>';
+    }).join('');
+  } else {
+    if (!D.donors.length) {
+      el.innerHTML = '<div class="empty"><div class="ei">💝</div>No donors or sponsors yet.</div>';
+      return;
+    }
+    var total = D.donors.reduce(function(a,d){ return a + parseFloat(d.amount||0); }, 0);
+    el.innerHTML = '<div class="dcard" style="margin-bottom:10px"><div class="dlbl">Total Pledged</div><div class="dval g">' + thb(total) + '</div></div>'
+      + D.donors.map(function(d) {
+        return '<div class="lrow" onclick="openDonorModal(\'' + d.id + '\')">'
+          + '<div class="av" style="background:' + (d.type==='anonymous'?'var(--sf3)':'var(--crim)') + '">'
+          + (d.logo ? '<img src="' + d.logo + '" style="width:38px;height:38px;border-radius:50%;object-fit:cover">' : (d.type==='anonymous'?'?':initials(d.name)))
+          + '</div>'
+          + '<div class="lrow-body">'
+          + '<div class="lrow-name">' + (d.type==='anonymous'?'Anonymous':d.name) + '</div>'
+          + '<div class="lrow-sub">' + (d.contact||'') + (d.banner==='yes'?' · 🚩 Banner':'') + '</div>'
+          + '</div>'
+          + '<div class="lrow-amt">' + thb(d.amount) + '</div>'
+          + '</div>';
+      }).join('');
+  }
+}
+
+function openWorkerModal(id) {
+  closeM('mo-fab');
+  var w = id ? D.workers.find(function(x){ return x.id === id; }) : null;
+  document.getElementById('mo-worker-t').textContent = w ? 'Edit Worker' : 'Add Worker';
+  document.getElementById('worker-id').value = w ? w.id : '';
+  document.getElementById('worker-name').value = w ? w.name : '';
+  document.getElementById('worker-phone').value = w ? (w.phone||'') : '';
+  document.getElementById('worker-role').value = w ? (w.role||'') : '';
+  document.getElementById('worker-email').value = w ? (w.email||'') : '';
+  document.getElementById('worker-notes').value = w ? (w.notes||'') : '';
+  document.getElementById('worker-del-btn').style.display = w ? '' : 'none';
+  openM('mo-worker');
+}
+
+function saveWorker() {
+  var id = document.getElementById('worker-id').value;
+  var name = document.getElementById('worker-name').value.trim();
+  if (!name) { alert('Please enter a name.'); return; }
+  var worker = {
+    id: id || uid(),
+    name: name,
+    phone: document.getElementById('worker-phone').value.trim(),
+    role: document.getElementById('worker-role').value.trim(),
+    email: document.getElementById('worker-email').value.trim(),
+    notes: document.getElementById('worker-notes').value.trim()
+  };
+  if (id) {
+    var idx = D.workers.findIndex(function(w){ return w.id === id; });
+    if (idx >= 0) D.workers[idx] = worker;
+  } else {
+    D.workers.push(worker);
+  }
+  save(); closeM('mo-worker'); renderPeople();
+  toast(id ? 'Worker updated' : 'Worker added');
+}
+
+function deleteWorker() {
+  var id = document.getElementById('worker-id').value;
+  if (!id || !confirm('Remove this worker?')) return;
+  D.workers = D.workers.filter(function(w){ return w.id !== id; });
+  save(); closeM('mo-worker'); renderPeople();
+  toast('Worker removed');
+}
+
+function openDonorModal(id) {
+  closeM('mo-fab');
+  var d = id ? D.donors.find(function(x){ return x.id === id; }) : null;
+  document.getElementById('mo-donor-t').textContent = d ? 'Edit Donor' : 'Add Donor / Sponsor';
+  document.getElementById('donor-id').value = d ? d.id : '';
+  document.getElementById('donor-type').value = d ? (d.type||'named') : 'named';
+  document.getElementById('donor-name').value = d ? (d.name||'') : '';
+  document.getElementById('donor-contact').value = d ? (d.contact||'') : '';
+  document.getElementById('donor-phone').value = d ? (d.phone||'') : '';
+  document.getElementById('donor-email').value = d ? (d.email||'') : '';
+  document.getElementById('donor-website').value = d ? (d.website||'') : '';
+  document.getElementById('donor-logo').value = d ? (d.logo||'') : '';
+  document.getElementById('donor-banner').value = d ? (d.banner||'yes') : 'yes';
+  document.getElementById('donor-amount').value = d ? (d.amount||0) : 0;
+  document.getElementById('donor-notes').value = d ? (d.notes||'') : '';
+  var prev = document.getElementById('donor-logo-preview');
+  prev.innerHTML = d&&d.logo ? '<img src="' + d.logo + '" style="width:76px;height:76px;border-radius:8px;object-fit:cover">' : '🖼️';
+  document.getElementById('donor-del-btn').style.display = d ? '' : 'none';
+  updateDonorType();
+  openM('mo-donor');
+}
+
+function updateDonorType() {
+  var type = document.getElementById('donor-type').value;
+  document.getElementById('donor-named-fields').style.display = type === 'anonymous' ? 'none' : '';
+}
+
+function loadDonorLogo(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('donor-logo').value = e.target.result;
+    document.getElementById('donor-logo-preview').innerHTML = '<img src="' + e.target.result + '" style="width:76px;height:76px;border-radius:8px;object-fit:cover">';
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveDonor() {
+  var id = document.getElementById('donor-id').value;
+  var type = document.getElementById('donor-type').value;
+  var name = document.getElementById('donor-name').value.trim();
+  if (type === 'named' && !name) { alert('Please enter a name.'); return; }
+  var donor = {
+    id: id || uid(),
+    type: type,
+    name: type === 'anonymous' ? 'Anonymous' : name,
+    contact: document.getElementById('donor-contact').value.trim(),
+    phone: document.getElementById('donor-phone').value.trim(),
+    email: document.getElementById('donor-email').value.trim(),
+    website: document.getElementById('donor-website').value.trim(),
+    logo: document.getElementById('donor-logo').value,
+    banner: document.getElementById('donor-banner').value,
+    amount: parseFloat(document.getElementById('donor-amount').value)||0,
+    notes: document.getElementById('donor-notes').value.trim()
+  };
+  if (id) {
+    var idx = D.donors.findIndex(function(d){ return d.id === id; });
+    if (idx >= 0) D.donors[idx] = donor;
+  } else {
+    D.donors.push(donor);
+  }
+  save(); closeM('mo-donor'); renderPeople(); renderDash();
+  toast(id ? 'Donor updated' : 'Donor added');
+}
+
+function deleteDonor() {
+  var id = document.getElementById('donor-id').value;
+  if (!id || !confirm('Remove this donor?')) return;
+  D.donors = D.donors.filter(function(d){ return d.id !== id; });
+  save(); closeM('mo-donor'); renderPeople(); renderDash();
+  toast('Donor removed');
+}
+
+// ── SALES ─────────────────────────────────────────────────────────────────────
+function setSalesTab(btn, tab) {
+  document.querySelectorAll('#scr-sales .tab').forEach(function(b){ b.classList.remove('on'); });
+  btn.classList.add('on');
+  _salesTab = tab;
+  renderSales();
+}
+
+function renderSales() {
+  var el = document.getElementById('sales-list');
+  if (_salesTab === 'tickets') {
+    var sales = D.ticketSales;
+    var totalTables = sales.filter(function(s){ return s.type==='table'; }).reduce(function(a,s){ return a+(parseInt(s.qty)||1); }, 0);
+    var totalTickets = sales.filter(function(s){ return s.type==='ticket'; }).reduce(function(a,s){ return a+(parseInt(s.qty)||1); }, 0);
+    var totalRev = sales.reduce(function(a,s){ return a+parseFloat(s.total||0); }, 0);
+    var statusCol = {estimated:'var(--dim)',confirmed:'var(--warn)',paid:'var(--grnl)'};
+    var statusLabel = {estimated:'Estimated',confirmed:'Confirmed',paid:'Paid'};
+    if (!sales.length) {
+      el.innerHTML = '<div class="empty"><div class="ei">🎫</div>No ticket or table sales yet.</div>';
+      return;
+    }
+    el.innerHTML = '<div class="dcard" style="margin-bottom:10px">'
+      + '<div style="display:flex;justify-content:space-around;text-align:center">'
+      + '<div><div class="dlbl">Tables</div><div class="dval c">' + totalTables + '</div></div>'
+      + '<div><div class="dlbl">Tickets</div><div class="dval c">' + totalTickets + '</div></div>'
+      + '<div><div class="dlbl">Revenue</div><div class="dval g">' + thb(totalRev) + '</div></div>'
+      + '</div></div>'
+      + sales.map(function(s) {
+        return '<div class="lrow" onclick="openTicketSale(\'' + s.id + '\')">'
+          + '<div style="font-size:22px">' + (s.type==='table'?'🪑':'🎫') + '</div>'
+          + '<div class="lrow-body">'
+          + '<div class="lrow-name">' + s.buyer + '</div>'
+          + '<div class="lrow-sub">' + (s.type==='table'?'Table':'Ticket') + ' × ' + (s.qty||1) + ' · <span style="color:' + statusCol[s.status] + '">' + statusLabel[s.status] + '</span></div>'
+          + '</div>'
+          + '<div class="lrow-amt">' + thb(s.total) + '</div>'
+          + '</div>';
+      }).join('');
+  } else if (_salesTab === 'stalls') {
+    if (!D.stalls.length) {
+      el.innerHTML = '<div class="empty"><div class="ei">🏪</div>No vendor stalls yet.</div>';
+      return;
+    }
+    var stallTotal = D.stalls.filter(function(s){ return s.status!=='cancelled'; }).reduce(function(a,s){ return a+parseFloat(s.fee||0); }, 0);
+    var scol = {enquiry:'var(--muted)',confirmed:'var(--warn)',paid:'var(--grnl)',cancelled:'var(--rl)'};
+    el.innerHTML = '<div class="dcard" style="margin-bottom:10px"><div class="dlbl">Total Stall Income</div><div class="dval g">' + thb(stallTotal) + '</div></div>'
+      + D.stalls.map(function(s) {
+        return '<div class="lrow" onclick="openStallModal(\'' + s.id + '\')">'
+          + '<div style="font-size:22px">🏪</div>'
+          + '<div class="lrow-body">'
+          + '<div class="lrow-name">' + s.vendor + '</div>'
+          + '<div class="lrow-sub">' + (s.desc||'') + ' · <span style="color:' + scol[s.status] + '">' + s.status + '</span></div>'
+          + '</div>'
+          + '<div class="lrow-amt">' + thb(s.fee) + '</div>'
+          + '</div>';
+      }).join('');
+  } else {
+    // Merch
+    if (!D.merch.length) {
+      el.innerHTML = '<div class="empty"><div class="ei">👕</div>No memorabilia items yet.</div>';
+      return;
+    }
+    el.innerHTML = D.merch.map(function(m) {
+      return '<div class="lrow" onclick="openMerchModal(\'' + m.id + '\')">'
+        + '<div style="font-size:22px">👕</div>'
+        + '<div class="lrow-body">'
+        + '<div class="lrow-name">' + m.name + '</div>'
+        + '<div class="lrow-sub">'
+        + (m.sizes ? 'Sizes: ' + m.sizes + ' ' : '')
+        + (m.colours ? '· ' + m.colours : '')
+        + '</div>'
+        + '</div>'
+        + '<div class="lrow-amt">' + thb(m.price) + '</div>'
+        + '</div>';
+    }).join('');
+  }
+}
+
+function openTicketSale(id) {
+  closeM('mo-fab');
+  var s = id ? D.ticketSales.find(function(x){ return x.id === id; }) : null;
+  document.getElementById('ticket-id').value = s ? s.id : '';
+  document.getElementById('ticket-type').value = s ? s.type : 'ticket';
+  document.getElementById('ticket-buyer').value = s ? s.buyer : '';
+  document.getElementById('ticket-qty').value = s ? (s.qty||1) : 1;
+  document.getElementById('ticket-price').value = s ? (s.price||(s.type==='table'?D.settings.tablePrice:D.settings.ticketPrice)) : D.settings.ticketPrice;
+  document.getElementById('ticket-total').value = s ? s.total : '';
+  document.getElementById('ticket-status').value = s ? s.status : 'confirmed';
+  document.getElementById('ticket-date').value = s ? (s.date||nd()) : nd();
+  document.getElementById('ticket-notes').value = s ? (s.notes||'') : '';
+  document.getElementById('ticket-del-btn').style.display = s ? '' : 'none';
+  updateTicketType();
+  openM('mo-ticket');
+}
+
+function updateTicketType() {
+  var type = document.getElementById('ticket-type').value;
+  var priceEl = document.getElementById('ticket-price');
+  if (!document.getElementById('ticket-id').value) {
+    priceEl.value = type === 'table' ? D.settings.tablePrice : D.settings.ticketPrice;
+    updateTicketTotal();
+  }
+}
+
+function updateTicketTotal() {
+  var qty = parseInt(document.getElementById('ticket-qty').value)||1;
+  var price = parseFloat(document.getElementById('ticket-price').value)||0;
+  document.getElementById('ticket-total').value = qty * price;
+}
+
+function saveTicketSale() {
+  var id = document.getElementById('ticket-id').value;
+  var buyer = document.getElementById('ticket-buyer').value.trim();
+  if (!buyer) { alert('Please enter a buyer name.'); return; }
+  var sale = {
+    id: id || uid(),
+    type: document.getElementById('ticket-type').value,
+    buyer: buyer,
+    qty: parseInt(document.getElementById('ticket-qty').value)||1,
+    price: parseFloat(document.getElementById('ticket-price').value)||0,
+    total: parseFloat(document.getElementById('ticket-total').value)||0,
+    status: document.getElementById('ticket-status').value,
+    date: document.getElementById('ticket-date').value,
+    notes: document.getElementById('ticket-notes').value.trim()
+  };
+  if (id) {
+    var idx = D.ticketSales.findIndex(function(s){ return s.id === id; });
+    if (idx >= 0) D.ticketSales[idx] = sale;
+  } else {
+    D.ticketSales.push(sale);
+  }
+  save(); closeM('mo-ticket'); renderSales(); renderDash();
+  toast(id ? 'Sale updated' : 'Sale recorded');
+}
+
+function deleteTicketSale() {
+  var id = document.getElementById('ticket-id').value;
+  if (!id || !confirm('Delete this sale?')) return;
+  D.ticketSales = D.ticketSales.filter(function(s){ return s.id !== id; });
+  save(); closeM('mo-ticket'); renderSales(); renderDash();
+  toast('Sale deleted');
+}
+
+function openStallModal(id) {
+  closeM('mo-fab');
+  var s = id ? D.stalls.find(function(x){ return x.id === id; }) : null;
+  document.getElementById('mo-stall-t').textContent = s ? 'Edit Vendor Stall' : 'Add Vendor Stall';
+  document.getElementById('stall-id').value = s ? s.id : '';
+  document.getElementById('stall-vendor').value = s ? s.vendor : '';
+  document.getElementById('stall-contact').value = s ? (s.contact||'') : '';
+  document.getElementById('stall-desc').value = s ? (s.desc||'') : '';
+  document.getElementById('stall-fee').value = s ? (s.fee||D.settings.stallPrice||0) : (D.settings.stallPrice||0);
+  document.getElementById('stall-status').value = s ? s.status : 'enquiry';
+  document.getElementById('stall-notes').value = s ? (s.notes||'') : '';
+  document.getElementById('stall-del-btn').style.display = s ? '' : 'none';
+  openM('mo-stall');
+}
+
+function saveStall() {
+  var id = document.getElementById('stall-id').value;
+  var vendor = document.getElementById('stall-vendor').value.trim();
+  if (!vendor) { alert('Please enter a vendor name.'); return; }
+  var stall = {
+    id: id || uid(),
+    vendor: vendor,
+    contact: document.getElementById('stall-contact').value.trim(),
+    desc: document.getElementById('stall-desc').value.trim(),
+    fee: parseFloat(document.getElementById('stall-fee').value)||0,
+    status: document.getElementById('stall-status').value,
+    notes: document.getElementById('stall-notes').value.trim()
+  };
+  if (id) {
+    var idx = D.stalls.findIndex(function(s){ return s.id === id; });
+    if (idx >= 0) D.stalls[idx] = stall;
+  } else {
+    D.stalls.push(stall);
+  }
+  save(); closeM('mo-stall'); renderSales(); renderDash();
+  toast(id ? 'Stall updated' : 'Stall added');
+}
+
+function deleteStall() {
+  var id = document.getElementById('stall-id').value;
+  if (!id || !confirm('Remove this stall?')) return;
+  D.stalls = D.stalls.filter(function(s){ return s.id !== id; });
+  save(); closeM('mo-stall'); renderSales(); renderDash();
+  toast('Stall removed');
+}
+
+function openMerchModal(id) {
+  closeM('mo-fab');
+  var m = id ? D.merch.find(function(x){ return x.id === id; }) : null;
+  document.getElementById('mo-merch-t').textContent = m ? 'Edit Item' : 'Add Memorabilia';
+  document.getElementById('merch-id').value = m ? m.id : '';
+  document.getElementById('merch-name').value = m ? m.name : '';
+  document.getElementById('merch-price').value = m ? (m.price||0) : 0;
+  document.getElementById('merch-cost').value = m ? (m.cost||0) : 0;
+  document.getElementById('merch-sizes').value = m ? (m.sizes||'') : '';
+  document.getElementById('merch-colours').value = m ? (m.colours||'') : '';
+  document.getElementById('merch-notes').value = m ? (m.notes||'') : '';
+  document.getElementById('merch-del-btn').style.display = m ? '' : 'none';
+  openM('mo-merch');
+}
+
+function saveMerch() {
+  var id = document.getElementById('merch-id').value;
+  var name = document.getElementById('merch-name').value.trim();
+  if (!name) { alert('Please enter an item name.'); return; }
+  var item = {
+    id: id || uid(),
+    name: name,
+    price: parseFloat(document.getElementById('merch-price').value)||0,
+    cost: parseFloat(document.getElementById('merch-cost').value)||0,
+    sizes: document.getElementById('merch-sizes').value.trim(),
+    colours: document.getElementById('merch-colours').value.trim(),
+    notes: document.getElementById('merch-notes').value.trim()
+  };
+  if (id) {
+    var idx = D.merch.findIndex(function(m){ return m.id === id; });
+    if (idx >= 0) D.merch[idx] = item;
+  } else {
+    D.merch.push(item);
+  }
+  save(); closeM('mo-merch'); renderSales();
+  toast(id ? 'Item updated' : 'Item added');
+}
+
+function deleteMerch() {
+  var id = document.getElementById('merch-id').value;
+  if (!id || !confirm('Remove this item?')) return;
+  D.merch = D.merch.filter(function(m){ return m.id !== id; });
+  save(); closeM('mo-merch'); renderSales();
+  toast('Item removed');
+}
+
+// ── FINANCE ───────────────────────────────────────────────────────────────────
+function setFinTab(btn, tab) {
+  document.querySelectorAll('#scr-finance .tab').forEach(function(b){ b.classList.remove('on'); });
+  btn.classList.add('on');
+  _finTab = tab;
+  renderFinance();
+}
+
+function renderFinance() {
+  var el = document.getElementById('finance-list');
+  if (_finTab === 'costs') {
+    if (!D.costs.length) {
+      el.innerHTML = '<div class="empty"><div class="ei">💰</div>No costs recorded yet.</div>';
+      return;
+    }
+    var estTotal = D.costs.reduce(function(a,c){ return a+parseFloat(c.est||0); }, 0);
+    var actTotal = D.costs.filter(function(c){ return c.status==='paid'; }).reduce(function(a,c){ return a+parseFloat(c.actual||c.est||0); }, 0);
+    var scol = {estimated:'var(--muted)',committed:'var(--warn)',paid:'var(--rl)'};
+    el.innerHTML = '<div class="dcard" style="margin-bottom:10px;display:flex;justify-content:space-around;text-align:center">'
+      + '<div><div class="dlbl">Estimated</div><div class="dval w">' + thb(estTotal) + '</div></div>'
+      + '<div><div class="dlbl">Actual Paid</div><div class="dval r">' + thb(actTotal) + '</div></div>'
+      + '</div>'
+      + D.costs.map(function(c) {
+        return '<div class="lrow" onclick="openCostModal(\'' + c.id + '\')">'
+          + '<div style="font-size:22px">💸</div>'
+          + '<div class="lrow-body">'
+          + '<div class="lrow-name">' + c.desc + '</div>'
+          + '<div class="lrow-sub">' + (c.cat||'') + (c.supplier?' · '+c.supplier:'') + ' · <span style="color:' + scol[c.status] + '">' + c.status + '</span></div>'
+          + '</div>'
+          + '<div style="text-align:right;flex-shrink:0">'
+          + '<div style="font-size:11px;color:var(--muted)">Est: ' + thb(c.est) + '</div>'
+          + (c.actual?'<div style="font-size:13px;font-weight:700;color:var(--rl)">Actual: ' + thb(c.actual) + '</div>':'')
+          + '</div>'
+          + '</div>';
+      }).join('');
+  } else {
+    if (!D.donations.length) {
+      el.innerHTML = '<div class="empty"><div class="ei">🤲</div>No donations recorded yet.</div>';
+      return;
+    }
+    var donTotal = D.donations.reduce(function(a,d){ return a+parseFloat(d.amount||0); }, 0);
+    el.innerHTML = '<div class="dcard" style="margin-bottom:10px"><div class="dlbl">Total Donations</div><div class="dval g">' + thb(donTotal) + '</div></div>'
+      + D.donations.map(function(d) {
+        var donor = d.donorId ? D.donors.find(function(x){ return x.id === d.donorId; }) : null;
+        return '<div class="lrow" onclick="openDonationModal(\'' + d.id + '\')">'
+          + '<div style="font-size:22px">🤲</div>'
+          + '<div class="lrow-body">'
+          + '<div class="lrow-name">' + (donor ? donor.name : (d.notes||'Anonymous donation')) + '</div>'
+          + '<div class="lrow-sub">' + fd(d.date) + ' · ' + (d.method||'cash') + '</div>'
+          + '</div>'
+          + '<div class="lrow-amt">' + thb(d.amount) + '</div>'
+          + '</div>';
+      }).join('');
+  }
+}
+
+function openCostModal(id) {
+  closeM('mo-fab');
+  var c = id ? D.costs.find(function(x){ return x.id === id; }) : null;
+  document.getElementById('mo-cost-t').textContent = c ? 'Edit Cost' : 'Record Cost';
+  document.getElementById('cost-id').value = c ? c.id : '';
+  document.getElementById('cost-desc').value = c ? c.desc : '';
+  document.getElementById('cost-supplier').value = c ? (c.supplier||'') : '';
+  document.getElementById('cost-est').value = c ? (c.est||0) : 0;
+  document.getElementById('cost-actual').value = c ? (c.actual||'') : '';
+  document.getElementById('cost-status').value = c ? c.status : 'estimated';
+  document.getElementById('cost-date').value = c ? (c.date||nd()) : nd();
+  document.getElementById('cost-notes').value = c ? (c.notes||'') : '';
+  var cats = D.settings.costCats || [];
+  var catSel = document.getElementById('cost-cat');
+  catSel.innerHTML = cats.map(function(x){ return '<option value="' + x + '"' + (c&&c.cat===x?' selected':'') + '>' + x + '</option>'; }).join('');
+  document.getElementById('cost-del-btn').style.display = c ? '' : 'none';
+  openM('mo-cost');
+}
+
+function saveCost() {
+  var id = document.getElementById('cost-id').value;
+  var desc = document.getElementById('cost-desc').value.trim();
+  if (!desc) { alert('Please enter a description.'); return; }
+  var cost = {
+    id: id || uid(),
+    desc: desc,
+    cat: document.getElementById('cost-cat').value,
+    supplier: document.getElementById('cost-supplier').value.trim(),
+    est: parseFloat(document.getElementById('cost-est').value)||0,
+    actual: parseFloat(document.getElementById('cost-actual').value)||0,
+    status: document.getElementById('cost-status').value,
+    date: document.getElementById('cost-date').value,
+    notes: document.getElementById('cost-notes').value.trim()
+  };
+  if (id) {
+    var idx = D.costs.findIndex(function(c){ return c.id === id; });
+    if (idx >= 0) D.costs[idx] = cost;
+  } else {
+    D.costs.push(cost);
+  }
+  save(); closeM('mo-cost'); renderFinance(); renderDash();
+  toast(id ? 'Cost updated' : 'Cost recorded');
+}
+
+function deleteCost() {
+  var id = document.getElementById('cost-id').value;
+  if (!id || !confirm('Delete this cost?')) return;
+  D.costs = D.costs.filter(function(c){ return c.id !== id; });
+  save(); closeM('mo-cost'); renderFinance(); renderDash();
+  toast('Cost deleted');
+}
+
+function openDonationModal(id) {
+  closeM('mo-fab');
+  var d = id ? D.donations.find(function(x){ return x.id === id; }) : null;
+  document.getElementById('don-id').value = d ? d.id : '';
+  document.getElementById('don-amount').value = d ? (d.amount||0) : 0;
+  document.getElementById('don-date').value = d ? (d.date||nd()) : nd();
+  var methodSel = document.getElementById('don-method');
+  var methods = D.settings.paymentMethods || ['Cash','Bank Transfer','Other'];
+  methodSel.innerHTML = methods.map(function(m){ return '<option value="'+m+'"'+(d&&d.method===m?' selected':'')+'>'+m+'</option>'; }).join('');
+  if (!d) methodSel.value = methods[0] || 'Cash';
+  document.getElementById('don-notes').value = d ? (d.notes||'') : '';
+  var donSel = document.getElementById('don-donor');
+  donSel.innerHTML = '<option value="">— Anonymous —</option>'
+    + D.donors.filter(function(x){ return x.type === 'named'; }).map(function(x){
+      return '<option value="' + x.id + '"' + (d&&d.donorId===x.id?' selected':'') + '>' + x.name + '</option>';
+    }).join('');
+  document.getElementById('don-del-btn').style.display = d ? '' : 'none';
+  openM('mo-donation');
+}
+
+function saveDonation() {
+  var id = document.getElementById('don-id').value;
+  var amount = parseFloat(document.getElementById('don-amount').value)||0;
+  if (!amount) { alert('Please enter an amount.'); return; }
+  var don = {
+    id: id || uid(),
+    donorId: document.getElementById('don-donor').value,
+    amount: amount,
+    date: document.getElementById('don-date').value,
+    method: document.getElementById('don-method').value,
+    notes: document.getElementById('don-notes').value.trim()
+  };
+  if (id) {
+    var idx = D.donations.findIndex(function(d){ return d.id === id; });
+    if (idx >= 0) D.donations[idx] = don;
+  } else {
+    D.donations.push(don);
+  }
+  save(); closeM('mo-donation'); renderFinance(); renderDash();
+  toast(id ? 'Donation updated' : 'Donation recorded');
+}
+
+function deleteDonation() {
+  var id = document.getElementById('don-id').value;
+  if (!id || !confirm('Delete this donation?')) return;
+  D.donations = D.donations.filter(function(d){ return d.id !== id; });
+  save(); closeM('mo-donation'); renderFinance(); renderDash();
+  toast('Donation deleted');
+}
+
+// ── REPORTS ───────────────────────────────────────────────────────────────────
+function showReport(type) {
+  var el = document.getElementById('report-output');
+  var thbFn = thb;
+  var h = '';
+
+  if (type === 'pl') {
+    var actInc = calcActualIncome(), actCost = calcActualCosts();
+    var estInc = calcEstIncome(), estCost = calcEstCosts();
+    var net = actInc - actCost, estNet = estInc - estCost;
+    h = '<div class="card"><div class="card-title">📊 Event P&L Report</div><div class="card-sub">Generated ' + fd(nd()) + '</div></div>';
+    h += '<div class="card"><div class="sec-hdr" style="margin:0 0 8px">Actual</div>';
+    h += row('Income Received', thbFn(actInc), 'var(--grnl)') + row('Costs Paid', thbFn(actCost), 'var(--rl)');
+    h += '<div style="border-top:1px solid var(--bd);margin:6px 0"></div>';
+    h += row('Net', thbFn(net), net>=0?'var(--grnl)':'var(--rl)') + '</div>';
+    h += '<div class="card"><div class="sec-hdr" style="margin:0 0 8px">Projected</div>';
+    h += row('Est. Income', thbFn(estInc), 'var(--sil)') + row('Est. Costs', thbFn(estCost), 'var(--warn)');
+    h += '<div style="border-top:1px solid var(--bd);margin:6px 0"></div>';
+    h += row('Est. Net', thbFn(estNet), estNet>=0?'var(--grnl)':'var(--rl)') + '</div>';
+
+  } else if (type === 'donations') {
+    var named = D.donations.filter(function(d){ return d.donorId; });
+    var anon = D.donations.filter(function(d){ return !d.donorId; });
+    var namedTotal = named.reduce(function(a,d){ return a+parseFloat(d.amount||0); }, 0);
+    var anonTotal = anon.reduce(function(a,d){ return a+parseFloat(d.amount||0); }, 0);
+    h = '<div class="card"><div class="card-title">💝 Donations Report</div></div>';
+    h += '<div class="card">' + row('Named Donations', thbFn(namedTotal), 'var(--grnl)') + row('Anonymous', thbFn(anonTotal), 'var(--grnl)') + row('Total', thbFn(namedTotal+anonTotal), 'var(--crim2)') + '</div>';
+    if (named.length) {
+      h += '<div class="card"><div class="sec-hdr" style="margin:0 0 8px">Named Donors</div>';
+      named.forEach(function(d) {
+        var donor = D.donors.find(function(x){ return x.id === d.donorId; });
+        h += '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;border-bottom:1px solid var(--bd)">'
+          + '<span>' + (donor?donor.name:'Unknown') + '</span>'
+          + '<span style="color:var(--grnl);font-weight:700">' + thbFn(d.amount) + '</span></div>';
+      });
+      h += '</div>';
+    }
+
+  } else if (type === 'sales') {
+    var tickTotal = D.ticketSales.reduce(function(a,s){ return a+parseFloat(s.total||0); }, 0);
+    var stallTot = D.stalls.filter(function(s){ return s.status!=='cancelled'; }).reduce(function(a,s){ return a+parseFloat(s.fee||0); }, 0);
+    var tables = D.ticketSales.filter(function(s){ return s.type==='table'; });
+    var tickets = D.ticketSales.filter(function(s){ return s.type==='ticket'; });
+    h = '<div class="card"><div class="card-title">🎫 Sales Report</div></div>';
+    h += '<div class="card">' + row('Table Sales (' + tables.length + ')', thbFn(tables.reduce(function(a,s){ return a+parseFloat(s.total||0); },0)), 'var(--crim2)')
+      + row('Ticket Sales (' + tickets.length + ')', thbFn(tickets.reduce(function(a,s){ return a+parseFloat(s.total||0); },0)), 'var(--crim2)')
+      + row('Vendor Stalls (' + D.stalls.length + ')', thbFn(stallTot), 'var(--crim2)')
+      + '<div style="border-top:1px solid var(--bd);margin:6px 0"></div>'
+      + row('Total', thbFn(tickTotal + stallTot), 'var(--grnl)') + '</div>';
+
+  } else if (type === 'costs') {
+    var cats = {};
+    D.costs.forEach(function(c){ var cat = c.cat||'Misc'; cats[cat] = (cats[cat]||{est:0,actual:0}); cats[cat].est += parseFloat(c.est||0); cats[cat].actual += parseFloat(c.actual||0); });
+    h = '<div class="card"><div class="card-title">💰 Cost Breakdown</div></div>';
+    h += '<div class="card">';
+    Object.entries(cats).sort(function(a,b){ return b[1].est-a[1].est; }).forEach(function(e){
+      h += '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;border-bottom:1px solid var(--bd)">'
+        + '<span>' + e[0] + '</span>'
+        + '<div style="text-align:right"><div style="color:var(--muted);font-size:10px">Est: ' + thbFn(e[1].est) + '</div>'
+        + (e[1].actual ? '<div style="color:var(--rl);font-weight:700">' + thbFn(e[1].actual) + '</div>' : '') + '</div></div>';
+    });
+    h += '</div>';
+
+  } else if (type === 'tasks') {
+    var done = D.tasks.filter(function(t){ return t.status==='done'; });
+    var prog = D.tasks.filter(function(t){ return t.status==='inprog'; });
+    var todo = D.tasks.filter(function(t){ return t.status==='todo'; });
+    h = '<div class="card"><div class="card-title">✅ Task Report</div></div>';
+    h += '<div class="card">' + row('Total Tasks', D.tasks.length) + row('Done', done.length, 'var(--grnl)') + row('In Progress', prog.length, 'var(--warn)') + row('To Do', todo.length, 'var(--muted)') + row('Unassigned', D.tasks.filter(function(t){ return !t.workerId; }).length, 'var(--rl)') + '</div>';
+    D.workers.forEach(function(w) {
+      var wTasks = D.tasks.filter(function(t){ return t.workerId === w.id; });
+      if (wTasks.length) {
+        h += '<div class="card"><div class="card-title">' + w.name + '</div>';
+        wTasks.forEach(function(t) {
+          h += '<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;border-bottom:1px solid var(--bd)">'
+            + '<span>' + t.desc + '</span>'
+            + '<span style="color:' + (t.status==='done'?'var(--grnl)':t.status==='inprog'?'var(--warn)':'var(--muted)') + '">' + t.status + '</span></div>';
+        });
+        h += '</div>';
+      }
+    });
+  }
+
+  el.innerHTML = h;
+  el.scrollIntoView({behavior:'smooth'});
+}
+
+function row(label, val, col) {
+  return '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;border-bottom:1px solid var(--bd)">'
+    + '<span style="color:var(--muted)">' + label + '</span>'
+    + '<span style="font-weight:700;color:' + (col||'var(--txt)') + '">' + val + '</span></div>';
+}
+
+// ── SETTINGS ──────────────────────────────────────────────────────────────────
+function renderSettings() {
+  var s = D.settings;
+  document.getElementById('set-event-name').value = s.eventName || '';
+  document.getElementById('set-event-date').value = s.eventDate || '';
+  document.getElementById('set-venue').value = s.venue || '';
+  document.getElementById('set-target').value = s.target || 0;
+  document.getElementById('set-ticket-price').value = s.ticketPrice || 500;
+  document.getElementById('set-table-price').value = s.tablePrice || 2500;
+  document.getElementById('set-seats').value = s.seatsPerTable || 6;
+  document.getElementById('set-stall-price').value = s.stallPrice || 500;
+  // Categories managed via Config screen
+}
+
+function saveSettings() {
+  D.settings.eventName = document.getElementById('set-event-name').value.trim() || '20th Anniversary Charity Rallye';
+  D.settings.eventDate = document.getElementById('set-event-date').value;
+  D.settings.venue = document.getElementById('set-venue').value.trim();
+  D.settings.target = parseFloat(document.getElementById('set-target').value)||0;
+  D.settings.ticketPrice = parseFloat(document.getElementById('set-ticket-price').value)||500;
+  D.settings.tablePrice = parseFloat(document.getElementById('set-table-price').value)||2500;
+  D.settings.seatsPerTable = parseInt(document.getElementById('set-seats').value)||6;
+  D.settings.stallPrice = parseFloat(document.getElementById('set-stall-price').value)||500;
+  // Categories managed via Config screen
+  save();
+  document.getElementById('hdr-event-name').textContent = D.settings.eventName;
+  toast('Settings saved');
+}
+
+// ── CONFIG / CATEGORIES ──────────────────────────────────────────────────────
+var _cfgTab = 'costcats';
+
+var CFG_META = {
+  costcats:       {label:'Cost Category',    key:'costCats',       defaults:['Venue','Bands / Entertainment','Drinks & Bar','Security','Police','Staff','Marketing','Transport','AV / Sound','Misc']},
+  taskcats:       {label:'Task Category',    key:'taskCats',       defaults:['Setup','Breakdown','Bar','Security','Front of House','Registration','Catering','AV','Parking','Misc']},
+  paymentmethods: {label:'Payment Method',  key:'paymentMethods', defaults:['Cash','Bank Transfer','Card','Cheque','Other']},
+  priorities:     {label:'Priority',         key:'taskPriorities', defaults:['High','Normal','Low']}
+};
+
+function setCfgTab(btn, tab) {
+  document.querySelectorAll('#cfg-tabs .tab').forEach(function(b){ b.classList.remove('on'); });
+  btn.classList.add('on');
+  _cfgTab = tab;
+  renderCfg();
+}
+
+function renderCfg() {
+  var el = document.getElementById('cfg-list');
+  if (!el) return;
+  var meta = CFG_META[_cfgTab];
+  if (!meta) return;
+  // Ensure array exists in settings
+  if (!D.settings[meta.key] || !D.settings[meta.key].length) {
+    D.settings[meta.key] = meta.defaults.slice();
+    save();
+  }
+  var items = D.settings[meta.key];
+  if (!items.length) {
+    el.innerHTML = '<div class="empty"><div class="ei">📋</div>No items yet. Tap + Add Item.</div>';
+    return;
+  }
+  el.innerHTML = items.map(function(item, idx) {
+    return '<div class="lrow">'
+      + '<div class="lrow-body"><div class="lrow-name">' + item + '</div></div>'
+      + '<button data-idx="' + idx + '" onclick="openCfgEdit(parseInt(this.dataset.idx))" style="background:none;border:1px solid var(--bd);color:var(--muted);border-radius:8px;padding:3px 10px;font-size:11px;flex-shrink:0">Edit</button>'
+      + '</div>';
+  }).join('');
+}
+
+function openCfgAdd() {
+  var meta = CFG_META[_cfgTab];
+  document.getElementById('mo-cfg-t').textContent = 'Add ' + meta.label;
+  document.getElementById('cfg-item-label').textContent = meta.label;
+  document.getElementById('cfg-tab-type').value = _cfgTab;
+  document.getElementById('cfg-item-idx').value = -1;
+  document.getElementById('cfg-item-val').value = '';
+  document.getElementById('cfg-del-btn').style.display = 'none';
+  openM('mo-cfg');
+}
+
+function openCfgEdit(idx) {
+  var meta = CFG_META[_cfgTab];
+  var items = D.settings[meta.key] || [];
+  var val = items[idx] || '';
+  document.getElementById('mo-cfg-t').textContent = 'Edit ' + meta.label;
+  document.getElementById('cfg-item-label').textContent = meta.label;
+  document.getElementById('cfg-tab-type').value = _cfgTab;
+  document.getElementById('cfg-item-idx').value = idx;
+  document.getElementById('cfg-item-val').value = val;
+  document.getElementById('cfg-del-btn').style.display = '';
+  openM('mo-cfg');
+}
+
+function saveCfgItem() {
+  var tab = document.getElementById('cfg-tab-type').value;
+  var idx = parseInt(document.getElementById('cfg-item-idx').value);
+  var val = document.getElementById('cfg-item-val').value.trim();
+  if (!val) { alert('Please enter a value.'); return; }
+  var meta = CFG_META[tab];
+  if (!D.settings[meta.key]) D.settings[meta.key] = [];
+  if (idx >= 0) {
+    D.settings[meta.key][idx] = val;
+  } else {
+    D.settings[meta.key].push(val);
+  }
+  save(); closeM('mo-cfg'); renderCfg();
+  toast(idx >= 0 ? 'Item updated' : 'Item added');
+}
+
+function deleteCfgItem() {
+  var tab = document.getElementById('cfg-tab-type').value;
+  var idx = parseInt(document.getElementById('cfg-item-idx').value);
+  if (idx < 0 || !confirm('Delete this item?')) return;
+  var meta = CFG_META[tab];
+  D.settings[meta.key].splice(idx, 1);
+  save(); closeM('mo-cfg'); renderCfg();
+  toast('Item deleted');
+}
+
+// ── DATA MANAGEMENT ──────────────────────────────────────────────────────────
+function confirmClearAll() {
+  if (!confirm('This will permanently delete ALL app data including workers, tasks, donors, sales and costs.\n\nAre you absolutely sure?')) return;
+  if (!confirm('Last chance. This cannot be undone. Delete everything?')) return;
+  clearAllData(function() {
+    // Reset D to defaults
+    D = {
+      settings: {
+        eventName: '20th Anniversary Charity Rallye',
+        eventDate: '', venue: '', target: 0,
+        ticketPrice: 500, tablePrice: 2500, seatsPerTable: 6, stallPrice: 500,
+        costCats: [], taskCats: [], paymentMethods: [], taskPriorities: []
+      },
+      workers: [], donors: [], tasks: [], ticketSales: [],
+      stalls: [], costs: [], donations: [], merch: []
+    };
+    toast('All data cleared');
+    setTimeout(function(){ location.reload(); }, 1000);
+  });
+}
+
+function resetWorkers() {
+  if (!confirm('This will replace the current worker list with all club members. Continue?')) return;
+  D.workers = getDefaultWorkers();
+  save();
+  renderPeople();
+  toast('Workers reset to club members');
+}
+
+function getDefaultWorkers() {
+  return [
+    {id:uid(),name:'Dennis',phone:'',role:'Member',email:'',notes:''},
+    {id:uid(),name:'Brian Wyatt',phone:'+66613018686',role:'President',email:'brianpwyatt@gmail.com',notes:''},
+    {id:uid(),name:'Simon Dewey',phone:'+66803688400',role:'Vice President',email:'simonjdewey@icloud.com',notes:''},
+    {id:uid(),name:'Ali',phone:'',role:'Member',email:'',notes:''},
+    {id:uid(),name:'Bart',phone:'',role:'Member',email:'',notes:''},
+    {id:uid(),name:'Dudley Watts',phone:'',role:'Member',email:'',notes:''},
+    {id:uid(),name:'Tyler',phone:'',role:'Member',email:'',notes:''},
+    {id:uid(),name:'Cameron',phone:'',role:'Member',email:'',notes:''},
+    {id:uid(),name:'Steve Nightingale',phone:'',role:'Member',email:'',notes:''},
+    {id:uid(),name:'Mike Garbe',phone:'+66937396830',role:'Sec/Tres',email:'mikecbrxx@gmail.com',notes:''},
+    {id:uid(),name:'Anthony',phone:'',role:'Member',email:'',notes:''},
+    {id:uid(),name:'Ian',phone:'',role:'Member',email:'',notes:''},
+    {id:uid(),name:'Jethro',phone:'',role:'Member',email:'',notes:''},
+    {id:uid(),name:'Matt',phone:'',role:'Member',email:'',notes:''},
+    {id:uid(),name:'Rene',phone:'',role:'Member',email:'',notes:''},
+    {id:uid(),name:'Lala',phone:'',role:'Prospect',email:'',notes:''},
+    {id:uid(),name:'Terry Mills',phone:'',role:'Member',email:'terrymills8558@hotmail.com',notes:''},
+  
+  ];
+}
+
+// ── BACKUP / RESTORE ──────────────────────────────────────────────────────────
+function exportData() {
+  var json = JSON.stringify(D, null, 2);
+  var blob = new Blob([json], {type:'application/json'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'rallye-backup-' + nd() + '.json';
+  a.click();
+  toast('Backup exported');
+}
+
+function importData(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var parsed = JSON.parse(e.target.result);
+      if (!confirm('This will replace all current data. Continue?')) return;
+      D = parsed;
+      save();
+      renderSettings();
+      renderDash();
+      toast('Data imported');
+    } catch(ex) {
+      alert('Invalid backup file.');
+    }
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+// ── INIT — async because IndexedDB load is async ──────────────────────────────
+load(function() {
+  // Ensure config arrays exist with defaults
+  Object.keys(CFG_META).forEach(function(tab) {
+    var meta = CFG_META[tab];
+    if (!D.settings[meta.key] || !D.settings[meta.key].length) {
+      D.settings[meta.key] = meta.defaults.slice();
+    }
+  });
+
+  // Pre-load club members as workers if none exist
+  if (D.workers.length === 0) {
+  var defaultWorkers = [
+    {id:uid(),name:'Dennis',phone:'',role:'Member',email:'',notes:''},
+    {id:uid(),name:'Brian Wyatt',phone:'+66613018686',role:'President',email:'brianpwyatt@gmail.com',notes:''},
+    {id:uid(),name:'Simon Dewey',phone:'+66803688400',role:'Vice President',email:'simonjdewey@icloud.com',notes:''},
+    {id:uid(),name:'Ali',phone:'',role:'Member',email:'',notes:''},
+    {id:uid(),name:'Bart',phone:'',role:'Member',email:'',notes:''},
+    {id:uid(),name:'Dudley Watts',phone:'',role:'Member',email:'',notes:''},
+    {id:uid(),name:'Tyler',phone:'',role:'Member',email:'',notes:''},
+    {id:uid(),name:'Cameron',phone:'',role:'Member',email:'',notes:''},
+    {id:uid(),name:'Steve Nightingale',phone:'',role:'Member',email:'',notes:''},
+    {id:uid(),name:'Mike Garbe',phone:'+66937396830',role:'Sec/Tres',email:'mikecbrxx@gmail.com',notes:''},
+    {id:uid(),name:'Anthony',phone:'',role:'Member',email:'',notes:''},
+    {id:uid(),name:'Ian',phone:'',role:'Member',email:'',notes:''},
+    {id:uid(),name:'Jethro',phone:'',role:'Member',email:'',notes:''},
+    {id:uid(),name:'Matt',phone:'',role:'Member',email:'',notes:''},
+    {id:uid(),name:'Rene',phone:'',role:'Member',email:'',notes:''},
+    {id:uid(),name:'Lala',phone:'',role:'Prospect',email:'',notes:''},
+    {id:uid(),name:'Terry Mills',phone:'',role:'Member',email:'terrymills8558@hotmail.com',notes:''},
+  ];
+    D.workers = defaultWorkers;
+    save();
+  }
+
+  renderDash();
+});
+</script>
+
+<script>
+// Register inline service worker for PWA installability
+if ('serviceWorker' in navigator) {
+  var swCode = `
+self.addEventListener('install', function(e) { self.skipWaiting(); });
+self.addEventListener('activate', function(e) { e.waitUntil(clients.claim()); });
+self.addEventListener('fetch', function(e) {
+  // Network first - always get latest app from GitHub
+  e.respondWith(fetch(e.request).catch(function() { return caches.match(e.request); }));
+});
+`;
+  var blob = new Blob([swCode], {type: 'application/javascript'});
+  var swUrl = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl, {scope: './'})
+    .then(function(reg) { console.log('SW registered'); })
+    .catch(function(e) { console.warn('SW failed:', e); });
+}
+</script>
+</body>
+</html>
