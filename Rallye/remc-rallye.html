@@ -158,10 +158,16 @@ label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;l
     <div class="spin-dot" style="width:8px;height:8px;border-radius:50%;background:var(--crim);animation:spindot 1.2s ease-in-out 0.2s infinite"></div>
     <div class="spin-dot" style="width:8px;height:8px;border-radius:50%;background:var(--crim);animation:spindot 1.2s ease-in-out 0.4s infinite"></div>
   </div>
-  <div id="rallye-load-error" style="display:none;flex-direction:column;align-items:center;gap:10px;padding:0 32px;text-align:center">
-    <div style="font-size:28px">⚠️</div>
-    <div id="rallye-load-err-msg" style="font-size:13px;color:var(--rl);font-weight:600;line-height:1.4"></div>
-    <button onclick="rallyeRetry()" style="background:var(--crim);color:#fff;border:none;border-radius:24px;padding:10px 28px;font-size:13px;font-weight:700;cursor:pointer">↺ Try Again</button>
+  <div id="rallye-load-error" style="display:none;flex-direction:column;align-items:center;gap:12px;padding:0 28px;text-align:center;width:100%">
+    <div style="display:flex;gap:8px;margin-bottom:4px">
+      <div style="width:16px;height:16px;border-radius:50%;background:#c0392b"></div>
+      <div style="width:16px;height:16px;border-radius:50%;background:#e67e22;opacity:0.4"></div>
+      <div style="width:16px;height:16px;border-radius:50%;background:#27ae60;opacity:0.2"></div>
+    </div>
+    <div style="font-size:22px;font-weight:900;color:var(--rl);letter-spacing:1px">CONNECTION FAILED</div>
+    <div id="rallye-load-err-msg" style="font-size:13px;color:var(--sil);font-weight:500;line-height:1.6;max-width:280px"></div>
+    <div style="font-size:11px;color:var(--dim);margin-top:-4px">Data is safe — reconnect to continue</div>
+    <button onclick="rallyeRetry()" style="margin-top:6px;background:var(--crim);color:#fff;border:none;border-radius:24px;padding:12px 32px;font-size:14px;font-weight:800;cursor:pointer;letter-spacing:1px">↺ RETRY</button>
   </div>
 </div>
 
@@ -172,7 +178,8 @@ label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;l
     <div class="hdr-title">REMC Rallye Planner</div>
     <div class="hdr-sub" id="hdr-event-name">20th Anniversary Charity Rallye</div>
   </div>
-  <div class="hdr-actions">
+  <div class="hdr-actions" style="display:flex;align-items:center;gap:8px">
+    <div id="sync-dot" title="Sync status" style="width:10px;height:10px;border-radius:50%;background:var(--dim)" ></div>
     <button onclick="goTo('settings')" style="background:none;border:none;color:var(--muted);font-size:18px;">⚙️</button>
   </div>
 </div>
@@ -335,7 +342,7 @@ label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;l
   </div>
   <div style="margin-top:20px;padding:10px;background:var(--sf2);border:1px solid var(--bd);border-radius:10px;text-align:center">
   <div style="font-size:10px;color:var(--dim)">REMC Rallye Planner</div>
-  <div style="font-size:16px;font-weight:700;color:var(--crim2);margin:2px 0">v2.1</div>
+  <div style="font-size:16px;font-weight:700;color:var(--crim2);margin:2px 0">v2.3</div>
   <div style="font-size:10px;color:var(--dim)">Road Eagles MC Thailand · 20th Anniversary</div>
 </div>
 </div>
@@ -868,6 +875,8 @@ function _saveNow() {
   // Push to Supabase (fire and forget — IndexedDB is primary local store)
   var syncData = JSON.parse(json);
   var base = SUPA_URL.replace(/\/$/, '');
+  var dot = document.getElementById('sync-dot');
+  if (dot) dot.style.background = 'var(--warn)';
   fetch(base + '/rest/v1/rallye_data', {
     method: 'POST',
     headers: {
@@ -877,7 +886,14 @@ function _saveNow() {
       'Prefer': 'resolution=merge-duplicates,return=minimal'
     },
     body: JSON.stringify({id: SUPA_ROW, data: syncData, updated_at: new Date().toISOString()})
-  }).catch(function(e) { console.warn('Supabase save failed (will retry on next save):', e.message); });
+  }).then(function(r) {
+    var dot2 = document.getElementById('sync-dot');
+    if (dot2) dot2.style.background = r && r.ok ? 'var(--grnl)' : 'var(--rl)';
+  }).catch(function(e) {
+    console.warn('Supabase save failed:', e.message);
+    var dot3 = document.getElementById('sync-dot');
+    if (dot3) dot3.style.background = 'var(--rl)';
+  });
 }
 
 function load(callback) {
@@ -2480,7 +2496,7 @@ function renderCfg() {
   el.innerHTML = items.map(function(item, idx) {
     return '<div class="lrow">'
       + '<div class="lrow-body"><div class="lrow-name">' + item + '</div></div>'
-      + '<button data-idx="' + idx + '" onclick="openCfgEdit(parseInt(this.dataset.idx))" style="background:none;border:1px solid var(--bd);color:var(--muted);border-radius:8px;padding:3px 10px;font-size:11px;flex-shrink:0">Edit</button>'
+      + '<button data-val="' + encodeURIComponent(item) + '" onclick="openCfgEdit(decodeURIComponent(this.dataset.val))" style="background:none;border:1px solid var(--bd);color:var(--muted);border-radius:8px;padding:3px 10px;font-size:11px;flex-shrink:0">Edit</button>'
       + '</div>';
   }).join('');
 }
@@ -2496,14 +2512,23 @@ function openCfgAdd() {
   openM('mo-cfg');
 }
 
-function openCfgEdit(idx) {
+function openCfgEdit(valOrIdx) {
   var meta = CFG_META[_cfgTab];
   var items = D.settings[meta.key] || [];
-  var val = items[idx] || '';
+  // Accept either a value string (from list) or numeric index (legacy)
+  var realIdx, val;
+  if (typeof valOrIdx === 'string' && isNaN(parseInt(valOrIdx))) {
+    // Value string passed — find real index in unsorted array
+    realIdx = items.indexOf(valOrIdx);
+    val = valOrIdx;
+  } else {
+    realIdx = parseInt(valOrIdx);
+    val = items[realIdx] || '';
+  }
   document.getElementById('mo-cfg-t').textContent = 'Edit ' + meta.label;
   document.getElementById('cfg-item-label').textContent = meta.label;
   document.getElementById('cfg-tab-type').value = _cfgTab;
-  document.getElementById('cfg-item-idx').value = idx;
+  document.getElementById('cfg-item-idx').value = realIdx;
   document.getElementById('cfg-item-val').value = val;
   document.getElementById('cfg-del-btn').style.display = '';
   openM('mo-cfg');
@@ -2643,6 +2668,34 @@ function rallyeShowError(msg) {
   if (errMsg) errMsg.textContent = msg;
 }
 
+function rallyeShowOfflineWarning(errDetail) {
+  // Hide spinner and message
+  document.querySelectorAll('.spin-dot').forEach(function(d){ d.style.display='none'; });
+  var msgEl = document.getElementById('rallye-load-msg');
+  if (msgEl) msgEl.style.display = 'none';
+  // Show full-screen traffic-light style block
+  var overlay = document.getElementById('rallye-loading');
+  if (overlay) {
+    overlay.style.background = 'var(--bg)';
+  }
+  var errDiv = document.getElementById('rallye-load-error');
+  if (errDiv) {
+    errDiv.style.display = 'flex';
+    errDiv.innerHTML = [
+      '<div style="width:100%;background:#1a0000;border-top:4px solid var(--rl);border-bottom:4px solid var(--rl);padding:24px 20px;text-align:center;margin-bottom:0">',
+      '<div style="font-size:48px;margin-bottom:8px">🔴</div>',
+      '<div style="font-size:18px;font-weight:900;color:var(--rl);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Cannot Connect</div>',
+      '<div style="font-size:13px;color:var(--sil);margin-bottom:4px">Could not reach the cloud server.</div>',
+      '<div style="font-size:13px;color:var(--sil);margin-bottom:16px">Check your internet connection and try again.</div>',
+      '<div style="font-size:10px;color:var(--dim);background:var(--sf2);padding:6px 12px;border-radius:8px;margin-bottom:16px;word-break:break-all">'+errDetail+'</div>',
+      '<button onclick="rallyeRetry()" style="background:var(--crim);color:#fff;border:none;border-radius:24px;padding:12px 32px;font-size:14px;font-weight:700;cursor:pointer;width:100%;max-width:280px;margin-bottom:12px">↺ Try Again</button>',
+      '<div style="font-size:11px;color:var(--dim)">Or continue with local data (changes may not sync)</div>',
+      '<button onclick="rallyeShowApp()" style="background:none;border:1px solid var(--dim);color:var(--dim);border-radius:24px;padding:8px 24px;font-size:12px;cursor:pointer;margin-top:8px">Continue Offline</button>',
+      '</div>'
+    ].join('');
+  }
+}
+
 function rallyeRetry() {
   var errDiv = document.getElementById('rallye-load-error');
   var dots = document.querySelectorAll('.spin-dot');
@@ -2671,12 +2724,9 @@ function rallyeApplyRemote(remoteData) {
 function rallyeStartupFetch() {
   var base = SUPA_URL.replace(/\/$/, '');
   var timeout = setTimeout(function() {
-    console.warn('Supabase timeout — falling back to local data');
-    // On timeout, try IndexedDB
+    console.warn('Supabase timeout');
     load(function() {
-      var msgEl = document.getElementById('rallye-load-msg');
-      if (msgEl) msgEl.textContent = 'Using local data (offline)';
-      setTimeout(rallyeShowApp, 600);
+      rallyeShowOfflineWarning('Connection timed out after 8 seconds');
     });
   }, 8000);
 
@@ -2685,7 +2735,7 @@ function rallyeStartupFetch() {
     headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
   })
   .then(function(r) {
-    if (!r.ok) throw new Error('HTTP ' + r.status);
+    if (!r.ok) throw new Error('HTTP ' + r.status + ' — check rallye_data table exists in Supabase');
     return r.json();
   })
   .then(function(rows) {
@@ -2694,6 +2744,7 @@ function rallyeStartupFetch() {
       // Remote has data — use it
       var msgEl = document.getElementById('rallye-load-msg');
       if (msgEl) msgEl.textContent = 'Data loaded ✓';
+      var sDot = document.getElementById('sync-dot'); if(sDot) sDot.style.background='var(--grnl)';
       rallyeApplyRemote(rows[0].data);
       setTimeout(rallyeShowApp, 400);
     } else {
@@ -2709,11 +2760,8 @@ function rallyeStartupFetch() {
   .catch(function(e) {
     clearTimeout(timeout);
     console.warn('Supabase fetch failed:', e.message);
-    // Fall back to IndexedDB silently — don't block app
     load(function() {
-      var msgEl3 = document.getElementById('rallye-load-msg');
-      if (msgEl3) msgEl3.textContent = 'Offline — using local data';
-      setTimeout(rallyeShowApp, 600);
+      rallyeShowOfflineWarning(e.message||'Connection failed');
     });
   });
 }
