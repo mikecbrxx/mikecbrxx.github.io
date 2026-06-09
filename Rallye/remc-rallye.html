@@ -342,7 +342,7 @@ label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;l
   </div>
   <div style="margin-top:20px;padding:10px;background:var(--sf2);border:1px solid var(--bd);border-radius:10px;text-align:center">
   <div style="font-size:10px;color:var(--dim)">REMC Rallye Planner</div>
-  <div style="font-size:16px;font-weight:700;color:var(--crim2);margin:2px 0">v2.3</div>
+  <div style="font-size:16px;font-weight:700;color:var(--crim2);margin:2px 0">v2.4</div>
   <div style="font-size:10px;color:var(--dim)">Road Eagles MC Thailand · 20th Anniversary</div>
 </div>
 </div>
@@ -985,7 +985,7 @@ function renderScreen(s) {
   else if (s === 'finance') renderFinance();
   else if (s === 'settings') renderSettings();
   else if (s === 'config') renderCfg();
-  else if (s === 'stock') renderStock();
+  else if (s === 'stock') { if(!_stockTab)_stockTab='items'; renderStock(); }
 }
 
 // ── MODALS ────────────────────────────────────────────────────────────────────
@@ -2202,6 +2202,10 @@ function setStockTab(btn, tab) {
 function renderStock() {
   var el = document.getElementById('stock-list');
   if (!el) return;
+  // Always sync tab highlight with current _stockTab
+  document.querySelectorAll('#stock-tabs .tab').forEach(function(b){
+    b.classList.toggle('on', b.getAttribute('onclick').indexOf("'"+_stockTab+"'") >= 0);
+  });
   if (_stockTab === 'items') {
     if (!D.stock.length) {
       el.innerHTML = '<div class="empty"><div class="ei">🍺</div>No stock items yet.<br>Tap + to add donated or purchased goods.</div>';
