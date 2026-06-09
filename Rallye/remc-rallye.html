@@ -142,9 +142,28 @@ label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;l
 
 /* Toast */
 #toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--crim);color:#fff;padding:8px 18px;border-radius:20px;font-size:12px;font-weight:600;z-index:9999;display:none;white-space:nowrap;}
+
+@keyframes spindot{0%,80%,100%{opacity:0.2;transform:scale(0.8);}40%{opacity:1;transform:scale(1.2);}}
 </style>
 </head>
 <body>
+
+<!-- Loading Overlay -->
+<div id="rallye-loading" style="position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px">
+  <div style="width:72px;height:72px;border-radius:50%;border:3px solid var(--crim);background:var(--sf2);display:flex;align-items:center;justify-content:center;font-size:36px">🦅</div>
+  <div style="font-size:15px;font-weight:800;color:var(--crim2);letter-spacing:2px;text-transform:uppercase">REMC Rallye Planner</div>
+  <div id="rallye-load-msg" style="font-size:12px;color:var(--muted)">Syncing data...</div>
+  <div style="display:flex;gap:6px">
+    <div class="spin-dot" style="width:8px;height:8px;border-radius:50%;background:var(--crim);animation:spindot 1.2s ease-in-out infinite"></div>
+    <div class="spin-dot" style="width:8px;height:8px;border-radius:50%;background:var(--crim);animation:spindot 1.2s ease-in-out 0.2s infinite"></div>
+    <div class="spin-dot" style="width:8px;height:8px;border-radius:50%;background:var(--crim);animation:spindot 1.2s ease-in-out 0.4s infinite"></div>
+  </div>
+  <div id="rallye-load-error" style="display:none;flex-direction:column;align-items:center;gap:10px;padding:0 32px;text-align:center">
+    <div style="font-size:28px">⚠️</div>
+    <div id="rallye-load-err-msg" style="font-size:13px;color:var(--rl);font-weight:600;line-height:1.4"></div>
+    <button onclick="rallyeRetry()" style="background:var(--crim);color:#fff;border:none;border-radius:24px;padding:10px 28px;font-size:13px;font-weight:700;cursor:pointer">↺ Try Again</button>
+  </div>
+</div>
 
 <!-- Header -->
 <div class="hdr">
@@ -316,7 +335,7 @@ label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;l
   </div>
   <div style="margin-top:20px;padding:10px;background:var(--sf2);border:1px solid var(--bd);border-radius:10px;text-align:center">
   <div style="font-size:10px;color:var(--dim)">REMC Rallye Planner</div>
-  <div style="font-size:16px;font-weight:700;color:var(--crim2);margin:2px 0">v2.0</div>
+  <div style="font-size:16px;font-weight:700;color:var(--crim2);margin:2px 0">v2.1</div>
   <div style="font-size:10px;color:var(--dim)">Road Eagles MC Thailand · 20th Anniversary</div>
 </div>
 </div>
@@ -799,12 +818,15 @@ var _peopleTab = 'workers';
 var _salesTab = 'tickets';
 var _finTab = 'costs';
 
-// ── STORAGE — IndexedDB (survives cache clears, only clearable from app) ──────
+// ── STORAGE — IndexedDB + Supabase cloud backup ──────────────────────────────
 var DB_NAME = 'remc-rallye';
 var DB_VERSION = 1;
 var STORE_NAME = 'appdata';
 var _db = null;
 var _saveTimer = null;
+var SUPA_URL = 'https://wenoqfogfsyyimiopfue.supabase.co';
+var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlbm9xZm9nZnN5eWltaW9wZnVlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxNTMyOTEsImV4cCI6MjA5MjcyOTI5MX0.dWb_hNiNlOrYYBmwcKPmuVCx_DvLNIBrvwe634U8sQs';
+var SUPA_ROW = 'rallye_main';
 
 function openDB(callback) {
   if (_db) { callback(_db); return; }
@@ -833,17 +855,29 @@ function save() {
 }
 
 function _saveNow() {
+  var json = JSON.stringify(D);
+  // Save to IndexedDB
   openDB(function(db) {
     if (!db) {
-      // localStorage fallback
-      try { localStorage.setItem('remc-rallye-fallback', JSON.stringify(D)); } catch(e) {}
-      return;
+      try { localStorage.setItem('remc-rallye-fallback', json); } catch(e) {}
+    } else {
+      var tx = db.transaction(STORE_NAME, 'readwrite');
+      tx.objectStore(STORE_NAME).put({key: 'data', value: json});
     }
-    var tx = db.transaction(STORE_NAME, 'readwrite');
-    var store = tx.objectStore(STORE_NAME);
-    store.put({key: 'data', value: JSON.stringify(D)});
-    tx.onerror = function(e) { console.warn('Save failed:', e); };
   });
+  // Push to Supabase (fire and forget — IndexedDB is primary local store)
+  var syncData = JSON.parse(json);
+  var base = SUPA_URL.replace(/\/$/, '');
+  fetch(base + '/rest/v1/rallye_data', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPA_KEY,
+      'Authorization': 'Bearer ' + SUPA_KEY,
+      'Prefer': 'resolution=merge-duplicates,return=minimal'
+    },
+    body: JSON.stringify({id: SUPA_ROW, data: syncData, updated_at: new Date().toISOString()})
+  }).catch(function(e) { console.warn('Supabase save failed (will retry on next save):', e.message); });
 }
 
 function load(callback) {
@@ -2588,8 +2622,105 @@ function importData(input) {
 }
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
-// ── INIT — async because IndexedDB load is async ──────────────────────────────
-load(function() {
+// ── STARTUP FETCH GATE ───────────────────────────────────────────────────────
+// Fetch from Supabase before showing app — remote is authoritative
+// Falls back to IndexedDB if offline, shows error if both fail
+
+function rallyeShowApp() {
+  var overlay = document.getElementById('rallye-loading');
+  if (overlay) overlay.style.display = 'none';
+  initApp();
+}
+
+function rallyeShowError(msg) {
+  var dots = document.querySelectorAll('.spin-dot');
+  dots.forEach(function(d){ d.style.display = 'none'; });
+  var msgEl = document.getElementById('rallye-load-msg');
+  if (msgEl) msgEl.style.display = 'none';
+  var errDiv = document.getElementById('rallye-load-error');
+  var errMsg = document.getElementById('rallye-load-err-msg');
+  if (errDiv) errDiv.style.display = 'flex';
+  if (errMsg) errMsg.textContent = msg;
+}
+
+function rallyeRetry() {
+  var errDiv = document.getElementById('rallye-load-error');
+  var dots = document.querySelectorAll('.spin-dot');
+  var msgEl = document.getElementById('rallye-load-msg');
+  if (errDiv) errDiv.style.display = 'none';
+  dots.forEach(function(d){ d.style.display = ''; });
+  if (msgEl) { msgEl.style.display = ''; msgEl.textContent = 'Retrying...'; }
+  rallyeStartupFetch();
+}
+
+function rallyeApplyRemote(remoteData) {
+  D = Object.assign(D, remoteData);
+  ['workers','donors','tasks','ticketSales','stalls','costs','donations','merch',
+   'merchOrders','merchSales','stock','barSales'].forEach(function(k){
+    if (!D[k]) D[k] = [];
+  });
+  if (!D.settings) D.settings = {};
+  // Save to IndexedDB as local cache
+  openDB(function(db) {
+    if (!db) { try { localStorage.setItem('remc-rallye-fallback', JSON.stringify(D)); } catch(e) {} return; }
+    var tx = db.transaction(STORE_NAME, 'readwrite');
+    tx.objectStore(STORE_NAME).put({key: 'data', value: JSON.stringify(D)});
+  });
+}
+
+function rallyeStartupFetch() {
+  var base = SUPA_URL.replace(/\/$/, '');
+  var timeout = setTimeout(function() {
+    console.warn('Supabase timeout — falling back to local data');
+    // On timeout, try IndexedDB
+    load(function() {
+      var msgEl = document.getElementById('rallye-load-msg');
+      if (msgEl) msgEl.textContent = 'Using local data (offline)';
+      setTimeout(rallyeShowApp, 600);
+    });
+  }, 8000);
+
+  fetch(base + '/rest/v1/rallye_data?id=eq.' + SUPA_ROW + '&select=data,updated_at', {
+    method: 'GET',
+    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+  })
+  .then(function(r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  })
+  .then(function(rows) {
+    clearTimeout(timeout);
+    if (rows && rows.length > 0 && rows[0].data && Object.keys(rows[0].data).length > 0) {
+      // Remote has data — use it
+      var msgEl = document.getElementById('rallye-load-msg');
+      if (msgEl) msgEl.textContent = 'Data loaded ✓';
+      rallyeApplyRemote(rows[0].data);
+      setTimeout(rallyeShowApp, 400);
+    } else {
+      // Remote empty — push local IndexedDB data up
+      var msgEl2 = document.getElementById('rallye-load-msg');
+      if (msgEl2) msgEl2.textContent = 'Initialising cloud storage...';
+      load(function() {
+        _saveNow();
+        setTimeout(rallyeShowApp, 400);
+      });
+    }
+  })
+  .catch(function(e) {
+    clearTimeout(timeout);
+    console.warn('Supabase fetch failed:', e.message);
+    // Fall back to IndexedDB silently — don't block app
+    load(function() {
+      var msgEl3 = document.getElementById('rallye-load-msg');
+      if (msgEl3) msgEl3.textContent = 'Offline — using local data';
+      setTimeout(rallyeShowApp, 600);
+    });
+  });
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+function initApp() {
+  load(function() {
   // Ensure config arrays exist with defaults
   Object.keys(CFG_META).forEach(function(tab) {
     var meta = CFG_META[tab];
@@ -2624,7 +2755,11 @@ load(function() {
   }
 
   renderDash();
-});
+  });  // end load()
+}  // end initApp()
+
+// Kick off startup fetch
+rallyeStartupFetch();
 </script>
 
 <script>
