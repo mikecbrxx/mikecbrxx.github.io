@@ -194,7 +194,7 @@ label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;l
     <div class="dcard"><div class="dlbl">Unassigned</div><div class="dval r" id="db-tasks-un">0</div></div>
   </div>
 
-  <div class="ver">v1.5 — REMC Rallye Planner</div>
+  <div class="ver">v1.6 — REMC Rallye Planner</div>
 </div>
 
 <!-- SCREEN: Tasks -->
@@ -290,7 +290,7 @@ label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;l
     <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Permanently deletes all app data. Cannot be undone. Export a backup first.</div>
     <button class="btn" onclick="confirmClearAll()" style="background:var(--rl);color:#fff;border:none;padding:10px;border-radius:20px;width:100%;font-weight:700">🗑️ Clear All App Data</button>
   </div>
-  <div class="ver">v1.5 — Road Eagles MC Rallye Planner</div>
+  <div class="ver">v1.6 — Road Eagles MC Rallye Planner</div>
 </div>
 
 <!-- Bottom Nav -->
@@ -304,7 +304,7 @@ label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;l
 
 <!-- FAB -->
 <button class="fab" id="fab" onclick="openFab()">+</button>
-<button class="back-btn" id="back-btn" onclick="goBack()" style="display:flex">‹</button>
+<button class="back-btn" id="back-btn" onclick="goBack()" style="display:none">‹</button>
 
 <!-- FAB Menu -->
 <div class="mo" id="mo-fab">
@@ -702,7 +702,10 @@ function goTo(screen) {
   if (nb) nb.classList.add('on');
   _screen = screen;
   var fab = document.getElementById('fab');
-  if (fab) fab.style.display = ['dash','tasks','people','sales','finance'].includes(screen) ? 'flex' : 'none';
+  var backBtn = document.getElementById('back-btn');
+  var mainScreens = ['dash','tasks','people','sales','finance'];
+  if (fab) fab.style.display = mainScreens.includes(screen) ? 'flex' : 'none';
+  if (backBtn) backBtn.style.display = mainScreens.includes(screen) ? 'none' : 'flex';
   renderScreen(screen);
 }
 
