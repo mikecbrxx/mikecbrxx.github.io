@@ -342,7 +342,7 @@ label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;l
   </div>
   <div style="margin-top:20px;padding:10px;background:var(--sf2);border:1px solid var(--bd);border-radius:10px;text-align:center">
   <div style="font-size:10px;color:var(--dim)">REMC Rallye Planner</div>
-  <div style="font-size:16px;font-weight:700;color:var(--crim2);margin:2px 0">v2.4</div>
+  <div style="font-size:16px;font-weight:700;color:var(--crim2);margin:2px 0">v2.5</div>
   <div style="font-size:10px;color:var(--dim)">Road Eagles MC Thailand · 20th Anniversary</div>
 </div>
 </div>
@@ -1099,21 +1099,40 @@ function renderTasks() {
 
   el.innerHTML = tasks.map(function(t) {
     var worker = t.workerId ? D.workers.find(function(w){ return w.id === t.workerId; }) : null;
-    return '<div class="lrow" onclick="openTaskModal(\'' + t.id + '\')">'
-      + '<div style="font-size:22px">' + (statusIcon[t.status]||'⭕') + '</div>'
-      + '<div class="lrow-body">'
-      + '<div class="lrow-name">' + t.desc + '</div>'
-      + '<div class="lrow-sub">'
-      + (t.cat ? '<span class="badge badge-sil">' + t.cat + '</span> ' : '')
-      + (worker ? '👷 ' + worker.name : '<span style="color:var(--warn)">Unassigned</span>')
-      + (t.due ? ' · Due: ' + fd(t.due) : '')
-      + '</div>'
-      + '</div>'
-      + '<div style="font-size:11px;color:' + (priorityCol[t.priority]||'var(--muted)') + ';flex-shrink:0">'
-      + (t.priority === 'high' ? '🔴' : t.priority === 'low' ? '🟢' : '🟡')
-      + '</div>'
-      + '</div>';
+    var statusIcon = {todo:'⭕',inprog:'🔄',done:'✅'};
+    var priorityIcon = {high:'🔴',normal:'🟡',low:'🟢'};
+    var nextStatus = {todo:'inprog',inprog:'done',done:'todo'};
+    var nextLabel = {todo:'→ Start',inprog:'→ Done',done:'→ Reset'};
+    return [
+      '<div class="lrow" data-id="'+t.id+'" onclick="openTaskModal(this.dataset.id)" style="cursor:pointer">',
+      '<div style="font-size:22px">'+(statusIcon[t.status]||'⭕')+'</div>',
+      '<div class="lrow-body">',
+      '<div class="lrow-name">'+t.desc+'</div>',
+      '<div class="lrow-sub">',
+      (t.cat?'<span class="badge badge-sil">'+t.cat+'</span> ':''),
+      (worker?'👷 '+worker.name:'<span style="color:var(--warn)">Unassigned</span>'),
+      (t.due?' · Due: '+fd(t.due):''),
+      '</div></div>',
+      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">',
+      '<span>'+(priorityIcon[t.priority]||'🟡')+'</span>',
+      '<button data-id="'+t.id+'" data-next="'+(nextStatus[t.status||'todo']||'inprog')+'"',
+      ' onclick="event.stopPropagation();cycleTaskStatus(this.dataset.id,this.dataset.next)"',
+      ' style="font-size:10px;background:var(--sf3);border:1px solid var(--bd);color:var(--sil);border-radius:12px;padding:3px 8px;cursor:pointer;white-space:nowrap">',
+      (nextLabel[t.status||'todo']||'→ Start'),
+      '</button>',
+      '</div>',
+      '</div>'
+    ].join('');
   }).join('');
+}
+function cycleTaskStatus(id, newStatus) {
+  var t = D.tasks.find(function(x){ return x.id === id; });
+  if (!t) return;
+  t.status = newStatus;
+  save();
+  renderTasks();
+  renderDash();
+  toast('Task '+(newStatus==='done'?'completed':newStatus==='inprog'?'started':'reset'));
 }
 
 function openTaskModal(id) {
