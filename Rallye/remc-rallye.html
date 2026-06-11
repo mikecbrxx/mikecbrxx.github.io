@@ -342,7 +342,7 @@ label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;l
   </div>
   <div style="margin-top:20px;padding:10px;background:var(--sf2);border:1px solid var(--bd);border-radius:10px;text-align:center">
   <div style="font-size:10px;color:var(--dim)">REMC Rallye Planner</div>
-  <div style="font-size:16px;font-weight:700;color:var(--crim2);margin:2px 0">v2.7</div>
+  <div style="font-size:16px;font-weight:700;color:var(--crim2);margin:2px 0">v2.8</div>
   <div style="font-size:10px;color:var(--dim)">Road Eagles MC Thailand · 20th Anniversary</div>
 </div>
 </div>
@@ -1149,7 +1149,7 @@ function openTaskModal(id) {
 
   // Populate category
   var catSel = document.getElementById('task-cat');
-  var cats = D.settings.taskCats || [];
+  var cats = (D.settings.taskCats || []).slice().sort(function(a,b){return a.localeCompare(b);});
   catSel.innerHTML = '<option value="">— Select —</option>' + cats.map(function(c){ return '<option value="' + c + '"' + (t&&t.cat===c?' selected':'') + '>' + c + '</option>'; }).join('');
 
   // Populate worker
@@ -1985,7 +1985,7 @@ function openCostModal(id) {
   document.getElementById('cost-status').value = c ? c.status : 'estimated';
   document.getElementById('cost-date').value = c ? (c.date||nd()) : nd();
   document.getElementById('cost-notes').value = c ? (c.notes||'') : '';
-  var cats = D.settings.costCats || [];
+  var cats = (D.settings.costCats || []).slice().sort(function(a,b){return a.localeCompare(b);});
   var catSel = document.getElementById('cost-cat');
   catSel.innerHTML = cats.map(function(x){ return '<option value="' + x + '"' + (c&&c.cat===x?' selected':'') + '>' + x + '</option>'; }).join('');
   document.getElementById('cost-del-btn').style.display = c ? '' : 'none';
@@ -2034,7 +2034,7 @@ function openDonationModal(id) {
   document.getElementById('don-amount').value = d ? (d.amount||0) : 0;
   document.getElementById('don-date').value = d ? (d.date||nd()) : nd();
   var methodSel = document.getElementById('don-method');
-  var methods = D.settings.paymentMethods || ['Cash','Bank Transfer','Other'];
+  var methods = (D.settings.paymentMethods || ['Cash','Bank Transfer','Other']).slice().sort(function(a,b){return a.localeCompare(b);});
   methodSel.innerHTML = methods.map(function(m){ return '<option value="'+m+'"'+(d&&d.method===m?' selected':'')+'>'+m+'</option>'; }).join('');
   if (!d) methodSel.value = methods[0] || 'Cash';
   document.getElementById('don-notes').value = d ? (d.notes||'') : '';
