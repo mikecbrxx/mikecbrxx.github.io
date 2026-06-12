@@ -305,6 +305,7 @@ label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;l
     <button class="tab" onclick="setCfgTab(this,'taskcats')">Task Categories</button>
     <button class="tab" onclick="setCfgTab(this,'paymentmethods')">Payment Methods</button>
     <button class="tab" onclick="setCfgTab(this,'priorities')">Task Priorities</button>
+    <button class="tab" onclick="setCfgTab(this,'roletypes')">Role Types</button>
   </div>
   <div id="cfg-list"></div>
   <button class="btn btn-crim" onclick="openCfgAdd()" style="margin-top:4px">+ Add Item</button>
@@ -342,7 +343,7 @@ label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;l
   </div>
   <div style="margin-top:20px;padding:10px;background:var(--sf2);border:1px solid var(--bd);border-radius:10px;text-align:center">
   <div style="font-size:10px;color:var(--dim)">REMC Rallye Planner</div>
-  <div style="font-size:16px;font-weight:700;color:var(--crim2);margin:2px 0">v2.8</div>
+  <div style="font-size:16px;font-weight:700;color:var(--crim2);margin:2px 0">v2.9</div>
   <div style="font-size:10px;color:var(--dim)">Road Eagles MC Thailand · 20th Anniversary</div>
 </div>
 </div>
@@ -423,7 +424,7 @@ label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;l
     <div class="fg"><label>Name</label><input type="text" id="worker-name" placeholder="Full name"></div>
     <div class="irow">
       <div class="fg"><label>Phone</label><input type="tel" id="worker-phone" placeholder="Phone"></div>
-      <div class="fg"><label>Role</label><input type="text" id="worker-role" placeholder="e.g. Road Captain"></div>
+      <div class="fg"><label>Role</label><select id="worker-role"></select></div>
     </div>
     <div class="fg"><label>Email</label><input type="email" id="worker-email" placeholder="Email address"></div>
     <div class="fg"><label>Notes</label><input type="text" id="worker-notes" placeholder="Optional"></div>
@@ -1078,9 +1079,17 @@ function setTaskTab(btn, tab) {
 
 function renderTasks() {
   var el = document.getElementById('task-list');
+  var priorityOrder = {high:0,normal:1,low:2};
   var tasks = D.tasks.slice().sort(function(a,b){
-    var ca=a.cat||'',cb=b.cat||'';
-    return ca.localeCompare(cb)||a.desc.localeCompare(b.desc);
+    // Due date first (no date sorts last)
+    var da = a.due||'9999', db = b.due||'9999';
+    if (da !== db) return da.localeCompare(db);
+    // Then priority (high first)
+    var pa = priorityOrder[a.priority]!==undefined ? priorityOrder[a.priority] : 1;
+    var pb = priorityOrder[b.priority]!==undefined ? priorityOrder[b.priority] : 1;
+    if (pa !== pb) return pa - pb;
+    // Then description
+    return (a.desc||'').localeCompare(b.desc||'');
   }).filter(function(t) {
     if (_taskTab === 'all') return true;
     if (_taskTab === 'todo') return t.status === 'todo';
@@ -1253,7 +1262,12 @@ function openWorkerModal(id) {
   document.getElementById('worker-id').value = w ? w.id : '';
   document.getElementById('worker-name').value = w ? w.name : '';
   document.getElementById('worker-phone').value = w ? (w.phone||'') : '';
-  document.getElementById('worker-role').value = w ? (w.role||'') : '';
+  // Populate role select from config
+  var roleSel = document.getElementById('worker-role');
+  var roles = (D.settings.roleTypes||CFG_META.roletypes.defaults).slice().sort(function(a,b){return a.localeCompare(b);});
+  roleSel.innerHTML = '<option value="">— Select Role —</option>' + roles.map(function(r){
+    return '<option value="'+r+'"'+(w&&w.role===r?' selected':'')+'>'+r+'</option>';
+  }).join('');
   document.getElementById('worker-email').value = w ? (w.email||'') : '';
   document.getElementById('worker-notes').value = w ? (w.notes||'') : '';
   document.getElementById('worker-del-btn').style.display = w ? '' : 'none';
@@ -2492,7 +2506,8 @@ var CFG_META = {
   costcats:       {label:'Cost Category',    key:'costCats',       defaults:['Venue','Bands / Entertainment','Drinks & Bar','Security','Police','Staff','Marketing','Transport','AV / Sound','Misc']},
   taskcats:       {label:'Task Category',    key:'taskCats',       defaults:['Setup','Breakdown','Bar','Security','Front of House','Registration','Catering','AV','Parking','Misc']},
   paymentmethods: {label:'Payment Method',  key:'paymentMethods', defaults:['Cash','Bank Transfer','Card','Cheque','Other']},
-  priorities:     {label:'Priority',         key:'taskPriorities', defaults:['High','Normal','Low']}
+  priorities:     {label:'Priority',         key:'taskPriorities', defaults:['High','Normal','Low']},
+  roletypes:      {label:'Role Type',        key:'roleTypes',      defaults:['President','Vice President','Secretary','Treasurer','Road Captain','Officer','Member','Prospect','Volunteer','Staff']}
 };
 
 function setCfgTab(btn, tab) {
