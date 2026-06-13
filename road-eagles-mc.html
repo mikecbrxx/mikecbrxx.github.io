@@ -190,7 +190,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.25</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.26</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -1286,9 +1286,9 @@ if(!D.memberRoles)D.memberRoles=[{id:'president',name:'President',appAccess:true
 }
 
 // Stock helpers
-function getStock(pid,vid,sz,col){const s=D.stock[skey(pid,vid,sz,col)]||{};return Math.max(0,(s.initial||0)+(s.ordered||0)-(s.sold||0));}
+function getStock(pid,vid,sz,col){const s=D.stock[skey(pid,vid,sz,col)]||{};return (s.initial||0)+(s.ordered||0)-(s.sold||0);}
 function adjStock(pid,vid,sz,col,n,f){const k=skey(pid,vid,sz,col);if(!D.stock[k])D.stock[k]={initial:0,ordered:0,sold:0};D.stock[k][f]=(D.stock[k][f]||0)+n;}
-function stSt(q){const t=D.lowStockThreshold||5;return q<=0?'out':q<=t?'low':'ok';}
+function stSt(q){const t=D.lowStockThreshold||5;return q<0?'negative':q===0?'out':q<=t?'low':'ok';}
 
 // Login
 function pp(d){if(!_appReady)return;if(PIN.length>=4)return;PIN+=d;dots();if(PIN.length===4)setTimeout(tryLogin,80);}
@@ -1464,7 +1464,7 @@ function renderDash(){
   let low=0,out=0;
   D.products.filter(p=>!p.archived).forEach(p=>p.variants.forEach(v=>{
     const szs=p.hasSizes?SIZES:[null];
-    szs.forEach(sz=>{const pcols=prodColours(p);pcols.forEach(c=>{const q=getStock(p.id,v.id,sz,c.name);if(q<=0)out++;else if(q<=(D.lowStockThreshold||5))low++;});});
+    szs.forEach(sz=>{const pcols=prodColours(p);pcols.forEach(c=>{const q=getStock(p.id,v.id,sz,c.name);if(q<0){out++;} else if(q===0){out++;} else if(q<=(D.lowStockThreshold||5))low++;});});
   }));
   document.getElementById('db-low').textContent=low;
   document.getElementById('db-out2').textContent=out;
@@ -1608,7 +1608,7 @@ function renderMerch(){
           } else {
             prodColours(p).forEach(function(c){totalQ+=getStock(p.id,v.id,null,c.name);});
           }
-          const q=totalQ;const st=stSt(q);const stl={ok:'In Stock',low:'Low Stock',out:'Out of Stock'};return`<div class="vrow"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span class="vn">${v.name}</span><span class="pill ${st==='ok'?'':st}" style="cursor:pointer" onclick="setMV('stock')">${stl[st]} &#8250;</span></div><div class="pps"><div class="pp">Member <span class="pv">${thb(v.memberPrice)}</span></div><div class="pp">Visitor <span class="pv">${(p.memberOnly||false)?'<span style="color:var(--dim)">Members Only</span>':thb(v.visitorPrice)}</span></div><div class="pp">Cost <span class="pv">${thb(v.production)}</span></div><div class="pp">Margin <span class="pv" style="color:var(--grnl)">${thb(v.memberPrice-v.production)}</span></div></div></div>`;}).join('')}</div></div>`;
+          const q=totalQ;const st=stSt(q);const stl={ok:'In Stock',low:'Low Stock',out:'Out of Stock',negative:'Oversold'};return`<div class="vrow"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span class="vn">${v.name}</span><span class="pill ${st==='negative'?'negative':st==='ok'?'':st}" style="cursor:pointer" onclick="setMV('stock')">${stl[st]} &#8250;</span></div><div class="pps"><div class="pp">Member <span class="pv">${thb(v.memberPrice)}</span></div><div class="pp">Visitor <span class="pv">${(p.memberOnly||false)?'<span style="color:var(--dim)">Members Only</span>':thb(v.visitorPrice)}</span></div><div class="pp">Cost <span class="pv">${thb(v.production)}</span></div><div class="pp">Margin <span class="pv" style="color:var(--grnl)">${thb(v.memberPrice-v.production)}</span></div></div></div>`;}).join('')}</div></div>`;
   }
   let html=active.map(pc).join('');
   if(archived.length)html+=`<div style="font-size:11px;color:var(--muted);margin:14px 0 8px;text-transform:uppercase;letter-spacing:1px">Archived</div>`+archived.map(pc).join('');
@@ -1650,7 +1650,7 @@ function renderStock(){
     return '<div style="margin-bottom:16px"><div style="font-size:13px;font-weight:600;margin-bottom:6px">'+grp.n+' &#8212; '+grp.v+'</div>'+
     grp.items.map(r=>{
       const st=stSt(r.qty);
-      const fc=st==='ok'?'var(--grnl)':st==='low'?'var(--warn)':'var(--rl)';
+      const fc=st==='ok'?'var(--grnl)':st==='low'?'var(--warn)':st==='negative'?'var(--blul)':'var(--rl)';
       const lbl=[r.sz,r.col].filter(Boolean).join(', ');
       const pct=Math.min(100,r.qty*5);
       return '<div class="si"><div class="si-head"><span class="si-name"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+r.chex+';border:1px solid rgba(255,255,255,.15);margin-right:5px;vertical-align:middle"></span>'+lbl+'</span><span class="si-qty '+st+'">'+r.qty+'</span></div><div class="stock-bar"><div class="stock-fill" style="width:'+pct+'%;background:'+fc+'"></div></div></div>';
@@ -1866,7 +1866,7 @@ function updateSaleVars(){
 function updateSaleVarChange(){updateSalePrice();updateSaleStock();}
 function updateSalePrice(){const p=D.products.find(x=>x.id===document.getElementById('sale-prod').value);if(!p)return;const v=p.variants[parseInt(document.getElementById('sale-var').value)||0];document.getElementById('sale-price').value=_cu==='member'?v.memberPrice:v.visitorPrice;updSaleTotal();}
 function updSaleTotal(){document.getElementById('sale-total').innerHTML=thb((parseFloat(document.getElementById('sale-price').value)||0)*(parseInt(document.getElementById('sale-qty').value)||1));}
-function updateSaleStock(){const p=D.products.find(x=>x.id===document.getElementById('sale-prod').value);if(!p)return;const vi=parseInt(document.getElementById('sale-var').value)||0;const v=p.variants[vi];const sz=p.hasSizes?document.getElementById('sale-size').value:null;const rawCol=document.getElementById('sale-colour').value;const col=stockCol(p,rawCol);const q=getStock(p.id,v.id,sz,col);const el=document.getElementById('sale-stock-info');const st=stSt(q);const c2=st==='ok'?'var(--grnl)':st==='low'?'var(--warn)':'var(--rl)';el.style.display='';el.innerHTML='<span style="color:'+c2+';font-weight:600">Stock on hand: '+q+(q<=0?' — Out of stock':q<=(D.lowStockThreshold||5)?' — Low stock':'')+'</span>';}
+function updateSaleStock(){const p=D.products.find(x=>x.id===document.getElementById('sale-prod').value);if(!p)return;const vi=parseInt(document.getElementById('sale-var').value)||0;const v=p.variants[vi];const sz=p.hasSizes?document.getElementById('sale-size').value:null;const rawCol=document.getElementById('sale-colour').value;const col=stockCol(p,rawCol);const q=getStock(p.id,v.id,sz,col);const el=document.getElementById('sale-stock-info');const st=stSt(q);const c2=st==='ok'?'var(--grnl)':st==='low'?'var(--warn)':st==='negative'?'var(--blul)':'var(--rl)';const msg=st==='negative'?'⚠️ Oversold by '+Math.abs(q)+' — order required':st==='out'?'Out of stock — sale will go negative':st==='low'?'Low stock':'In stock';el.style.display='';el.innerHTML='<span style="color:'+c2+';font-weight:600">Stock: '+q+' — '+msg+'</span>';}
 function selCust(c){_cu=c;document.getElementById('cust-m').className='tgb'+(c==='member'?' tmem':'');document.getElementById('cust-v').className='tgb'+(c==='visitor'?' tvis':'');updateSalePrice();}
 function saveSale(){
   const p=D.products.find(x=>x.id===document.getElementById('sale-prod').value);
@@ -2354,11 +2354,16 @@ function rStock(){
       rows.push({name:p.name+' – '+v.name+(sz?' ('+sz+')'  :'')+colLabel,qty:q,st:stSt(q)});
     }));
   }));
+  const neg=rows.filter(r=>r.st==='negative');
   const out=rows.filter(r=>r.st==='out');
   const low=rows.filter(r=>r.st==='low');
   const ok=rows.filter(r=>r.st==='ok');
-  function rr(r){return '<div class="brow"><span class="blbl" style="font-size:11px">'+r.name+'</span><span style="font-weight:700;color:'+(r.st==='ok'?'var(--grnl)':r.st==='low'?'var(--warn)':'var(--rl)')+'">'+r.qty+'</span></div>';}
+  function rr(r){
+    var col=r.st==='ok'?'var(--grnl)':r.st==='low'?'var(--warn)':r.st==='negative'?'var(--blul)':'var(--rl)';
+    return '<div class="brow"><span class="blbl" style="font-size:11px">'+r.name+'</span><span style="font-weight:700;color:'+col+'">'+r.qty+'</span></div>';
+  }
   var html='';
+  if(neg.length)html+='<div class="balbar"><h3>&#128309; Oversold — Order Required ('+neg.length+')</h3><div style="font-size:10px;color:var(--dim);margin-bottom:6px">Negative stock — sales recorded but stock not yet received from supplier</div>'+neg.map(rr).join('')+'</div>';
   html+='<div class="balbar"><h3>&#128994; In Stock ('+ok.length+')</h3>'+(ok.length?ok.map(rr).join(''):'<div style="color:var(--dim);font-size:12px;padding:6px 0">None in stock</div>')+'</div>';
   html+='<div class="balbar"><h3>&#9888;&#65039; Low Stock &le;'+t+' ('+low.length+')</h3>'+(low.length?low.map(rr).join(''):'<div style="color:var(--dim);font-size:12px;padding:6px 0">None &#8212; all good!</div>')+'</div>';
   if(out.length)html+='<div class="balbar"><h3>&#128308; Out of Stock ('+out.length+')</h3>'+out.map(rr).join('')+'</div>';
@@ -3946,7 +3951,7 @@ function renderStockMgr(){
             +'data-sz="'+(sz||'__none__')+'" data-col="'+(c.name||'')+'" '
             +'onclick="openStockEdit(this)">'
             +'<span style="flex:1;font-size:12px;color:var(--fg);padding-right:8px">'+rowLabel+'</span>'
-            +'<span style="font-size:13px;font-weight:600;width:44px;min-width:44px;max-width:44px;text-align:right;display:block;color:'+(qty<=0?'var(--rl)':qty<=(D.lowStockThreshold||5)?'var(--warn)':'var(--grnl)')+'">'+qty+'</span>'
+            +'<span style="font-size:13px;font-weight:600;width:44px;min-width:44px;max-width:44px;text-align:right;display:block;color:'+(qty<0?'var(--blul)':qty===0?'var(--rl)':qty<=(D.lowStockThreshold||5)?'var(--warn)':'var(--grnl)')+'">'+qty+'</span>'
             +'</div>';
         });
       });
@@ -3985,7 +3990,7 @@ function saveStockEdit(){
   var sz=szRaw===''?null:szRaw;
   var col=document.getElementById('se-col').value;
   var qty=parseInt(document.getElementById('se-qty').value)||0;
-  if(qty<0){alert('Stock cannot be negative.');return;}
+  // Negative stock allowed (oversold items pending order)
   var k=skey(pid,vid,sz,col);
   if(!D.stock[k])D.stock[k]={initial:0,ordered:0,sold:0};
   D.stock[k]={initial:qty,ordered:0,sold:0};
