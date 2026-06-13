@@ -190,7 +190,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="sub">Thailand · Est. 2007 · RRR</div>
   <div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px">Officers &amp; Admin only</div>
   <div id="lbl">Enter 4-Digit PIN</div>
-  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.27</div>
+  <div style="font-size:9px;color:var(--gold);text-align:center;margin-top:2px">v3.28</div>
   <div class="pdots"><div class="pd" id="d0"></div><div class="pd" id="d1"></div><div class="pd" id="d2"></div><div class="pd" id="d3"></div></div>
   <div class="pgrid">
     <button class="pb" onclick="pp('1')">1</button><button class="pb" onclick="pp('2')">2</button><button class="pb" onclick="pp('3')">3</button>
@@ -222,7 +222,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
       </div>
       <div class="sgrid">
         <div class="scard"><div class="slbl">Members</div><div class="sval gold" id="db-mem">0</div></div>
-        <div class="scard"><div class="slbl">Prospects</div><div class="sval b" id="db-pros">0</div></div>
+        <div class="scard"><div class="slbl">Supporters</div><div class="sval b" id="db-pros">0</div></div>
       </div>
       <div class="sgrid">
         <div class="scard"><div class="slbl">Club Month In</div><div class="sval g" id="db-in">&#3647;0</div></div>
@@ -1445,7 +1445,7 @@ function renderDash(){
   if(cbOpen)cbOpen.innerHTML=thb(mthOpen.club);
   if(hbOpen)hbOpen.innerHTML=thb(mthOpen.charity);
   document.getElementById('db-mem').textContent=D.members.filter(m=>m.status!=='prospect').length;
-  document.getElementById('db-pros').textContent=D.members.filter(m=>m.status==='prospect').length;
+  document.getElementById('db-pros').textContent=D.members.filter(m=>m.status==='supporter').length;
   const mt=mthTx();
   document.getElementById('db-in').innerHTML=thb(mt.filter(t=>t.direction==='in'&&t.account==='club').reduce((a,t)=>a+parseFloat(t.amount||0),0));
   document.getElementById('db-out').innerHTML=thb(mt.filter(t=>t.direction==='out'&&t.account==='club').reduce((a,t)=>a+parseFloat(t.amount||0),0));
